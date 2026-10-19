@@ -1,0 +1,13 @@
+const {test}=require('node:test');const assert=require('node:assert/strict');const fs=require('node:fs/promises');const os=require('node:os');const path=require('node:path');const {Worker}=require('node:worker_threads');const {pathToFileURL}=require('node:url');const sharp=require('sharp');const {readSteamMetadata}=require('../src/catalogs.cjs');
+test('Steam metadata is reused across readers and invalidated when its file changes',async t=>{
+ const root=await fs.mkdtemp(path.join(os.tmpdir(),'orbit-metadata-'));t.after(()=>fs.rm(root,{recursive:true,force:true}));await fs.mkdir(path.join(root,'appcache'));const file=path.join(root,'appcache/appinfo.vdf'),buffer=Buffer.alloc(12);buffer.writeUInt32LE(0x07564428);await fs.writeFile(file,buffer);
+ const [a,b]=await Promise.all([readSteamMetadata(root),readSteamMetadata(root)]);assert.strictEqual(a,b);
+ await fs.writeFile(file,Buffer.concat([buffer,Buffer.alloc(4)]));assert.notStrictEqual(await readSteamMetadata(root),a);
+ await fs.writeFile(file,Buffer.from('bad'));await assert.rejects(readSteamMetadata(root));await fs.writeFile(file,buffer);assert.equal((await readSteamMetadata(root)).size,0);
+});
+test('account enrichment reuses completed discovery and retains installed and remembered copies',async t=>{
+ const root=await fs.mkdtemp(path.join(os.tmpdir(),'orbit-worker-'));t.after(()=>fs.rm(root,{recursive:true,force:true}));const image=path.join(root,'cover.png');await sharp({create:{width:32,height:48,channels:3,background:'#765499'}}).png().toFile(image);const cover=pathToFileURL(image).href;
+ const local={id:'steam:123',appId:'123',title:'Worker fixture',source:'Steam',origin:'scan',installed:true,cover};const discovery={records:[local],steamRoot:root,artwork:[],warnings:[],statuses:[{source:'Steam',count:1}],scannedAt:123};
+ const worker=new Worker(path.join(__dirname,'../src/scan-worker.cjs'),{workerData:{discovery,captureDiscovery:true,imports:[{id:'import:456',title:'Imported fixture',source:'Other',cover}],remembered:[{...local,installed:false}],preferences:{},artworkFolder:path.join(root,'artwork'),forceImages:false}});t.after(()=>worker.terminate());
+ const message=await new Promise((resolve,reject)=>{worker.once('message',resolve);worker.once('error',reject);worker.once('exit',code=>{if(code)reject(new Error('Worker exited '+code));});});assert.equal(message.ok,true);const result=message.result;assert.equal(result.records.length,3);assert.equal(result.scannedAt,123);assert.equal(result.records[0].installed,true);assert.equal(result.records[1].id,'import:456');assert.equal(result.records[2].installed,false);assert.deepEqual(result.statuses,discovery.statuses);assert.equal(result.discovery.records.length,1);assert.equal(result.coverStatus.available,2);
+});
