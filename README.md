@@ -45,6 +45,6 @@ Connect supported accounts to view available friends, activity, and recent games
 
 ## Open source
 
-Orbit is licensed under the MIT License. **Orbit-Source.zip** includes the application code, documentation, and tests. See the included contribution guide to build or modify the app.
+Orbit is licensed under the MIT License. The repository contains the application code, documentation, and tests. See [Contributing](CONTRIBUTING.md) to build or modify the app. Release source archives are also available.
 
 This is a Windows pre-release. The build is unsigned. Keep your original launchers installed when a game requires them for installation, updates, authentication, or launch.

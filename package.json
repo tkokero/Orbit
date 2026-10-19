@@ -1,0 +1,76 @@
+{
+  "name": "orbit-game-launcher",
+  "productName": "Orbit",
+  "version": "1.0.0-pre.5",
+  "description": "A unified Windows game library with installed-first deduplication.",
+  "main": "src/main.cjs",
+  "author": "Orbit",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test test/*.test.cjs",
+    "scan": "node scripts/scan.cjs",
+    "package": "electron-packager . Orbit --platform=win32 --arch=x64 --out=../ --overwrite --asar.unpackDir=node_modules/@img --ignore=^/test --ignore=^/scripts --ignore=^/node_modules/@img/sharp-wasm32",
+    "dist": "electron-builder --win nsis --x64 --publish never"
+  },
+  "devDependencies": {
+    "@electron/packager": "20.3.0",
+    "electron": "44.9.0",
+    "electron-builder": "26.15.3"
+  },
+  "dependencies": {
+    "electron-updater": "6.8.9",
+    "sharp": "^0.35.5",
+    "yaml": "^2.9.1"
+  },
+  "build": {
+    "appId": "io.github.tkokero.orbit",
+    "productName": "Orbit",
+    "directories": {
+      "output": "../installer"
+    },
+    "files": [
+      "src/**/*",
+      "package.json",
+      "LICENSE",
+      "README.md",
+      "THIRD_PARTY.md",
+      "CONTRIBUTING.md",
+      "THEMES.md",
+      "FRIENDS.md",
+      "VALIDATION.md"
+    ],
+    "asar": true,
+    "asarUnpack": [
+      "node_modules/@img/**/*"
+    ],
+    "npmRebuild": false,
+    "generateUpdatesFilesForAllChannels": true,
+    "publish": [
+      {
+        "provider": "generic",
+        "url": "https://github.com/tkokero/Orbit/releases/download/v1.0.0-pre.1",
+        "channel": "latest"
+      }
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "signExecutable": false,
+      "icon": "src/assets/orbit.ico"
+    },
+    "nsis": {
+      "artifactName": "Orbit-Setup.exe",
+      "oneClick": true,
+      "perMachine": false,
+      "allowElevation": false,
+      "runAfterFinish": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "deleteAppDataOnUninstall": false,
+      "installerIcon": "src/assets/orbit.ico",
+      "uninstallerIcon": "src/assets/orbit.ico"
+    }
+  }
+}
