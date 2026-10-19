@@ -23,7 +23,6 @@ If you used the older ZIP build, install **Orbit-Setup.exe** once to enable this
 - Favorite games, hide entries, or add an executable manually.
 - Use the recently played section to continue where you left off.
 - Right-click a game for quick actions and library management.
-- Close a pop-up with **Escape**, **Ctrl+W**, or a click outside it. Dismissing setup saves your place.
 
 ## Game details
 
