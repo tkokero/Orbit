@@ -1,5 +1,10 @@
 ## Welcome to Orbit.
 
+## Setup and specific Roblox games
+- A built-in setup wizard guides users through their real library and settings. Reopen it from Settings → General → Open setup guide.
+- Installation rows and Steam deals display cached game artwork.
+- A Roblox tab saves custom experience URLs or place IDs, with browser and optional direct-app launch methods.
+
 ## Synced up game library
 - Automatically discovers supported installed games and local library records, with Steam, Epic Games, and Others filters.
 - Combines duplicate titles and favors the installed copy. Games and Tools stay separate.
@@ -24,14 +29,18 @@
 - Status controls open the official Steam, Epic Games, or Discord interface. Epic and Discord provide client controls only, not live friend feeds.
 
 ## Lightweight and Open Source
-- Orbit uses close to 0 resources on your computer.
+- Artwork is cached and optional network features load when needed. Resource use depends on library size and active tasks.
 - Completely open for you to customize and tinker to your liking
 
 ## Download and run
-**Orbit-1.0-Windows-qol.zip**: extract and run **Orbit-win32-x64/Orbit.exe**. Keep the full folder together. The Windows build is unsigned.
+**Orbit-1.0-Windows-onboarding.zip**: extract and run **Orbit-win32-x64/Orbit.exe**. Keep the full folder together. The Windows build is unsigned.
 
-**Orbit-1.0-source-qol.zip**: complete MIT-licensed application source, tests, and documentation. Use this attached archive for the app source; GitHub's automatic source downloads reflect the repository tag.
+**Orbit-1.0-source-onboarding.zip**: complete MIT-licensed application source, tests, and documentation. Use this attached archive for the app source; GitHub's automatic source downloads reflect the repository tag.
 
-**Orbit-demo-qol.zip**: extract and open **index.html** for the separate browser preview. **Orbit-demo-qol.gif** is an animated walkthrough. Both use familiar game names, sample friends/statistics, and original placeholder artwork; neither uses your personal library.
+## Quick start
+1. Extract the current Windows build and run `Orbit-win32-x64/Orbit.exe`. Keep its folder together.
+2. Follow the setup wizard. Choose Do this later to save your place, or Finish setup when ready. Reopen it from Settings → General → Open setup guide.
+3. To save a specific Roblox experience, open Roblox in the sidebar, enter its name and full `https://www.roblox.com/games/PLACE_ID/...` URL in Roblox settings, and select Save experience.
+4. Choose Browser game page to open that game and press Play on Roblox, or Roblox app for a supported direct launch. Roblox must be installed and signed in for client play. Short share links should be opened in your browser first; copy the full game page URL.
 
-**README-current.md**, **FRIENDS.md**, **THEMES.md**, and **VALIDATION-current.md**: general usage, social capabilities, customization, and validation details.
+The source archive includes the complete usage guide, theme documentation, integration notes, license, tests, and validation report. The tutorial is built into the actual application; no separate demo is required.
