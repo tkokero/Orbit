@@ -86,3 +86,5 @@ select,.search-box input,.settings-tabs,.view-toggle{border-radius:var(--control
 .setup-steps [aria-current]{background:color-mix(in srgb,var(--panel),var(--accent) 12%);color:var(--text)}
 .setting-switch:focus-visible{outline-offset:4px}
 button:disabled{filter:none}
+
+.computer-specs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:18px 0}.computer-specs>div{min-width:0}.computer-specs dt{font-size:10px;color:var(--muted);margin-bottom:5px}.computer-specs dd{font-size:12px;color:var(--text);margin:0;overflow-wrap:anywhere}
