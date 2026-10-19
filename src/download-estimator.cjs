@@ -1,0 +1,5 @@
+class DownloadEstimator{
+ constructor(clock=Date.now){this.clock=clock;this.samples=new Map();}
+ observe(id,progress){const now=this.clock();if(!progress){this.samples.delete(id);return null;}const active=/^(Download|Installing)$/.test(progress.phase)&&Number.isFinite(progress.done)&&progress.total>progress.done;let old=this.samples.get(id);if(!active){this.samples.delete(id);return {...progress,sampledAt:now,etaSeconds:null,bytesPerSecond:null};}if(!old||old.phase!==progress.phase||progress.done<old.done||progress.total!==old.total||now-old.at>120000){old={at:now,startedAt:now,done:progress.done,total:progress.total,phase:progress.phase,rate:null};this.samples.set(id,old);}else if(now-old.at>=1000){const instant=(progress.done-old.done)/((now-old.at)/1000);old={...old,rate:instant>0?(old.rate?old.rate*.35+instant*.65:instant):null,done:progress.done,at:now};this.samples.set(id,old);}return {...progress,sampledAt:old.at,observedSince:old.startedAt,bytesPerSecond:old.rate,etaSeconds:old.rate?Math.ceil((progress.total-progress.done)/old.rate):null};}
+}
+module.exports={DownloadEstimator};
