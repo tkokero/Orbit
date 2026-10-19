@@ -191,6 +191,7 @@ function setupHandlers() {
   handle('store:icon',async id=>{const image=storeService.dealImages.get(String(id));return image?downloadImage(image,path.join(app.getPath('userData'),'store-artwork'),{kind:'icon'}):null;});
   handle('store:deals',country=>storeService.deals(country));
   handle('store:open',async id=>{if(!/^\d+$/.test(String(id)))throw new Error('Invalid Steam game.');if(!smoke)await shell.openExternal('https://store.steampowered.com/app/'+id+'/');});
+  handle('system:info',refresh=>storeService.system(undefined,refresh===true));
   handle('system:check',id=>{const game=gameById(id),version=game.versions.find(v=>v.source==='Steam'||v.equivalentSteamId);return storeService.check(version?.appId||version?.equivalentSteamId,game.versions.find(v=>v.installed)?.location);});
   handle('installer:open',id=>openInstaller({dialog,shell,parent:window,title:id?gameById(id).title:null,smoke}));
   handle('installer:store',async source=>{const url=storeDestination(source);if(!smoke)await shell.openExternal(url);});
