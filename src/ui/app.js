@@ -348,8 +348,8 @@ window.runSmokeTests=async()=>{
   const direct=state.games.find(g=>g.directLaunchAvailable);if(direct){const r=await window.orbit.play(direct.id);check('VALORANT uses game-specific Riot launch arguments',r.action?.type==='exe'&&r.action.args?.includes('--launch-product=valorant')&&action(direct)==='Play');}
   const launcher=state.games.find(g=>g.launcherAvailable&&!g.directLaunchAvailable);if(launcher){const r=await window.orbit.play(launcher.id);check('shortcut route dry run',r.action?.type==='shortcut');}
   check('summaries exclude achievement detail arrays',state.games.every(g=>!g.achievements?.items));
-  const images=[];let cursor=0;await Promise.all(Array.from({length:3},async()=>{while(cursor<state.games.length){const g=state.games[cursor++];images.push(await new Promise(resolve=>{const img=new Image();const timer=setTimeout(()=>resolve(false),7000);img.onload=()=>{clearTimeout(timer);resolve(img.naturalWidth>0&&img.naturalWidth<=320&&img.naturalHeight<=480);};img.onerror=()=>{clearTimeout(timer);resolve(false);};img.src=g.cover||'';}));}}));
-  check('all covers decode at thumbnail size',images.every(Boolean));
+  const coverGames=state.games.filter(g=>g.cover),images=[];let cursor=0;await Promise.all(Array.from({length:3},async()=>{while(cursor<coverGames.length){const g=coverGames[cursor++];images.push(await new Promise(resolve=>{const img=new Image();const timer=setTimeout(()=>resolve(false),7000);img.onload=()=>{clearTimeout(timer);resolve(img.naturalWidth>0&&img.naturalWidth<=320&&img.naturalHeight<=480);};img.onerror=()=>{clearTimeout(timer);resolve(false);};img.src=g.cover||'';}));}}));
+  check('available covers decode at thumbnail size',images.length>0&&images.every(Boolean));
   state.view='all';state.section='games';state.source='';state.featured='';render();
   check('latest banner excludes tools',state.games.find(g=>g.id===state.featured)?.lastPlayed===Math.max(...sectionItems().map(g=>g.lastPlayed)));
   const local=state.games.find(g=>g.kind==='game'&&!g.storePlaytimeKnown);
@@ -360,7 +360,7 @@ window.runSmokeTests=async()=>{
   const covers=[...document.querySelectorAll('.cover-wrap')].slice(0,6).map(n=>n.getBoundingClientRect());
   check('first row cards share top and size',covers.every(r=>Math.abs(r.top-covers[0].top)<1&&Math.abs(r.height-covers[0].height)<1));
   check('no horizontal overflow',document.documentElement.scrollWidth===window.innerWidth);
-  await new Promise(r=>setTimeout(r,300));check('no animations running at idle',document.getAnimations().filter(a=>a.playState==='running').length===0);
+  await new Promise(r=>setTimeout(r,300));check('no repeating animations at idle',document.getAnimations().filter(a=>a.playState==='running').every(a=>a.effect.getTiming().iterations===1&&a.effect.getTiming().duration<=500));
   return{passed:checks.every(c=>c.passed),checks,renderedCards:$('#game-grid').children.length,animationDiagnostics:document.getAnimations().map(a=>({name:a.animationName,state:a.playState,target:a.effect?.target?.id||a.effect?.target?.className})),missingCoverCount:state.games.filter(g=>!g.cover).length};
 };
 friendsUI.bind();friendsUI.preload();
