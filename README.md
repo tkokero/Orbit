@@ -4,10 +4,17 @@ Orbit brings your game libraries into one place. Find installed games, organize 
 
 ## Get started
 
-1. Download **Orbit-Windows.zip** from [Releases](https://github.com/tkokero/Orbit/releases/tag/v1.0.0-pre.1).
-2. Extract the entire archive and run **Orbit.exe** inside the extracted folder. Keep the folder's files together.
-3. Follow the setup guide to discover your libraries and choose your preferences. You can skip optional connections and return to setup from **Settings → General**.
-4. Choose a game and select **Play**, or open **Details** for more options.
+1. Download **Orbit-Setup.exe** from [Releases](https://github.com/tkokero/Orbit/releases/tag/v1.0.0-pre.1) and run it once. Orbit installs for your Windows account and opens automatically.
+2. Orbit prepares your library behind its startup screen. Follow the setup guide, or skip optional connections and return from **Settings → General**.
+3. Choose a game and select **Play**, or open **Details** for more options.
+
+## Updates
+
+The installed app checks for updates at startup and every six hours, downloads them in the background, saves its state, then closes and opens the new version. Your library settings and tracked hours stay in your existing profile. Orbit does not close your games.
+
+**Settings → General** lets you disable automatic checks or automatic restarts. Use **Check for updates** to check manually, or **Restart now** when an update is ready. A failed download leaves the current app in place.
+
+If you used the older ZIP build, install **Orbit-Setup.exe** once to enable this. The ZIP is still available for manual portable use; it does not replace itself automatically. Quit any older tray copy before opening the installed version.
 
 ## Your library
 
@@ -16,6 +23,7 @@ Orbit brings your game libraries into one place. Find installed games, organize 
 - Favorite games, hide entries, or add an executable manually.
 - Use the recently played section to continue where you left off.
 - Right-click a game for quick actions and library management.
+- Close a pop-up with **Escape**, **Ctrl+W**, or a click outside it. Dismissing setup saves your place.
 
 ## Game details
 
@@ -29,7 +37,7 @@ Check published system requirements against your computer where supported. Some 
 
 ## Make it yours
 
-Choose a built-in theme or create, import, and export your own palette. Settings include startup behavior, automatic library discovery, motion preferences, and display options. Reopen the setup guide whenever you need it.
+Choose a built-in theme or create, import, and export your own palette. Settings include startup behavior and animation, automatic library discovery, friends preloading and presence refresh, motion preferences, and display options. Reopen the setup guide whenever you need it.
 
 ## Friends
 
