@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' file: https: data:; connect-src 'none'; object-src 'none'; base-uri 'none'">
+  <title>Orbit</title><link rel="stylesheet" href="styles.css">
+</head>
+<body class="booting">
+  <div id="orbit-boot" aria-label="Orbit is starting" role="status"><div class="boot-scene" aria-hidden="true"><div class="boot-halo"></div><div class="boot-ring ring-one"></div><div class="boot-ring ring-two"></div><div class="boot-planet"></div><div class="boot-track"><span></span></div><div class="boot-wordmark">ORBIT</div></div></div>
+  <div class="titlebar"><strong><span class="orbit-mark" aria-hidden="true"></span>Orbit</strong><div class="window-buttons"><button data-window="minimize" aria-label="Minimize">−</button><button data-window="maximize" aria-label="Maximize">□</button><button data-window="close" aria-label="Close"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></div></div>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <nav id="navigation" aria-label="Library">
+        <button class="nav-item active" data-section="games">Games <span id="games-count" class="count">0</span></button>
+        <button class="nav-item" data-section="tools">Tools <span id="tools-count" class="count">0</span></button>
+        <button class="nav-item" data-section="friends">Friends <span id="friends-count" class="count">—</span></button><div class="nav-divider"></div>
+        <button class="nav-item" data-view="installed">Installed <span id="installed-count" class="count">0</span></button>
+        <button class="nav-item" data-view="favorites">Favorites <span id="favorite-count" class="count">0</span></button>
+        <button class="nav-item" data-view="uninstalled">Not installed</button>
+      </nav>
+      <div class="sidebar-heading">Platforms</div><div id="source-navigation"></div>
+      <div class="sidebar-bottom"><button id="settings-button" class="nav-item">Settings</button></div>
+    </aside>
+    <main id="main-scroll">
+      <header class="toolbar"><div class="heading"><h1 id="page-title">Games</h1><span id="section-count" class="count"></span></div><div class="toolbar-right"><span id="sync-status" role="status"></span><button id="warning-button" hidden></button><button id="refresh" class="subtle-button">Refresh</button><button id="add-game" class="subtle-button">Add game</button></div></header>
+      <div class="content" id="library-panel">
+        <section class="hero" id="hero" aria-label="Recently played"><img id="hero-image" alt=""><div class="hero-shade"></div><div class="hero-content"><span id="hero-kicker" class="eyebrow">Recently played</span><h2 id="hero-title">Your library</h2><p id="hero-description"></p><div class="hero-actions"><button class="primary-button" id="hero-play" disabled>Play</button><button id="hero-details" class="hero-secondary" disabled>Details</button></div></div></section>
+        <div id="recent-games" class="recent-games" aria-label="Recent games"></div>
+        <section id="downloads" class="downloads" aria-label="Installations" hidden></section>
+        <details id="steam-deals" class="steam-deals"><summary>Steam deals <span>Featured discounts</span></summary><div class="deals-toolbar"><label>Store region <select id="deal-region" aria-label="Steam deal region"><option value="US">United States · USD</option><option value="GB">United Kingdom · GBP</option><option value="CA">Canada · CAD</option><option value="AU">Australia · AUD</option><option value="DE">Germany · EUR</option><option value="JP">Japan · JPY</option></select></label><button id="deals-refresh" class="subtle-button">Refresh deals</button></div><div id="deals-list" class="deals-list"></div><p id="deals-note" class="small-note"></p></details><div class="library-controls"><label class="search-box"><input id="search" type="search" placeholder="Search games" aria-label="Search library"></label><div class="filters"><select id="sort" aria-label="Sort"><option value="recent">Recently played</option><option value="az">Name</option><option value="installed">Installed first</option><option value="platform">Platform</option></select><div class="view-toggle"><button id="grid-view" class="active">Grid</button><button id="list-view">List</button></div></div></div>
+        <div id="game-grid" class="game-grid"></div>
+        <div id="empty" class="empty" hidden><h3>Nothing here just yet</h3><p>Try another search or clear your filters.</p><button id="empty-action" class="subtle-button">Clear filters</button></div>
+        <div id="pagination" class="pagination"><span id="page-range"></span><div><button id="previous-page" class="subtle-button">Previous</button><button id="next-page" class="subtle-button">Next</button></div></div>
+      </div>
+
+      <section class="content friends-panel" id="friends-panel" hidden>
+        <div class="friends-heading"><h2>Your people, across platforms</h2><p id="friends-updated"></p></div>
+        <div id="friends-platforms" class="social-platforms"></div><p id="friends-error" class="social-error" role="status" hidden></p>
+        <div class="friends-controls"><label class="search-box"><input id="friends-search" type="search" placeholder="Find a friend or game" aria-label="Search friends"></label><div class="filters"><select id="friends-platform-filter" aria-label="Friends platform"><option value="all">All platforms</option><option>Steam</option><option>Epic Games</option><option>Discord</option></select><div class="view-toggle"><button id="friends-online" aria-pressed="true">Online</button><button id="friends-all" aria-pressed="false">All friends</button></div></div></div>
+        <div id="friends-grid" class="friends-grid"></div><div id="friends-empty" class="empty" hidden><h3 id="friends-empty-title"></h3><p id="friends-empty-note"></p><button id="friends-empty-connect" class="primary-button">Connect Steam friends</button></div>
+        <div id="friends-pagination" class="pagination" hidden><span id="friends-page-range"></span><div><button id="friends-previous" class="subtle-button">Previous</button><button id="friends-next" class="subtle-button">Next</button></div></div>
+      </section>
+    </main>
+  </div>
+  <dialog id="modal" closedby="closerequest"><div class="modal-header"><h2 id="modal-title"></h2><button id="modal-close" class="icon-button" aria-label="Close dialog"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></div><div id="modal-body"></div></dialog>
+  <div id="toast" role="status" hidden></div><script src="boot.js"></script><script src="themes.js"></script><script src="friends.js"></script><script src="icons.js"></script><script src="app.js"></script><script src="utilities.js"></script><script src="roblox.js"></script><script src="setup.js"></script>
+</body>
+</html>
