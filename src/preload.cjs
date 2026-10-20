@@ -1,10 +1,18 @@
 const { contextBridge, ipcRenderer } = require('electron');
 const invoke = async (name, ...args) => { const result = await ipcRenderer.invoke(name, ...args); if (!result.ok) throw new Error(result.error); return result.data; };
 contextBridge.exposeInMainWorld('orbit', {
+  diagnoseLaunch:id=>invoke('launch:diagnose',id),saveBackups:id=>invoke('saves:list',id),chooseSaveFolder:id=>invoke('saves:folder',id),backupSaves:id=>invoke('saves:backup',id),previewSaves:input=>invoke('saves:preview',input),restoreSaves:input=>invoke('saves:restore',input),
+  sessions:()=>invoke('sessions:get'),focusGame:id=>invoke('sessions:focus',id),
+  onSessions:callback=>{const fn=(_e,data)=>callback(data);ipcRenderer.on('sessions:update',fn);return()=>ipcRenderer.removeListener('sessions:update',fn);},
+  onDownloadComplete:callback=>{const fn=(_e,data)=>callback(data);ipcRenderer.on('download:complete',fn);return()=>ipcRenderer.removeListener('download:complete',fn);},
+  collections:()=>invoke('collections:get'),saveCollection:input=>invoke('collections:save',input),assignCollections:input=>invoke('collections:assign',input),
+  launchProfile:id=>invoke('profile:get',id),saveLaunchProfile:input=>invoke('profile:save',input),chooseLaunchExecutable:()=>invoke('profile:choose'),
+  backup:ui=>invoke('backup:export',ui),previewRestore:()=>invoke('backup:preview'),restore:ui=>invoke('backup:restore',ui),cleanup:()=>invoke('cleanup:preview'),applyCleanup:ids=>invoke('cleanup:apply',ids),
   updateStatus:()=>invoke('updates:status'),checkUpdates:()=>invoke('updates:check'),installUpdate:()=>invoke('updates:install'),getUpdateInstaller:()=>invoke('updates:installer'),
   onUpdateStatus:callback=>{const listener=(_e,data)=>callback(data);ipcRenderer.on('updates:status',listener);return()=>ipcRenderer.removeListener('updates:status',listener);},
   robloxLibrary:()=>invoke('roblox:get'),saveRoblox:input=>invoke('roblox:save',input),removeRoblox:id=>invoke('roblox:remove',id),robloxMode:mode=>invoke('roblox:mode',mode),launchRoblox:(id,browser=false)=>invoke('roblox:launch',{id,browser}),robloxIcon:id=>invoke('roblox:icon',id),
   getSetup:()=>invoke('setup:get'),saveSetup:input=>invoke('setup:save',input),gameIcon:id=>invoke('game:icon',id),storeIcon:id=>invoke('store:icon',id),
+  openFpsSource:id=>invoke('fps:source',id),runFpsEstimate:id=>invoke('fps:hardware',id),
   deals:country=>invoke('store:deals',country),openStore:id=>invoke('store:open',id),systemInfo:refresh=>invoke('system:info',refresh===true),checkSystem:id=>invoke('system:check',id),runInstaller:id=>invoke('installer:open',id),openInstallStore:source=>invoke('installer:store',source),
   friendActivity:id=>invoke('social:activity',id), friendImage:(id,gameId)=>invoke('social:image',{id,gameId}), getSocial:()=>invoke('social:get'), refreshSocial:()=>invoke('social:refresh'), connectSteamFriends:input=>invoke('social:connect-steam',input), disconnectSocial:()=>invoke('social:disconnect'), openSocialClient:provider=>invoke('social:open-client',provider), friendProfile:id=>invoke('social:profile',id),
   importTheme:()=>invoke('theme:import'), exportTheme:theme=>invoke('theme:export',theme),

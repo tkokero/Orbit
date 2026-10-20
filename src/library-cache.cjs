@@ -1,0 +1,4 @@
+const fs=require('node:fs/promises');
+async function readCache(file){if((await fs.stat(file)).size>30e6)throw Error('Library cache is too large.');const data=JSON.parse(await fs.readFile(file,'utf8'));if(!Array.isArray(data.records)||data.records.length>30000||data.records.some(r=>!r||typeof r.id!=='string'||typeof r.title!=='string'||typeof r.source!=='string'))throw Error('Invalid library cache.');return {...data,records:data.records.map(r=>({...r,cover:r.cover?.startsWith('file:')?r.cover:undefined})),hero:(Array.isArray(data.hero)?data.hero:[]).filter(row=>Array.isArray(row)&&typeof row[0]==='string'&&typeof row[1]==='string'&&row[1].startsWith('file:'))};}
+async function writeCache(file,data){await fs.writeFile(file+'.tmp',JSON.stringify(data));await fs.rename(file+'.tmp',file);}
+module.exports={readCache,writeCache};

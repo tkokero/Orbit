@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, shell, Menu, clipboard, powerMonitor, safeStorage } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell, Menu, clipboard, powerMonitor, safeStorage, Notification, net } = require('electron');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const { spawn, execFile } = require('node:child_process');
@@ -20,11 +20,21 @@ const robloxImages=new RobloxImages();
 const {openInstaller,storeDestination}=require('./installers.cjs');
 const {StoreService}=require('./store-service.cjs');
 const {DownloadEstimator}=require('./download-estimator.cjs');
+const {estimateHardware,referenceFor}=require('./hardware-fps.cjs');
 const storeService=new StoreService(),downloadEstimator=new DownloadEstimator();
 let social, socialVault, steamFriendHint='';
 let tracker, discoveredRunning = false, monitor, rescanTimer;
 const { validate:validateTheme } = require('./ui/themes.js');
-const settingsDefaults={autoDiscover:true,startMinimized:false,minimizeOnPlay:false,closeToTray:true,autoLoadFriends:true,refreshFriends:true,autoUpdates:true,restartForUpdates:true};
+const {readCache,writeCache}=require('./library-cache.cjs');
+const {SaveBackups}=require('./save-backups.cjs');
+const {diagnose}=require('./launch-health.cjs');
+let saveBackups,cachedLibrary=false,initialLibrary=true;
+const offline=()=>Boolean(store?.settings?.offlineMode)||!net.isOnline();
+const libraryTools=require('./library-tools.cjs');
+const {RunningGames}=require('./running-games.cjs');
+let runningGames,runningTimer,stagedBackup,cleanupPreview=[];
+const activeNotifications=new Set();
+const settingsDefaults={offlineMode:false,downloadNotifications:true,autoDiscover:true,startMinimized:false,minimizeOnPlay:false,closeToTray:true,autoLoadFriends:true,refreshFriends:true,autoUpdates:true,restartForUpdates:true};
 const {attachTray}=require('./tray.cjs');
 let tray;
 const smoke = process.argv.includes('--smoke-test');
@@ -51,18 +61,18 @@ function library() { const games = mergedCache ||= mergeLibrary([...records,...r
 function snapshot() {
   const games = library();
   return { games: games.map(g => ({ id: g.id, title: g.title, robloxPlaceId:g.robloxPlaceId, kind: g.kind, installed: g.installed, launcherAvailable: g.launcherAvailable, directLaunchAvailable:g.directLaunchAvailable, installationProgress:g.installationProgress,
-    selected: g.selected, sources: g.sources, cover: g.cover, hero: heroCache.get(g.id), favorite: g.favorite, hidden: g.hidden,
+    sizeBytes:g.sizeBytes,selected: g.selected, sources: g.sources, collections:store.preferences[g.id]?.collections||[], cover: g.cover, hero: heroCache.get(g.id), favorite: g.favorite, hidden: g.hidden,
     lastPlayed: g.lastPlayed, playtime: g.playtime, playtimeKnown: g.playtimeKnown, storePlaytimeKnown: g.storePlaytimeKnown, localPlaytime: g.localPlaytime, statsSource: g.statsSource, tracking: g.tracking,
     achievements: g.achievements ? { total: g.achievements.total, unlocked: g.achievements.unlocked } : null,
     versions: g.versions.map(v => ({ id: v.id, source: v.source, installed: v.installed, launcherAvailable: v.launcherAvailable })) })),
-    settings: settingsSnapshot(), warnings: scanWarnings, scannedAt, steamId: store.steamId, connections, coverStatus,
+    offline:offline(),cached:cachedLibrary, settings: settingsSnapshot(), warnings: scanWarnings, scannedAt, steamId: store.steamId, connections, coverStatus,
     sources: STORES.map(name => ({ name, games: games.filter(g => g.sources.includes(name)).length })) };
 }
 function scanInWorker(forceImages,discovery) {
   return new Promise((resolve, reject) => {
     const worker = new Worker(path.join(__dirname, 'scan-worker.cjs'), { workerData: {
       imports: store.imports, remembered: store.remembered, preferences: store.preferences,
-      artworkFolder: path.join(app.getPath('userData'), 'artwork'), forceImages,discovery,captureDiscovery:!smoke&&!accountSynced
+      offline:offline(),cachedRecords:records,artworkFolder: path.join(app.getPath('userData'), 'artwork'), forceImages,discovery,captureDiscovery:!smoke&&!accountSynced
     } });
     let delivered = false;
     worker.once('message', async message => {
@@ -79,19 +89,19 @@ async function refresh(forceImages = false) {
   scanning = (async () => {
     let result = await scanInWorker(forceImages);
     steamRoot = result.steamRoot;
-    if (!smoke && !accountSynced) {
+    if (!smoke && !offline() && !accountSynced) {
       accountSynced = true;
       store.steamConnected = false;
       try { const account = await connectSteam({ parent: window, steamRoot }); if (account) { upsert(account.records); store.steamConnected = true; store.steamUnresolved = account.unresolved.length; result = await scanInWorker(forceImages,result.discovery); } }
       catch (e) { result.warnings.push(e.message); }
     }
     const memory = retainedRecords(store.remembered).map(g => ({ ...g, installed: false }));
-    records = result.records;
+    records = result.records;cachedLibrary=false;
     for(const r of records)if(r.origin==='scan')r.installationProgress=downloadEstimator.observe(r.id,r.installationProgress);
     mergedCache = null;
     coverStatus = result.coverStatus;
-    heroCache.clear();
-    if (result.featuredId) heroCache.set(result.featuredId, result.hero);
+    if(!offline())heroCache.clear();
+    if (result.featuredId&&result.hero) heroCache.set(result.featuredId, result.hero);
     connections = result.statuses;
     if (store.steamConnected) {
       const steam = connections.find(c => c.source === 'Steam');
@@ -111,6 +121,7 @@ async function refresh(forceImages = false) {
     scanWarnings = result.warnings;
     scannedAt = result.scannedAt;
     await save();
+    if(!smoke){const file=path.join(app.getPath('userData'),'library-cache.json');await writeCache(file,{records,scannedAt,steamRoot,hero:[...heroCache]});}
     await configureMonitor();
     for (const g of library()) if (nativePlaytime(g) || g.kind !== 'game') { if (tracker.ledger.sessions.has(g.id) || tracker.pending.has(g.id)) await tracker.stop(g.id); }
     if (!smoke && !discoveredRunning) { discoveredRunning = true; tracker.discoverRunning(library()).catch(() => {}); }
@@ -121,7 +132,12 @@ async function refresh(forceImages = false) {
 function handle(name, fn) {
   ipcMain.handle(name, async (event, ...args) => {
     if (event.sender !== window.webContents || event.senderFrame !== window.webContents.mainFrame) throw new Error('Untrusted caller.');
-    try { return { ok: true, data: await fn(...args) }; }
+    try {
+      if(offline()&&['steam:connect','steam:sync','epic:sync','social:connect-steam','store:deals','system:check','library:repair-images','game:repair-image','updates:check'].includes(name))throw Error('This feature needs a connection. Turn off Offline mode in Settings when you are ready.');
+      if(offline()&&['social:refresh'].includes(name))return {ok:true,data:socialSnapshot()};
+      if(offline()&&['store:icon','roblox:icon','social:image','game:achievement-image'].includes(name))return {ok:true,data:null};
+      return { ok: true, data: await fn(...args) };
+    }
     catch (e) { return { ok: false, error: e.message || 'Something went wrong.' }; }
   });
 }
@@ -154,6 +170,10 @@ async function configureMonitor(){
         const matches=records.filter(r=>r.id===id);if(!matches.length){rescan=true;continue;}if(!matches.some(r=>r.origin==='scan'))rescan=true;
         const progress=downloadEstimator.observe(id,installationProgress(appState));
         const installed=Boolean(Number(appState.StateFlags)&4)&&Boolean(appState.installdir)&&await exists(path.join(event.folder,'common',appState.installdir));
+        if(matches.some(r=>libraryTools.completedDownload(r.installationProgress,progress,appState,installed))&&store.settings.downloadNotifications&&!smoke&&Notification.isSupported()){
+          const title=matches[0].title,n=new Notification({title:'Ready to play',body:title+' has finished installing. Click to open Orbit.'});activeNotifications.add(n);
+          n.on('click',()=>{if(window&&!window.isDestroyed()){window.show();window.focus();window.webContents.send('download:complete',{id,title});}});n.on('close',()=>activeNotifications.delete(n));n.show();
+        }
         for(const r of matches){if(r.origin==='scan'&&r.installed!==installed)rescan=true;r.installationProgress=progress;}changed=true;
       }catch{rescan=true;}
     }
@@ -187,10 +207,13 @@ function setupHandlers() {
   handle('roblox:icon',async id=>{const entry=store.roblox?.games.find(g=>g.id===String(id));if(!entry)return null;const image=await robloxImages.icon(entry.placeId);return image?downloadImage(image,path.join(app.getPath('userData'),'roblox-artwork'),{kind:'icon'}):null;});
   handle('setup:get',()=>store.setup||{step:0,status:'new'});
   handle('setup:save',async input=>{if(!Number.isInteger(input?.step)||input.step<0||input.step>5||!['started','later','complete'].includes(input.status))throw new Error('Invalid setup state.');store.setup={step:input.step,status:input.status};await save();return store.setup;});
-  handle('game:icon',async id=>{const game=gameById(id);if(game.cover){const image=await downloadImage(game.cover,path.join(app.getPath('userData'),'artwork'),{kind:'icon'});if(image)return image;}const executable=game.versions.find(v=>v.executable)?.executable;if(executable&&await exists(executable))try{return (await app.getFileIcon(executable,{size:'small'})).toDataURL();}catch{}return null;});
+  handle('game:icon',async id=>{const game=gameById(id);if(game.cover&&(!offline()||game.cover.startsWith('file:'))){const image=await downloadImage(game.cover,path.join(app.getPath('userData'),'artwork'),{kind:'icon'});if(image)return image;}const executable=game.versions.find(v=>v.executable)?.executable;if(executable&&await exists(executable))try{return (await app.getFileIcon(executable,{size:'small'})).toDataURL();}catch{}return null;});
   handle('store:icon',async id=>{const image=storeService.dealImages.get(String(id));return image?downloadImage(image,path.join(app.getPath('userData'),'store-artwork'),{kind:'icon'}):null;});
   handle('store:deals',country=>storeService.deals(country));
   handle('store:open',async id=>{if(!/^\d+$/.test(String(id)))throw new Error('Invalid Steam game.');if(!smoke)await shell.openExternal('https://store.steampowered.com/app/'+id+'/');});
+  handle('fps:source',async id=>{const reference=referenceFor(gameById(id).title);if(!reference)throw new Error('No publisher FPS reference for this game.');if(!smoke)await shell.openExternal(reference.url);return true;});
+  handle('fps:hardware',async id=>{const game=gameById(id);if(game.kind!=='game')throw new Error('Choose a game to estimate.');const location=game.versions.find(v=>v.installed)?.location,version=game.versions.find(v=>v.source==='Steam'||v.equivalentSteamId),appId=version?.appId||version?.equivalentSteamId;const [pc,requirements]=await Promise.all([storeService.system(location),!offline()&&appId?storeService.check(appId,location).catch(()=>null):Promise.resolve(null)]);return estimateHardware(game,pc,requirements);});
+
   handle('system:info',refresh=>storeService.system(undefined,refresh===true));
   handle('system:check',id=>{const game=gameById(id),version=game.versions.find(v=>v.source==='Steam'||v.equivalentSteamId);return storeService.check(version?.appId||version?.equivalentSteamId,game.versions.find(v=>v.installed)?.location);});
   handle('installer:open',id=>openInstaller({dialog,shell,parent:window,title:id?gameById(id).title:null,smoke}));
@@ -217,8 +240,35 @@ function setupHandlers() {
       app.setLoginItemSettings({openAtLogin:change.launchAtLogin,path:process.execPath,args:['--startup']});
     }
     for(const key of Object.keys(settingsDefaults))if(typeof change?.[key]==='boolean')store.settings[key]=change[key];
-    await save();if(typeof change?.autoDiscover==='boolean')await configureMonitor();if('autoUpdates' in change||'restartForUpdates' in change)updates.settingsChanged();return settingsSnapshot();
+    await save();if(typeof change?.autoDiscover==='boolean')await configureMonitor();if('autoUpdates' in change||'restartForUpdates' in change||'offlineMode' in change){if(offline())updates.stop();else updates.settingsChanged();}return settingsSnapshot();
   });
+  handle('sessions:get',async()=>{if(smoke)return [];return runningGames.scan();});
+  handle('sessions:focus',id=>smoke?true:runningGames.focus(id));
+  handle('collections:get',()=>store.collections||[]);
+  handle('collections:save',async input=>{
+    const name=String(input?.name||'').trim();if(!name||name.length>40)throw Error('Use a collection name under 40 characters.');
+    store.collections||=['Playing','Backlog','Finished'];
+    if(input.remove){store.collections=store.collections.filter(x=>x!==name);for(const p of Object.values(store.preferences))if(p.collections)p.collections=p.collections.filter(x=>x!==name);}
+    else if(!store.collections.includes(name)){if(store.collections.length>=50)throw Error('You can create up to 50 collections.');store.collections.push(name);}
+    mergedCache=null;await save();return store.collections;
+  });
+  handle('collections:assign',async({id,names})=>{gameById(id);if(!Array.isArray(names)||names.some(n=>!store.collections?.includes(n)))throw Error('Choose an existing collection.');store.preferences[id]={...store.preferences[id],collections:[...new Set(names)]};mergedCache=null;await save();return snapshot();});
+  handle('profile:get',id=>libraryTools.profile(store.preferences[gameById(id).id]?.profile));
+  handle('profile:save',async({id,value})=>{gameById(id);const p=libraryTools.profile(value);if(p.tools.some(t=>t===id||gameById(t).kind!=='tool'))throw Error('Choose supporting tools only.');store.preferences[id]={...store.preferences[id],profile:p};await save();return p;});
+  handle('profile:choose',async()=>{const r=await dialog.showOpenDialog(window,{title:'Choose preferred executable',properties:['openFile'],filters:[{name:'Executable',extensions:['exe']}]});return r.canceled?null:r.filePaths[0];});
+  handle('backup:export',async ui=>{await tracker.save();const data=libraryTools.backup(store,tracker.ledger,ui,tracker.configs);const r=await dialog.showSaveDialog(window,{title:'Back up Orbit',defaultPath:'Orbit-Backup.json',filters:[{name:'Orbit backup',extensions:['json']}]});if(r.canceled)return null;await fs.writeFile(r.filePath,JSON.stringify(data,null,2));return true;});
+  handle('backup:preview',async()=>{const r=await dialog.showOpenDialog(window,{title:'Restore Orbit backup',properties:['openFile'],filters:[{name:'Orbit backup',extensions:['json']}]});if(r.canceled)return null;if((await fs.stat(r.filePaths[0])).size>20e6)throw Error('Backup must be under 20 MB.');stagedBackup=libraryTools.validateBackup(JSON.parse(await fs.readFile(r.filePaths[0],'utf8')));return {savedAt:stagedBackup.savedAt,games:stagedBackup.imports.length,preferences:Object.keys(stagedBackup.preferences).length,collections:stagedBackup.collections.length,hours:Object.values(stagedBackup.playtime.totals).reduce((a,t)=>a+t.seconds/3600,0)};});
+  handle('backup:restore',async ui=>{
+    if(!stagedBackup)throw Error('Choose a backup first.');if(tracker.ledger.sessions.size||runningGames?.sessions.size)throw Error('Close running games and stop manual timers before restoring.');
+    const data=stagedBackup;stagedBackup=null;
+    await fs.writeFile(path.join(app.getPath('userData'),'before-restore-'+Date.now()+'.json'),JSON.stringify(libraryTools.backup(store,tracker.ledger,ui,tracker.configs),null,2));
+    for(const r of data.imports)if(r.executable)r.installed=await exists(r.executable);
+    store.preferences=data.preferences;store.imports=data.imports;store.collections=data.collections;store.roblox=data.roblox;store.settings={...settingsDefaults,...data.settings};
+    tracker.ledger.totals=data.playtime.totals;tracker.configs=data.playtime.configs;await tracker.save();await save();mergedCache=null;updates?.settingsChanged();
+    return {ui:data.ui,library:await refresh()};
+  });
+  handle('cleanup:preview',async()=>cleanupPreview=await libraryTools.inspectLibrary(library(),exists));
+  handle('cleanup:apply',async ids=>{if(!Array.isArray(ids))throw Error('Choose entries to hide.');const allowed=new Set(cleanupPreview.filter(x=>x.action==='hide').map(x=>x.id));if(ids.some(id=>!allowed.has(id)))throw Error('Run a cleanup preview first.');for(const id of ids)store.preferences[id]={...store.preferences[id],hidden:true};cleanupPreview=[];mergedCache=null;await save();return snapshot();});
   handle('data:open',()=>shell.openPath(app.getPath('userData')));
   handle('downloads:open',source=>{const urls={'Steam':'steam://nav/downloads','Epic Games':'com.epicgames.launcher://library'};if(!urls[source])throw new Error('Open this game’s launcher to see installation progress.');return shell.openExternal(urls[source]);});
   handle('menu:entry', (id, point) => popup(entryMenu(gameById(id),library().filter(g=>g.kind==='tool'&&/r2modman|CurseForge/i.test(g.title))), point));
@@ -233,7 +283,16 @@ function setupHandlers() {
     if (result.canceled) return null;
     await tracker.configure(game, result.filePaths[0]); return snapshot();
   });
-  handle('library:get', refresh);
+  handle('library:get',async()=>{
+    if(initialLibrary&&cachedLibrary){initialLibrary=false;setTimeout(()=>refresh().then(data=>{if(window&&!window.isDestroyed())window.webContents.send('library:update',data);}).catch(()=>{}),2500);return snapshot();}
+    initialLibrary=false;return refresh();
+  });
+  handle('launch:diagnose',id=>diagnose(gameById(id),store.preferences[id]?.profile,exists));
+  handle('saves:list',id=>{gameById(id);return saveBackups.list(id);});
+  handle('saves:folder',async id=>{gameById(id);const r=await dialog.showOpenDialog(window,{title:'Choose this game’s save folder',properties:['openDirectory']});if(r.canceled)return null;return saveBackups.setFolder(id,r.filePaths[0]);});
+  handle('saves:backup',async id=>{gameById(id);if(!smoke)await runningGames.scan();if(runningGames.sessions.has(id)||tracker.ledger.sessions.has(id))throw Error('Close the game and stop its timer before backing up saves.');return saveBackups.create(id);});
+  handle('saves:preview',({id,key})=>{gameById(id);return saveBackups.preview(id,key);});
+  handle('saves:restore',async({id,token,overwriteNewer,closed})=>{gameById(id);if(closed!==true)throw Error('Confirm the game is closed before restoring.');if(!smoke)await runningGames.scan();if(runningGames.sessions.has(id)||tracker.ledger.sessions.has(id))throw Error('Close the game and stop its timer before restoring saves.');return saveBackups.restore(id,token,overwriteNewer===true);});
   handle('library:repair-images', () => refresh(true));
   handle('game:details', id => gameById(id));
   handle('game:achievement-image', async (id, achievementId) => {
@@ -241,6 +300,7 @@ function setupHandlers() {
     return item?.image ? downloadImage(item.image, path.join(app.getPath('userData'), 'artwork'), { kind: 'icon' }) : null;
   });
   handle('game:hero', async id => {
+    if(offline())return heroCache.get(id)||null;
     if (!heroCache.has(id)) heroCache.set(id, await cacheHero(gameById(id), path.join(app.getPath('userData'), 'artwork')));
     return heroCache.get(id);
   });
@@ -269,13 +329,16 @@ function setupHandlers() {
     if (safe.kind === 'tool') await tracker.stop(id);
     await save(); return snapshot();
   });
-  handle('game:action', async id => {
-    const game = gameById(id), version = game.versions[0];
+  async function launchEntry(id,withTools=true) {
+    const game = gameById(id), base = game.versions[0], profile=libraryTools.profile(store.preferences[id]?.profile);
+    const version=profile.executable?{...base,installed:true,executable:profile.executable,location:path.dirname(profile.executable),launch:undefined,directLaunch:undefined,shortcut:undefined,windowsAppId:undefined,launcherAvailable:false}:base;
     if(version.robloxPlaceId)return openRobloxExperience({id:version.robloxPlaceId});
     if (version.installed && !version.launch && !version.executable && !version.directLaunch && !version.windowsAppId) throw new Error('Choose this game’s executable using “Locate executable” first.');
     // Recheck availability in case a drive disappeared since scanning.
     if (version.installed && version.location && !await exists(version.location)) throw new Error('The game drive or folder is unavailable. Reconnect it and refresh.');
     const action = actionFor(version);
+    if(profile.args.length){if(action.type!=='exe')throw Error('Custom arguments need a preferred executable. Store launches use their client settings.');action.args=[...(action.args||[]),...profile.args];}
+    if(withTools&&!smoke&&(version.installed||version.directLaunchAvailable))for(const tool of profile.tools){if(gameById(tool).kind!=='tool')throw Error('A supporting tool is no longer available. Update launch settings.');await launchEntry(tool,false);}
     if (!smoke) {
       if(action.type==='windows-app')await new Promise((resolve,reject)=>{const child=spawn(path.join(process.env.SystemRoot||'C:/Windows','explorer.exe'),['shell:AppsFolder\\'+action.value],{detached:true,stdio:'ignore',shell:false});child.once('error',reject);child.once('spawn',()=>{child.unref();resolve();});});
       else if (action.type === 'url') await shell.openExternal(action.value);
@@ -285,9 +348,10 @@ function setupHandlers() {
         child.once('error', reject); child.once('spawn', () => { child.unref(); resolve(); });
       });
     }
-    if ((version.installed || version.launcherAvailable) && !smoke) { store.preferences[id] = { ...store.preferences[id], lastOpened: Date.now() }; await save(); tracker.watch(game).catch(() => {}); if(store.settings.minimizeOnPlay)window.minimize(); }
-    return { message: version.installed || version.launcherAvailable ? `Opening ${game.title} via ${version.source}` : `Opening ${version.source} to install ${game.title}`, action: smoke ? action : undefined };
-  });
+    if ((version.installed || version.launcherAvailable) && !smoke) { store.preferences[id] = { ...store.preferences[id], lastOpened: Date.now() }; await save(); tracker.watch(profile.executable?{...game,versions:[version]}:game).catch(() => {}); if(store.settings.minimizeOnPlay)window.minimize(); }
+    return { message: version.installed || version.launcherAvailable ? `Opening ${game.title} via ${version.source}` : `Opening ${version.source} to install ${game.title}`, controller:profile.controller, action: smoke ? action : undefined };
+  }
+  handle('game:action', id=>launchEntry(id));
   handle('game:folder', async id => {
     const game = gameById(id), location = game.versions.find(v => (v.installed || v.launcherAvailable) && v.location)?.location;
     if (!location || !await exists(location)) throw new Error('No available installation folder.');
@@ -375,11 +439,17 @@ app.whenReady().then(async () => {
   social=new SteamFriends();socialVault=new SocialCredentials(path.join(app.getPath('userData'),'social-credentials.json'),safeStorage);
   if(!smoke){const credential=await socialVault.load();if(credential)social.configure(credential.steamId,credential.key,true);}
   tracker = new PlaytimeTracker(path.join(app.getPath('userData'), 'playtime.json'), updates => { if (window && !window.isDestroyed()) window.webContents.send('playtime:update', updates); });
+  store.collections||=['Playing','Backlog','Finished'];
+  runningGames=new RunningGames({games:()=>library().map(g=>{const p=store.preferences[g.id]?.profile;return p?.executable?{...g,installed:true,versions:[{executable:p.executable}]}:g;}),emit:data=>{if(window&&!window.isDestroyed())window.webContents.send('sessions:update',data);}});
+  if(!smoke){runningTimer=setInterval(()=>{if((window?.isVisible()&&!window.isMinimized())||runningGames.sessions.size)runningGames.scan().catch(()=>{});},15000);runningTimer.unref();}
   await tracker.load();
+  saveBackups=new SaveBackups(path.join(app.getPath('userData'),'save-backups'));await saveBackups.load().catch(()=>scanWarnings.push('Save backup index could not be read. Existing backup files were kept.'));
+  if(!smoke)try{const data=await readCache(path.join(app.getPath('userData'),'library-cache.json'));records=data.records;scannedAt=data.scannedAt||0;steamRoot=data.steamRoot;for(const [id,hero]of data.hero)heroCache.set(id,hero);cachedLibrary=records.length>0;}catch{}
+
   powerMonitor.on('suspend', () => tracker.suspend().catch(() => {}));
   powerMonitor.on('resume', () => tracker.resume());
   const updateSupport=!smoke&&app.isPackaged&&process.platform==='win32'&&await exists(path.join(process.resourcesPath,'app-update.yml'));
-  updates=new OrbitUpdater({driver:updateSupport?require('electron-updater').autoUpdater:null,version:app.getVersion(),settings:()=>store.settings,beforeRestart:async()=>{await tracker.save();await saving;updatingRestart=true;},restartFailed:()=>{updatingRestart=false;},notify:data=>{if(window&&!window.isDestroyed())window.webContents.send('updates:status',data);}});
+  updates=new OrbitUpdater({driver:updateSupport?require('electron-updater').autoUpdater:null,version:app.getVersion(),settings:()=>({...store.settings,autoUpdates:store.settings.autoUpdates&&!offline()}),beforeRestart:async()=>{await tracker.save();await saving;updatingRestart=true;},restartFailed:()=>{updatingRestart=false;},notify:data=>{if(window&&!window.isDestroyed())window.webContents.send('updates:status',data);}});
   window = new BrowserWindow({ width: 1440, height: 960, minWidth: 940, minHeight: 680, show: false,
     icon:path.join(__dirname,'assets/orbit.png'),title: 'Orbit • Your games, together', backgroundColor: '#10151e', frame: false,
     webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true } });
@@ -389,25 +459,75 @@ app.whenReady().then(async () => {
   window.webContents.on('will-navigate', event => event.preventDefault());
   window.webContents.session.setPermissionRequestHandler((_wc, _permission, callback) => callback(false));
   setupHandlers();
+  const visualReady=smoke?new Promise(resolve=>window.once('ready-to-show',resolve)):null;
   await window.loadFile(path.join(__dirname, 'ui/index.html'));
-  if(!smoke)updates.start();
+  if(!smoke&&!offline())updates.start();
   if (smoke) {
     try {
-      window.webContents.setBackgroundThrottling(false);
+      await visualReady;window.webContents.setBackgroundThrottling(false);
+      const target=process.env.ORBIT_SMOKE_DIR||app.getPath('temp');await fs.mkdir(target,{recursive:true});await window.webContents.capturePage();await new Promise(r=>setTimeout(r,1050));await fs.writeFile(path.join(target,'orbit-startup.png'),(await window.webContents.capturePage()).toPNG());
       if(process.argv.includes('--visual-smoke'))window.showInactive();
       for (let i = 0; i < 150; i++) {
         if (await window.webContents.executeJavaScript('Boolean(window.orbitReady)')) break;
         await new Promise(r => setTimeout(r, 200));
       }
       const report = await window.webContents.executeJavaScript('window.runSmokeTests()');
+      // Exercise real backup and restore IPC against the isolated smoke profile.
+      const testBackup=path.join(target,'test-backup.json'),originalSave=dialog.showSaveDialog,originalOpen=dialog.showOpenDialog;
+      await fs.mkdir(target,{recursive:true});
+      try{
+        dialog.showSaveDialog=async()=>({canceled:false,filePath:testBackup});dialog.showOpenDialog=async()=>({canceled:false,filePaths:[testBackup]});
+        const checks=await window.webContents.executeJavaScript(`(async()=>{
+          const checks=[],check=(name,passed)=>checks.push({name,passed:Boolean(passed)}),g=state.games.find(g=>g.kind==='game'&&!g.robloxPlaceId);
+          const ui=Object.fromEntries(['orbit-themes-v1','orbit-motion'].flatMap(k=>localStorage.getItem(k)?[[k,localStorage.getItem(k)]]:[]));
+          check('full backup exports through real IPC',await window.orbit.backup(ui));
+          const before=await window.orbit.collections();await window.orbit.saveCollection({name:'Smoke restore check'});
+          if(g){await window.orbit.assignCollections({id:g.id,names:['Smoke restore check']});await window.orbit.saveLaunchProfile({id:g.id,value:{args:['--literal=a b'],controller:'couch',tools:[]}});check('launch profile and membership persist through IPC',(await window.orbit.launchProfile(g.id)).args[0]==='--literal=a b'&&(await window.orbit.details(g.id)).collections.includes('Smoke restore check'));}
+          const preview=await window.orbit.previewRestore();check('backup restore preview contains settings and local hours',Number.isFinite(preview.hours)&&Number.isFinite(preview.preferences));
+          const restored=await window.orbit.restore(ui);absorb(restored.library);check('backup restores original collections without test entries',JSON.stringify(await window.orbit.collections())===JSON.stringify(before));
+          check('cleanup scans real library without changing files',Array.isArray(await window.orbit.cleanup()));
+          await window.orbit.updateSettings({offlineMode:true});const local=await window.orbit.getLibrary();check('offline library keeps local games available',local.offline&&local.games.length>0);let blocked=false;try{await window.orbit.deals('US');}catch{blocked=true;}check('offline mode blocks online store requests',blocked);await window.orbit.updateSettings({offlineMode:false});absorb(await window.orbit.getLibrary());
+
+          return checks;
+        })()`);
+        report.checks.push(...checks);report.passed&&=checks.every(c=>c.passed);
+      }finally{dialog.showSaveDialog=originalSave;dialog.showOpenDialog=originalOpen;await fs.unlink(testBackup).catch(()=>{});}
+
       await new Promise(r => setTimeout(r, 2000));
-      const target = process.env.ORBIT_SMOKE_DIR || app.getPath('temp');
+      await window.webContents.executeJavaScript("motionEnabled=false;document.documentElement.classList.add('motion-off');document.getAnimations().forEach(a=>a.cancel());");
       await fs.mkdir(target, { recursive: true });
       await window.webContents.executeJavaScript("state.featured=state.games.filter(g=>g.storePlaytimeKnown&&g.lastPlayed).sort((a,b)=>b.lastPlayed-a.lastPlayed)[0]?.id||state.featured;render();");
       await new Promise(r=>setTimeout(r,400));
       await fs.writeFile(path.join(target, 'orbit-preview.png'), (await window.webContents.capturePage()).toPNG());
+      await window.webContents.executeJavaScript("state.list=true;render();document.querySelector('#game-grid').scrollIntoView({block:'start'});");await new Promise(r=>setTimeout(r,1500));
+      await fs.writeFile(path.join(target,'orbit-list.png'),(await window.webContents.capturePage()).toPNG());
+      await window.webContents.executeJavaScript("state.list=false;render();document.querySelector('#main-scroll').scrollTop=0;");
+
+      await window.webContents.executeJavaScript("window.orbitFeatures.quickSearch();");await new Promise(r=>setTimeout(r,400));
+      await fs.writeFile(path.join(target,'orbit-quick-launch.png'),(await window.webContents.capturePage()).toPNG());
+      await window.webContents.executeJavaScript("closeModal();document.querySelector('#main-scroll').scrollTop=0;document.querySelector('#controller-view').click();document.querySelector('#main-scroll').scrollTop=0;");await new Promise(r=>setTimeout(r,400));
+      await fs.writeFile(path.join(target,'orbit-controller-view.png'),(await window.webContents.capturePage()).toPNG());
+      await window.webContents.executeJavaScript("document.querySelector('#controller-view').click();document.querySelector('#main-scroll').scrollTop=0;");
+
+      await window.webContents.executeJavaScript(`document.querySelector('#downloads details')?.setAttribute('open','');document.querySelector('#steam-deals').open=true;`);
+      await new Promise(r=>setTimeout(r,3500));
+      await window.webContents.executeJavaScript(`document.querySelector('.library-utilities').scrollIntoView({block:'start'});`);
+      await new Promise(r=>setTimeout(r,300));
+      await fs.writeFile(path.join(target,'orbit-utilities.png'),(await window.webContents.capturePage()).toPNG());
+      await window.webContents.executeJavaScript(`document.querySelector('#steam-deals').scrollIntoView({block:'start'});`);
+      await new Promise(r=>setTimeout(r,5000));
+      await fs.writeFile(path.join(target,'orbit-deals.png'),(await window.webContents.capturePage()).toPNG());
+      await window.webContents.executeJavaScript(`document.querySelector('#downloads details')?.removeAttribute('open');document.querySelector('#steam-deals').open=false;document.querySelector('.content').scrollTop=0;`);
+
       const sample = library().find(g => g.title === 'Geometry Dash') || library().find(g => g.achievements?.total);
       if (sample) { await window.webContents.executeJavaScript(`showDetails(${JSON.stringify(sample.id)})`); await new Promise(r => setTimeout(r, 700)); await fs.writeFile(path.join(target, 'orbit-game-details.png'), (await window.webContents.capturePage()).toPNG()); }
+      if(sample){
+        await window.webContents.executeJavaScript("document.querySelector('[data-fps-estimate]')?.click();true");
+        for(let i=0;i<85;i++){if(await window.webContents.executeJavaScript("!document.querySelector('[data-fps-estimate]')?.disabled"))break;await new Promise(r=>setTimeout(r,200));}
+        const fpsReady=await window.webContents.executeJavaScript("document.querySelectorAll('[data-fps-kind=estimated]').length===16");report.checks.push({name:'hardware FPS button populates all sixteen cells through real IPC',passed:fpsReady});report.passed &&=fpsReady;
+        await window.webContents.executeJavaScript("document.querySelector('.fps-panel')?.scrollIntoView({block:'center'});true");
+        await fs.writeFile(path.join(target,'orbit-fps-estimates.png'),(await window.webContents.capturePage()).toPNG());
+      }
       await fs.writeFile(path.join(target, 'smoke-report.json'), JSON.stringify({ ...report, entries: library().length, games: library().filter(g => g.kind === 'game').length, tools: library().filter(g => g.kind === 'tool').length,
         summaryPayloadBytes: Buffer.byteLength(JSON.stringify(snapshot())), installed: library().filter(g => g.installed).length,
         launcherReady: library().filter(g => g.launcherAvailable).length, playtimeAvailable: library().filter(g => g.playtimeKnown).length,
@@ -419,4 +539,4 @@ app.whenReady().then(async () => {
 app.on('window-all-closed', () => app.quit());
 
 let quitting = false;
-app.on('before-quit', event => { if (quitting) return; quitting = true; if(!tracker)return; event.preventDefault(); updates?.stop();prepareExit().catch(console.error).finally(() => app.quit()); });
+app.on('before-quit', event => { if (quitting) return; quitting = true; if(!tracker)return; event.preventDefault(); clearInterval(runningTimer);runningGames?.stop();updates?.stop();prepareExit().catch(console.error).finally(() => app.quit()); });

@@ -72,7 +72,7 @@ function mergeLibrary(records, preferences = {}) {
       || STORES.indexOf(a.source) - STORES.indexOf(b.source));
     const chosen = versions[0];
     const statsVersion = versions.find(v => v.playtimeKnown || v.achievements);
-    return { id, robloxPlaceId:chosen.robloxPlaceId, title: chosen.title, kind: pref.kind || (versions.some(v => classify(v) === 'tool') ? 'tool' : 'game'), installed: Boolean(chosen.installed), launcherAvailable: Boolean(chosen.launcherAvailable), directLaunchAvailable: Boolean(chosen.directLaunchAvailable), installationProgress: versions.find(v=>v.installationProgress)?.installationProgress || null, selected: chosen.id,
+    return { id, collections:pref.collections||[], robloxPlaceId:chosen.robloxPlaceId, title: chosen.title, kind: pref.kind || (versions.some(v => classify(v) === 'tool') ? 'tool' : 'game'), installed: Boolean(chosen.installed), launcherAvailable: Boolean(chosen.launcherAvailable), directLaunchAvailable: Boolean(chosen.directLaunchAvailable), installationProgress: versions.find(v=>v.installationProgress)?.installationProgress || null, selected: chosen.id,
       versions, sources: [...new Set(versions.map(v => v.source))], cover: versions.find(v => v.cover)?.cover,
       hero: versions.find(v => v.hero)?.hero, favorite: Boolean(pref.favorite), hidden: Boolean(pref.hidden),
       lastPlayed: Math.max(0, ...versions.map(v => v.lastPlayed || 0)), lastOpened: pref.lastOpened || pref.lastPlayed || 0,
