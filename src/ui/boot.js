@@ -20,5 +20,5 @@
   ];
   Promise.allSettled(animations.map(a=>a.finished)).then(finish,finish);
   }catch{finish();}
- },Math.max(0,(reduced?0:1600)-(performance.now()-started)));}};
+ },Math.max(0,(reduced?0:1900)-(performance.now()-started)));}};
 })();

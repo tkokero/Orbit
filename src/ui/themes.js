@@ -3,7 +3,7 @@
   const fields=['background','surface','text','muted','accent','positive','warm','secondary'];
   const make=(id,name,...values)=>({id,name,colors:Object.fromEntries(fields.map((key,i)=>[key,values[i]]))});
   const builtins=[
-    make('orbit','Orbit','#111019','#1d1826','#f0edf9','#b7aac7','#c4b5fd','#bbebcf','#ffccaa','#a9c6f0'),
+    make('orbit','Orbit','#10141b','#19212c','#eef4fc','#a4b1c3','#8cc5ff','#a8e7c4','#edc48c','#b6b2f2'),
     make('midnight','Midnight','#0b1220','#151f32','#edf3ff','#9aaecb','#8baeff','#91dfc6','#f1c499','#a9a2f0'),
     make('ocean','Ocean','#081a20','#112b35','#e7f8fb','#99bcc5','#6fdce4','#ade4c7','#f5d29b','#89bbf2'),
     make('evergreen','Evergreen','#0e1915','#192c23','#edf7ef','#a0bcac','#95d5a3','#9ce0cf','#ecc499','#b8b5e8'),

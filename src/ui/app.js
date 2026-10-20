@@ -39,7 +39,7 @@ const PAGE_SIZE = 30;
 const state = { games: [], warnings: [], section: 'games', view: 'all', source: '', search: '', sort: 'recent', list: false, page: 0, featured: '', busy: false };
 let rememberView=true;
 try {rememberView=localStorage.getItem('orbit-remember-view')!=='off';if(rememberView){const view=JSON.parse(localStorage.getItem('orbit-view')||'{}');if(['games','tools','friends'].includes(view.section))state.section=view.section;if(['all','installed','favorites','uninstalled'].includes(view.view))state.view=view.view;if(['','Steam','Epic Games','Roblox','Others'].includes(view.source))state.source=view.source;if(['recent','az','installed','platform'].includes(view.sort))state.sort=view.sort;state.list=Boolean(view.list);}}catch{}
-const bytes=n=>n>=1024**3?(n/1024**3).toFixed(1)+' GB':(n/1024**2).toFixed(0)+' MB';
+const bytes=n=>n<1024?n+' B':n<1024**2?(n/1024).toFixed(1)+' KB':n>=1024**3?(n/1024**3).toFixed(1)+' GB':(n/1024**2).toFixed(0)+' MB';
 function duration(seconds){const m=Math.max(1,Math.ceil(seconds/60));return m<60?m+' min':Math.floor(m/60)+' h '+(m%60)+' min';}
 function progressMarkup(p){return p?`<span class="install-caption">${esc(p.phase)}${Number.isFinite(p.percent)?` · ${p.percent}%`:''}</span>${p.done!=null&&p.total?`<span class="transfer-size">${(p.done/1024**3).toFixed(1)} / ${(p.total/1024**3).toFixed(1)} GB</span>`:''}${p.etaSeconds>0&&p.bytesPerSecond>0&&Date.now()-(p.sampledAt||0)<90000?`<span class="transfer-estimate">About ${duration(p.etaSeconds)} remaining · ${(p.bytesPerSecond/1024**2).toFixed(1)} MB/s</span>`:/^(Download|Installing)$/.test(p.phase)?'<span class="transfer-estimate">Estimating time remaining…</span>':''}${Number.isFinite(p.percent)?`<progress aria-label="${esc(p.phase)}" value="${p.percent}" max="100"></progress>`:''}`:'';}
 function renderDownloads(){
@@ -62,7 +62,7 @@ async function attempt(fn) { try { return await fn(); } catch(e) { toast(e.messa
 function absorb(data) {
   if (!data) return;
   if (data.scannedAt !== state.scannedAt) state.featured='';
-  Object.assign(state,{games:data.games,warnings:data.warnings||[],scannedAt:data.scannedAt,steamId:data.steamId,connections:data.connections||[],coverStatus:data.coverStatus||{},settings:data.settings||state.settings||{}});
+  Object.assign(state,{games:data.games,warnings:data.warnings||[],scannedAt:data.scannedAt,steamId:data.steamId,connections:data.connections||[],offline:Boolean(data.offline),cached:Boolean(data.cached),coverStatus:data.coverStatus||{},settings:data.settings||state.settings||{}});
   for (const g of state.games) g.searchText=`${g.title} ${g.sources.join(' ')}`.toLowerCase();
   render();
 }
@@ -72,7 +72,7 @@ function filtered() {
     .filter(g=>state.view!=='installed'||g.installed).filter(g=>state.view!=='uninstalled'||!g.installed)
     .filter(g=>state.view!=='favorites'||g.favorite)
     .filter(g=>!state.source || (state.source==='Others' ? g.sources.some(s=>!['Steam','Epic Games',...(state.games.some(g=>g.robloxPlaceId)?['Roblox']:[])].includes(s)) : g.sources.includes(state.source)))
-    .filter(g=>!query||g.searchText.includes(query))
+    .filter(g=>!query||g.searchText.includes(query)).filter(g=>window.orbitFeatures?.matches(g)??true)
     .sort((a,b)=>state.sort==='recent'?b.lastPlayed-a.lastPlayed||a.title.localeCompare(b.title):state.sort==='installed'?Number(b.installed)-Number(a.installed)||a.title.localeCompare(b.title):state.sort==='platform'?a.sources[0].localeCompare(b.sources[0])||a.title.localeCompare(b.title):a.title.localeCompare(b.title));
 }
 function unobserve(root) { OrbitIcons.unobserve(root); root.querySelectorAll('img').forEach(img=>imageObserver.unobserve(img)); }
@@ -123,10 +123,10 @@ function render() {
   const groups=[['Steam','assets/steam.svg',items.filter(g=>g.sources.includes('Steam')).length],['Epic Games','assets/epicgames.svg',items.filter(g=>g.sources.includes('Epic Games')).length],...(hasRoblox?[['Roblox','assets/roblox.svg',items.filter(g=>g.sources.includes('Roblox')).length]]:[]),['Others',null,items.filter(g=>g.sources.some(s=>!['Steam','Epic Games',...(hasRoblox?['Roblox']:[])].includes(s))).length]];
   $('#source-navigation').innerHTML=groups.map(([name,logo,count])=>`<button class="nav-item platform ${state.source===name?'active':''}" data-source="${name}">${logo?`<img src="${logo}" class="platform-logo" alt="">`:'<span class="logo-space"></span>'}<span>${name==='Epic Games'?'Epic Games':name}</span><span class="count">${count}</span></button>`).join('');
   $('#warning-button').hidden=!state.warnings.length; $('#warning-button').textContent=`${state.warnings.length} notice${state.warnings.length===1?'':'s'}`;
-  const games=filtered(), pages=Math.max(1,Math.ceil(games.length/PAGE_SIZE)); state.page=Math.max(0,Math.min(state.page,pages-1));
+  const games=filtered(), pages=Math.max(1,Math.ceil(games.length/PAGE_SIZE));$('#section-count').textContent=games.length; state.page=Math.max(0,Math.min(state.page,pages-1));
   const start=state.page*PAGE_SIZE, visible=games.slice(start,start+PAGE_SIZE), grid=$('#game-grid');
   unobserve(grid); grid.classList.toggle('list',state.list);
-  grid.innerHTML=visible.map(g=>`<button class="game-card" data-game="${g.id}" aria-label="${esc(g.title)}, ${status(g)}"><div class="cover-wrap"><span class="cover-placeholder">${esc(g.title)}</span>${g.robloxPlaceId?OrbitIcons.robloxMarkup(g.robloxPlaceId):''}${g.cover?`<img data-src="${esc(g.cover)}" data-cover="${g.id}" alt="" decoding="async">`:''}${g.favorite?'<span class="favorite-indicator">★</span>':''}<span class="card-peek" aria-hidden="true">View ${g.kind==='tool'?'tool':'game'}</span></div><div class="card-info"><div class="card-title">${esc(g.title)}</div><div class="card-meta"><span>${g.installed?'<i class="installed-dot"></i>':''}${esc(g.sources.join(' · '))}</span><span data-playtime="${g.id}">${g.playtimeKnown?hours(g.playtime):g.robloxPlaceId?'Experience':g.launcherAvailable?'Launcher':''}</span></div><div class="card-install" data-install="${g.id}" ${g.installationProgress?'':'hidden'}>${progressMarkup(g.installationProgress)}</div></div></button>`).join('');
+  grid.innerHTML=state.list?`<div class="list-heading"><span>Game</span><span>Status</span><span>Playtime</span><span>Last played</span><span>Achievements</span><span></span></div>`+visible.map(g=>`<div class="game-row"><button class="list-game" data-game="${esc(g.id)}">${g.cover?`<img data-src="${esc(g.cover)}" data-cover="${esc(g.id)}" alt="">`:OrbitIcons.markup(g.id)}<span><strong>${esc(g.title)}</strong><small>${esc(g.sources.join(' · '))}${g.favorite?' · Favorite':''}</small></span></button><span class="list-status ${g.installed?'ready':''}">${esc(status(g))}${g.sizeBytes?`<small class="list-size">${bytes(g.sizeBytes)}</small>`:''}</span><span data-playtime="${esc(g.id)}">${g.playtimeKnown?hours(g.playtime):'—'}</span><span class="list-last">${g.lastPlayed?new Date(g.lastPlayed).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}):'—'}</span><span class="list-achievements">${g.achievements?.total?`${g.achievements.unlocked} / ${g.achievements.total}`:'—'}</span><button class="row-launch subtle-button" data-list-play="${esc(g.id)}">${action(g)}</button></div>`).join(''):visible.map(g=>`<button class="game-card" data-game="${g.id}" aria-label="${esc(g.title)}, ${status(g)}"><div class="cover-wrap"><span class="cover-placeholder">${esc(g.title)}</span>${g.robloxPlaceId?OrbitIcons.robloxMarkup(g.robloxPlaceId):''}${g.cover?`<img data-src="${esc(g.cover)}" data-cover="${g.id}" alt="" decoding="async">`:''}${g.favorite?'<span class="favorite-indicator">★</span>':''}<span class="card-peek" aria-hidden="true">View ${g.kind==='tool'?'tool':'game'}</span></div><div class="card-info"><div class="card-title">${esc(g.title)}</div><div class="card-meta"><span>${g.installed?'<i class="installed-dot"></i>':''}${esc(g.sources.join(' · '))}</span><span data-playtime="${g.id}">${g.playtimeKnown?hours(g.playtime):g.robloxPlaceId?'Experience':g.launcherAvailable?'Launcher':''}</span></div><div class="card-install" data-install="${g.id}" ${g.installationProgress?'':'hidden'}>${progressMarkup(g.installationProgress)}</div></div></button>`).join('');
   observeImages(grid);
   animateSurface(grid);
   $('#grid-view').classList.toggle('active',!state.list);$('#list-view').classList.toggle('active',state.list);
@@ -136,6 +136,7 @@ function render() {
   $('#previous-page').disabled=state.page===0;$('#next-page').disabled=state.page===pages-1;
   renderHero(items);
   renderDownloads();
+  window.orbitRecovery?.render();
 }
 function renderHero(items) {
   const show=state.section==='games'&&state.view!=='hidden'; $('#hero').hidden=!show;$('#recent-games').hidden=!show;
@@ -198,7 +199,7 @@ window.orbit.onUpdateStatus?.(data=>{const previous=updateState?.phase;renderUpd
 async function showComputerSpecs(refresh=false){
  const root=$('#computer-specs'),button=$('#scan-computer');if(!root||!window.orbit.systemInfo)return;
  button.disabled=true;root.textContent='Detecting this computer…';
- try{const pc=await window.orbit.systemInfo(refresh);if(!root.isConnected)return;const entries=[['Processor',pc.cpu||'Unavailable'],['Graphics',pc.gpu?.join(' / ')||'Unavailable'],['Memory',Number.isFinite(pc.ramGB)?pc.ramGB.toFixed(1)+' GB':'Unavailable'],['CPU threads',pc.logicalCores||'Unavailable'],['System',pc.os||'Unavailable'],['Free storage',Number.isFinite(pc.freeGB)?pc.freeGB.toFixed(1)+' GB'+(pc.drive?' on '+pc.drive:''):'Unavailable']];root.innerHTML=`<dl class="computer-specs">${entries.map(([name,value])=>`<div><dt>${name}</dt><dd>${esc(value)}</dd></div>`).join('')}</dl><p class="small-note">Detected locally. Requirement checks use this PC and the game’s drive. CPU and GPU comparisons may need review; no FPS estimate is assumed.</p>`;}
+ try{const pc=await window.orbit.systemInfo(refresh);if(!root.isConnected)return;const entries=[['Processor',pc.cpu||'Unavailable'],['Graphics',pc.gpu?.join(' / ')||'Unavailable'],['Memory',Number.isFinite(pc.ramGB)?pc.ramGB.toFixed(1)+' GB':'Unavailable'],['CPU threads',pc.logicalCores||'Unavailable'],['System',pc.os||'Unavailable'],['Free storage',Number.isFinite(pc.freeGB)?pc.freeGB.toFixed(1)+' GB'+(pc.drive?' on '+pc.drive:''):'Unavailable']];root.innerHTML=`<dl class="computer-specs">${entries.map(([name,value])=>`<div><dt>${name}</dt><dd>${esc(value)}</dd></div>`).join('')}</dl><p class="small-note">Detected locally. Requirement checks and FPS estimates use this computer. CPU/GPU comparisons and projected FPS remain approximate.</p>`;}
  catch(error){if(root.isConnected)root.textContent=error.message;}
  finally{if(button.isConnected)button.disabled=false;}
 }
@@ -209,7 +210,7 @@ function showSettings() {
   <section id="panel-general" role="tabpanel" aria-labelledby="tab-general"><div class="setting-card setting-row"><div><h3>Setup guide</h3><p class="small-note">Connect libraries and learn the controls in Orbit.</p></div><button class="subtle-button" id="reopen-setup">Open setup guide</button></div>
     <div class="setting-card"><div class="setting-row"><div><h3>This computer</h3><p class="small-note">Use detected hardware for game requirement checks.</p></div><button class="subtle-button" id="scan-computer">Scan this PC</button></div><div id="computer-specs" role="status" aria-live="polite"></div></div>
     ${settingSwitch('launchAtLogin','Launch at login','Open Orbit when you sign in to Windows.')}
-    ${settingSwitch('closeToTray','Keep running when closed','Close the window to the system tray. Right-click the Orbit tray icon to quit.')}
+    ${settingSwitch('offlineMode','Offline mode','Use local discovery and cached artwork. Online account connections, deals, and downloads remain in their original clients.')} ${settingSwitch('downloadNotifications','Installation notifications','Notify when a monitored installation finishes. Click the notification to open its game controls.')} ${settingSwitch('closeToTray','Keep running when closed','Close the window to the system tray. Right-click the Orbit tray icon to quit.')}
     ${settingSwitch('startMinimized','Start minimized','Start in the system tray when opened at login.')}
     ${settingSwitch('autoDiscover','Automatically find games','Keep your library up to date when games are installed or removed.')}
     ${settingSwitch('minimizeOnPlay','Minimize when playing','Give the game the screen after you press Play.')}
@@ -237,11 +238,12 @@ function showSettings() {
   $('#restart-update').onclick=()=>attempt(async()=>renderUpdateStatus(await window.orbit.installUpdate()));
   $('#get-update-installer').onclick=()=>attempt(()=>window.orbit.getUpdateInstaller());
   $('#reopen-setup').onclick=()=>{closeModal();window.orbitSetup.open();};
+  window.orbitFeatures?.mountSettings();
   $('#settings-installer').onclick=()=>attempt(async()=>{const result=await window.orbit.runInstaller();if(result)toast(result.message);});
   document.querySelectorAll('[data-install-store]').forEach(b=>b.onclick=()=>attempt(()=>window.orbit.openInstallStore(b.dataset.installStore)));
   const selectTab=name=>{document.querySelectorAll('[data-settings-tab]').forEach(b=>{const active=b.dataset.settingsTab===name;b.setAttribute('aria-selected',String(active));b.tabIndex=active?0:-1;});for(const nameOfPanel of ['general','libraries','appearance','manage'])$('#panel-'+nameOfPanel).hidden=nameOfPanel!==name;if(name!=='appearance')discardThemePreview();};
   document.querySelectorAll('[data-settings-tab]').forEach((b,index,buttons)=>{b.onclick=()=>selectTab(b.dataset.settingsTab);b.onkeydown=e=>{let next;if(e.key==='ArrowRight')next=(index+1)%buttons.length;if(e.key==='ArrowLeft')next=(index+buttons.length-1)%buttons.length;if(e.key==='Home')next=0;if(e.key==='End')next=buttons.length-1;if(next!==undefined){e.preventDefault();buttons[next].focus();selectTab(buttons[next].dataset.settingsTab);}};});
-  document.querySelectorAll('[data-setting]').forEach(b=>b.onclick=()=>attempt(async()=>{b.disabled=true;try{state.settings=await window.orbit.updateSettings({[b.dataset.setting]:b.getAttribute('aria-checked')!=='true'});b.setAttribute('aria-checked',String(state.settings[b.dataset.setting]));window.friendsUI?.settingsChanged();}finally{b.disabled=false;}}));
+  document.querySelectorAll('[data-setting]').forEach(b=>b.onclick=()=>attempt(async()=>{b.disabled=true;try{state.settings=await window.orbit.updateSettings({[b.dataset.setting]:b.getAttribute('aria-checked')!=='true'});b.setAttribute('aria-checked',String(state.settings[b.dataset.setting]));window.friendsUI?.settingsChanged();if(b.dataset.setting==='offlineMode'){window.orbitRecovery?.render();window.orbit.getLibrary().then(absorb).catch(()=>{});}}finally{b.disabled=false;}}));
   $('#intro-toggle').onclick=()=>{const enabled=$('#intro-toggle').getAttribute('aria-checked')!=='true';try{localStorage.setItem('orbit-intro',enabled?'on':'off');$('#intro-toggle').setAttribute('aria-checked',String(enabled));}catch{toast('Startup preference could not be saved.',true);}};
   $('#remember-toggle').onclick=()=>{rememberView=!rememberView;$('#remember-toggle').setAttribute('aria-checked',String(rememberView));try{localStorage.setItem('orbit-remember-view',rememberView?'on':'off');if(!rememberView)localStorage.removeItem('orbit-view');}catch{}};
   $('#open-data').onclick=()=>attempt(()=>window.orbit.openData());
@@ -257,8 +259,8 @@ function showSettings() {
 }
 function showAdd(){modal(state.section==='tools'?'Add tool':'Add game',`<form id="add-form"><label class="form-field">Title<input id="new-title" required maxlength="300" autofocus></label><label class="form-field">Platform<select id="new-source">${['Other','Steam','Epic Games','GOG','Ubisoft Connect','EA','Battle.net','Xbox','GRYPHLINK','Riot Games','HoYoPlay','Roblox','Minecraft','Standalone'].map(s=>`<option>${s}</option>`).join('')}</select></label><div class="form-row"><button class="primary-button" type="submit">Choose executable</button><button class="subtle-button" type="button" id="add-installer">Install from file</button></div></form>`);$('#add-installer').onclick=()=>attempt(async()=>{const result=await window.orbit.runInstaller();if(result)toast(result.message);});$('#add-form').onsubmit=e=>{e.preventDefault();attempt(async()=>{const data=await window.orbit.add({title:$('#new-title').value,source:$('#new-source').value,kind:state.section==='tools'?'tool':'game'});if(data){absorb(data);closeModal();}});};}
 function showRobloxExperience(g){
- modal(g.title,`<div class="detail-heading">${OrbitIcons.robloxMarkup(g.robloxPlaceId)}<div><p>Roblox experience</p><p class="small-note">Place ${esc(g.robloxPlaceId)}</p></div></div><div class="detail-actions"><button class="primary-button" id="experience-play">Open game</button><button class="subtle-button" id="experience-page">Open page</button><button class="subtle-button" id="experience-favorite">${g.favorite?'Unfavorite':'Favorite'}</button><button class="subtle-button" id="experience-manage">Manage experiences</button><button class="link-button" id="experience-remove">Remove</button></div><p class="small-note">Uses the launch method in Roblox’s Experiences settings. Per-experience playtime and achievements are unavailable.</p>`);
- OrbitIcons.observe($('#modal-body'));
+ modal(g.title,`<div class="detail-heading">${OrbitIcons.robloxMarkup(g.robloxPlaceId)}<div><p>Roblox experience</p><p class="small-note">Place ${esc(g.robloxPlaceId)}</p></div></div><div class="detail-actions"><button class="primary-button" id="experience-play">Open game</button><button class="subtle-button" id="experience-page">Open page</button><button class="subtle-button" id="experience-favorite">${g.favorite?'Unfavorite':'Favorite'}</button><button class="subtle-button" id="experience-manage">Manage experiences</button><button class="link-button" id="experience-remove">Remove</button></div><section id="detail-utilities" class="settings-section"></section><p class="small-note">Uses the launch method in Roblox’s Experiences settings. Per-experience playtime and achievements are unavailable.</p>`);
+ OrbitIcons.observe($('#modal-body'));window.orbitUtilities?.detail(g);
  $('#experience-play').onclick=()=>play(g.id);$('#experience-page').onclick=()=>attempt(async()=>toast((await window.orbit.launchRoblox(g.robloxPlaceId,true)).message));
  $('#experience-favorite').onclick=()=>attempt(async()=>{absorb(await window.orbit.preference(g.id,{favorite:!g.favorite}));await showDetails(g.id);});
  $('#experience-remove').onclick=()=>attempt(async()=>{await window.orbit.removeRoblox(g.robloxPlaceId);closeModal();});
@@ -288,6 +290,7 @@ async function showDetails(id) {
     $('#detail-hide').onclick=()=>attempt(async()=>{absorb(await window.orbit.preference(id,{hidden:!g.hidden}));closeModal();});
     $('#detail-repair').onclick=()=>attempt(async()=>{const src=await window.orbit.repairImage(id);if(src){const card=state.games.find(x=>x.id===id);if(card)card.cover=src;render();await showDetails(id);}else toast('No working image found.',true);});
     window.orbitUtilities?.detail(g);
+    window.orbitFeatures?.mountDetails(g);
     $('#modal-body').querySelectorAll('[data-prefer]').forEach(b=>b.onclick=()=>attempt(async()=>{absorb(await window.orbit.preference(id,{preferred:b.dataset.prefer}));await showDetails(id);}));
   } catch(e){toast(e.message,true);}
 }
@@ -295,12 +298,12 @@ function achievementPanel(g) {
   const a=g.achievements;if(!a?.total)return '';
   return `<div class="settings-section"><div class="achievement-heading"><h3>Achievements</h3><span>${Math.round(a.unlocked/a.total*100)}%</span></div><progress value="${a.unlocked}" max="${a.total}"></progress>${a.partial?`<p class="small-note">${a.items.length} cached details · ${a.total} total</p>`:''}<div class="achievement-list">${a.items.map(x=>`<div class="achievement ${x.unlocked?'unlocked':'locked'}">${x.image?`<img data-game="${g.id}" data-achievement="${esc(x.id)}" alt="">`:''}<div><strong>${esc(x.name)}</strong><p>${esc(x.description)}</p><small>${x.unlocked?'Unlocked'+(x.unlockedAt?' · '+new Date(x.unlockedAt).toLocaleDateString():''):'Locked'}${x.rarity!==null?' · '+x.rarity.toFixed(1)+'% of players':''}</small></div></div>`).join('')}</div></div>`;
 }
-async function play(id){await attempt(async()=>toast((await window.orbit.play(id)).message));}
+async function play(id){try{const result=await window.orbit.play(id);toast(result.message);window.orbitFeatures?.afterPlay(result);return result;}catch(e){if(window.orbitRecovery)await window.orbitRecovery.troubleshoot(id,e.message);else toast(e.message,true);}}
 function resetPage(){state.page=0;render();}
 $('#navigation').onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.section){state.section=b.dataset.section;state.view='all';}else state.view=b.dataset.view;state.source='';state.featured='';resetPage();};
 $('#source-navigation').onclick=e=>{const b=e.target.closest('[data-source]');if(b){state.source=b.dataset.source;state.view='all';resetPage();}};
 $('#downloads').onclick=e=>{const source=e.target.closest('[data-download-source]'),game=e.target.closest('[data-download-game]');if(source)attempt(()=>window.orbit.openDownloads(source.dataset.downloadSource));if(game)showDetails(game.dataset.downloadGame);};
-$('#game-grid').onclick=e=>{const b=e.target.closest('[data-game]');if(b)showDetails(b.dataset.game);};
+$('#game-grid').onclick=e=>{const launch=e.target.closest('[data-list-play]');if(launch){play(launch.dataset.listPlay);return;}const b=e.target.closest('[data-game]');if(b)showDetails(b.dataset.game);};
 $('#recent-games').onclick=e=>{const b=e.target.closest('[data-recent]');if(b){state.featured=b.dataset.recent;renderHero(sectionItems());}};
 $('#search').oninput=e=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>{state.search=e.target.value;resetPage();},100);};
 $('#sort').onchange=e=>{state.sort=e.target.value;resetPage();};
@@ -400,7 +403,7 @@ async function runContextAction(id, command) {
     case 'settings': showSettings();break;
   }
 }
-function contextTarget(target){const card=target.closest('[data-game].game-card,[data-recent]');return card?(card.dataset.game||card.dataset.recent):target.closest('#hero')?state.featured:null;}
+function contextTarget(target){const card=target.closest('[data-game].game-card,[data-game].list-game,[data-recent]');return card?(card.dataset.game||card.dataset.recent):target.closest('#hero')?state.featured:null;}
 async function openContext(target,point){const id=contextTarget(target);await attempt(async()=>runContextAction(id,await (id?window.orbit.entryMenu(id,point):window.orbit.backgroundMenu({section:state.section,list:state.list},point))));}
 document.addEventListener('contextmenu',e=>{if($('#modal').open||e.target.closest('input,textarea,select'))return;if(!e.target.closest('main')||['friends'].includes(state.section))return;e.preventDefault();openContext(e.target,{x:e.clientX,y:e.clientY});});
 document.addEventListener('keydown',e=>{if((e.key==='ContextMenu'||e.key==='F10'&&e.shiftKey)&&!$('#modal').open&&!['friends'].includes(state.section)){e.preventDefault();const target=document.activeElement,r=target.getBoundingClientRect();openContext(target,{x:r.left+r.width/2,y:r.top+r.height/2});}});
