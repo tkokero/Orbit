@@ -1,7 +1,7 @@
 {
   "name": "orbit-game-launcher",
   "productName": "Orbit",
-  "version": "1.0.0-pre.6",
+  "version": "1.0.0-pre.12",
   "description": "A unified Windows game library with installed-first deduplication.",
   "main": "src/main.cjs",
   "author": "Orbit",
@@ -38,7 +38,8 @@
       "CONTRIBUTING.md",
       "THEMES.md",
       "FRIENDS.md",
-      "VALIDATION.md"
+      "VALIDATION.md",
+      "FPS.md"
     ],
     "asar": true,
     "asarUnpack": [
