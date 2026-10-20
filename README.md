@@ -2,6 +2,8 @@
 
 Orbit is a Windows desktop app for viewing, organizing, and launching games from connected libraries and local files. This version is a pre-release.
 
+<img width="1441" height="959" alt="image" src="https://github.com/user-attachments/assets/3d6c36df-f84b-43a9-9ab8-8fbf21ea19b4" />
+
 ## Install and open
 
 Download **Orbit-Setup.exe** from [Releases](https://github.com/tkokero/Orbit/releases/tag/v1.0.0-pre.1) and run it. For portable use, download **Orbit-Windows.zip**, extract the whole folder, and open **Orbit.exe**.
