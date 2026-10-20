@@ -1,49 +1,59 @@
 # Orbit
 
-Orbit is a Windows desktop app for viewing, organizing, and launching games from connected libraries and local files. This version is a pre-release.
+Orbit is a Windows desktop app for organizing and launching games from connected libraries and local files. It is currently a pre-release: features may change, and some integrations are still being tested.
 
-<img width="1441" height="959" alt="image" src="https://github.com/user-attachments/assets/3d6c36df-f84b-43a9-9ab8-8fbf21ea19b4" />
+<img width="1441" height="959" alt="Orbit library interface" src="https://github.com/user-attachments/assets/3d6c36df-f84b-43a9-9ab8-8fbf21ea19b4" />
 
 ## Install and open
 
-Download **Orbit-Setup.exe** from [Releases](https://github.com/tkokero/Orbit/releases/tag/v1.0.0-pre.1) and run it. For portable use, download **Orbit-Windows.zip**, extract the whole folder, and open **Orbit.exe**.
+Download **Orbit-Setup.exe** from [Releases](https://github.com/tkokero/Orbit/releases) and run it. For portable use, extract the entire **Orbit-Windows.zip** folder before opening **Orbit.exe**. The Windows builds are unsigned.
 
-The setup guide covers library discovery and optional account connections. You can reopen it from **Settings → General**. Keep any original clients that your games require.
+The setup guide covers discovery, optional connections, appearance, and startup behavior, followed by a walkthrough of the controls. Reopen it from **Settings → General**. Keep any original clients your games require.
 
-## Use the library
+## Library and launching
 
-- Browse Games or Tools, search by title, or filter by platform and installation status.
-- Open a game’s details to launch it, choose a copy, view available information, or locate its executable.
-- Use **Ctrl+K** for quick launch. Right-click an entry for more actions.
-- Use favorites and collections to organize entries. Hidden entries can be restored in Settings.
-- Switch between grid and list views. List view shows status, playtime, last played, and achievements when available.
+- Browse **Library** and **Tools**, search titles and alternate names, or filter by platform, installation status, and other available information.
+- Organize entries with favorites, collections, personal tags, and notes. Choose grid or list view.
+- Detected copies stay together in game details. Select a preferred launch; automatic selection favors a working installed copy, then Steam.
+- Open details to manage launch settings, choose an executable, create a desktop shortcut, or view available playtime and achievements. Right-click for quick actions, or press **Ctrl+K** for Quick launch.
+- Add local executables or run a standalone installer. Other installations and some launch routes use the original client.
 
-**Launch settings** can set a preferred executable, arguments, supporting tools, and Orbit’s controller view. Store-controlled launches may still use their original client’s settings. Controller view changes navigation in Orbit, not controls inside a game.
+Detection identifies local installations and supported account records; finding a launcher does not prove ownership. Information and features depend on the platform, account privacy, and game. Missing information is shown as unavailable.
 
-Playtime, achievements, friends, installation progress, and other information depend on the source and account privacy settings. Missing information is shown as unavailable. Local playtime tracking requires Orbit to remain running. A detected running game has a session timer and a **Return to game** control.
+## News, friends, and downloads
 
-## Settings and offline use
+**What’s new** shows Steam announcements for selected games in your library, with banner images and links to the original posts. News and artwork are cached; not every game has a supported feed.
 
-Settings cover startup, closing to the tray, discovery, notifications, appearance, and updates. Closing the window normally leaves Orbit in the system tray; use the tray menu to quit.
+**Friends** shows presence and shared activity where supported. Some platforms provide official-client controls instead of live friend lists. Account connections are optional.
 
-After the first scan, Orbit can open its cached library and refresh in the background. **Offline mode** keeps discovery local and stops new online checks. Cached information may be out of date. Each game still has its own offline and authentication requirements.
+**Downloads** keeps supported installation progress in one place. Transfer speed and remaining-time estimates appear when enough data is available. Use the original client for pause, resume, ordering, and bandwidth controls.
 
-System requirements and FPS estimates use detected hardware. Estimates are approximate and are not measured benchmarks.
+**Radar** contains your wishlist and featured Steam discounts. Save public store links and optional target prices; check supported prices on request. Prices are regional and may be cached. Confirm the final price on the store page. Other stores can be saved as links.
 
-## Backups and troubleshooting
+## Sessions, storage, and backups
 
-In **Settings → Manage**, create or restore a backup of Orbit settings, custom entries, collections, themes, and local hours. These backups exclude account credentials and game files. Restore shows a preview and keeps a recovery copy first.
+Local playtime tracking counts sessions while Orbit is running. **Activity** shows recorded sessions; **Storage** lists known installation folders and drive space, with folder sizes measured on demand.
 
-For game saves, open **Save backups** in the game’s details and choose its save folder. Close the game before backing up or restoring. Restore previews file differences, keeps newer saves by default, and creates a recovery copy. Snapshots stay on this computer; keep another copy elsewhere if needed.
+Choose a save folder in a game’s details to create local save snapshots. Restore previews changes and keeps a recovery copy. Optional automatic snapshots run after detected sessions. Close the game before restoring, and keep another backup elsewhere.
 
-**Launch help** checks missing folders, executable paths, and launch arguments. **Review library** finds missing targets and duplicate launch paths. Cleanup hides selected entries; it does not delete game files. Client authentication and game-specific errors may require the original client’s repair tools.
+**Settings → Manage** can back up Orbit preferences and local hours, restore hidden entries, review launch problems, and export information. Preference backups do not include game files or account credentials.
 
-## Updates and feedback
+## Settings and updates
 
-The installed version can download updates and restart into the new build. Update controls are in **Settings → General**. Portable builds require manual updates. Quit an older tray copy before opening an updated installation.
+Settings cover discovery, startup, closing to the tray, notifications, themes, accessibility, and updates. The installed version can download published updates and restart when games and local tasks are idle. Portable updates are manual. Draft releases are not available to the public updater.
 
-Report problems in [Issues](https://github.com/tkokero/Orbit/issues) with the Orbit version, affected game or platform, and steps to reproduce them. Do not include account keys or private files.
+Closing the window normally keeps Orbit in the tray for tracking and background tasks. Use the tray menu to quit. Offline mode stops new online checks; cached information may be outdated, and games retain their own authentication requirements.
+
+System information and approximate performance estimates use the current computer’s detected hardware. FPS figures are estimates, not measured benchmarks.
+
+The full build number and **Report an issue** are in **Settings → About**. Include reproduction steps when reporting a problem; do not share account keys or private files.
+
+## Development versions
+
+0.x builds are development releases; **Orbit 1** is reserved for the first stable generation. Within a generation, numbered updates contain fixes and small additions, while the .5 milestone is a larger refinement update. A new Orbit generation indicates substantial completed changes.
+
+The original release is labeled **0.1** but retains its legacy 1.x tag and internal version for compatibility. To move from that build to 0.2, run the 0.2 installer once and quit any older tray copy first. Older 1.x updaters cannot recognize 0.2 as newer. Back up preferences before migrating.
 
 ## Source and license
 
-See [Contributing](CONTRIBUTING.md) for build instructions. Orbit is licensed under the [MIT License](LICENSE). Third-party notices are in [THIRD_PARTY.md](THIRD_PARTY.md).
+Orbit is [MIT licensed](LICENSE). See [CONTRIBUTING.md](CONTRIBUTING.md) for build instructions and [THIRD_PARTY.md](THIRD_PARTY.md) for dependency notices. Source archives attached to releases contain the corresponding build’s source and tests.
