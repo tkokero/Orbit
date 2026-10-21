@@ -52,8 +52,6 @@ The full build number and **Report an issue** are in **Settings → About**. Inc
 
 0.x builds are development releases; **Orbit 1** is reserved for the first stable generation. Within a generation, numbered updates contain fixes and small additions, while the .5 milestone is a larger refinement update. A new Orbit generation indicates substantial completed changes.
 
-The original release is labeled **0.1** but retains its legacy 1.x tag and internal version for compatibility. To move from that build to 0.2, run the 0.2 installer once and quit any older tray copy first. Older 1.x updaters cannot recognize 0.2 as newer. Back up preferences before migrating.
-
 ## Source and license
 
 Orbit is [MIT licensed](LICENSE). See [CONTRIBUTING.md](CONTRIBUTING.md) for build instructions and [THIRD_PARTY.md](THIRD_PARTY.md) for dependency notices. Source archives attached to releases contain the corresponding build’s source and tests.
