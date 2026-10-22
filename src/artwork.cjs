@@ -1,9 +1,7 @@
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const crypto = require('node:crypto');
-const sharp = require('sharp');
-sharp.cache({ memory: 8, files: 0, items: 16 });
-sharp.concurrency(1);
+const sharp = require('./image-engine.cjs');
 const { pathToFileURL, fileURLToPath } = require('node:url');
 const { readSteamMetadata } = require('./catalogs.cjs');
 const { normalizeTitle } = require('./library.cjs');
@@ -61,32 +59,34 @@ async function prepareArtwork(records, steamRoot, epicArtwork = []) {
       heroCandidates: [...new Set(heroes.filter(x => typeof x === 'string' && /^(file:|https:)/.test(x)))] };
   }));
 }
-const imageJobs=new Map();
+const {ImageQueue,imageBytes}=require('./image-queue.cjs');
+const imageJobs=new ImageQueue(2);
 function downloadImage(url,folder,options={}){
- const key=JSON.stringify([url,path.resolve(folder),options.kind||'cover',Boolean(options.force)]);
- let task=imageJobs.get(key);if(!task){task=decodeImage(url,folder,options).finally(()=>{if(imageJobs.get(key)===task)imageJobs.delete(key);});imageJobs.set(key,task);}return task;
+ const key=JSON.stringify([url,path.resolve(folder),options.kind||'cover',Boolean(options.force),Boolean(options.offline)]);
+ return imageJobs.run(key,()=>decodeImage(url,folder,options));
 }
-async function decodeImage(url, folder, { kind = 'cover', force = false } = {}) {
+async function decodeImage(url, folder, { kind = 'cover', force = false, offline = false } = {}) {
   if (typeof url !== 'string' || !/^(file:|https:)/.test(url)) return null;
   try {
     const local = url.startsWith('file:') ? fileURLToPath(url) : null;
-    if (local && !force && path.dirname(local) === path.resolve(folder) && local.endsWith(`-${kind}.jpg`)) return url;
+    if (local && !force && path.dirname(local) === path.resolve(folder) && local.endsWith(`-${kind}.webp`)) return url;
     const stat = local ? await fs.stat(local) : null;
-    const key = `${url}:${stat?.mtimeMs || ''}:${stat?.size || ''}:${kind}:v2`;
-    const target = path.join(folder, crypto.createHash('sha256').update(key).digest('hex').slice(0, 28) + `-${kind}.jpg`);
+    if(stat?.size>15e6)return null;
+    const key = `${url}:${stat?.mtimeMs || ''}:${stat?.size || ''}:${kind}:v3`;
+    const target = path.join(folder, crypto.createHash('sha256').update(key).digest('hex').slice(0, 28) + `-${kind}.webp`);
     if (!force && await exists(target)) return pathToFileURL(target).href;
     let bytes;
     if (local) bytes = await fs.readFile(local);
     else {
+      if(offline)return null;
       const response = await fetch(url, { signal: AbortSignal.timeout(7000) });
-      if (!response.ok || !response.headers.get('content-type')?.startsWith('image/')) return null;
-      if (Number(response.headers.get('content-length')) > 15e6) return null;
-      bytes = Buffer.from(await response.arrayBuffer());
+      if (!response.ok || !response.headers.get('content-type')?.startsWith('image/') || Number(response.headers.get('content-length')) > 15e6) {await response.body?.cancel();return null;}
+      bytes = await imageBytes(response);
     }
     if (!bytes.length || bytes.length > 15e6) return null;
-    const size = kind === 'hero' ? { width: 1200, height: 450 } : kind === 'icon' ? { width: 64, height: 64 } : { width: 320, height: 480 };
+    const size = kind === 'hero' ? { width: 1200, height: 450 } : kind === 'news' ? { width: 640, height: 360 } : kind === 'icon' ? { width: 64, height: 64 } : { width: 320, height: 480 };
     const output = await sharp(bytes, { limitInputPixels: 40e6, failOn: 'error' }).rotate()
-      .resize({ ...size, fit: 'inside', withoutEnlargement: true }).flatten({ background: '#12171e' }).jpeg({ quality: 82, mozjpeg: false }).toBuffer();
+      .resize({ ...size, fit: 'inside', withoutEnlargement: true }).flatten({ background: '#12171e' }).webp({ quality: 80, effort: 3 }).toBuffer();
     const temp = target + '.' + crypto.randomUUID() + '.tmp';
     await fs.mkdir(folder, { recursive: true });
     await fs.writeFile(temp, output); await fs.rename(temp, target);

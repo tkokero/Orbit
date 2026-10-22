@@ -1,4 +1,9 @@
+const accessibility=require('./accessibility.cjs');
+const wishlist=require('./wishlist.cjs');
+const collectionState=require('./collection-state.cjs');
 const path=require('node:path');
+const libraryFilters=require('./ui/library-filters.js');
+const {personal}=require('./personal.cjs');
 const {safeUrl,STORES}=require('./library.cjs');
 const {safeGameExe}=require('./playtime.cjs');
 const {experienceEntry}=require('./roblox.cjs');
@@ -23,18 +28,22 @@ function preferences(input){
   if(typeof p.preferred==='string'&&safeId(p.preferred))v.preferred=p.preferred;
   if(Number.isFinite(p.lastOpened)&&p.lastOpened>=0)v.lastOpened=p.lastOpened;
   if(Array.isArray(p.collections))v.collections=[...new Set(p.collections.filter(x=>typeof x==='string'&&x.trim()&&x.length<=40).map(x=>x.trim()))].slice(0,30);
+  if(p.tags!==undefined)v.tags=libraryFilters.tags(p.tags);
+  if(p.metadata&&typeof p.metadata==='object'){const m=p.metadata;v.metadata={genres:(Array.isArray(m.genres)?m.genres:[]).filter(x=>typeof x==='string'&&x.length<=80).slice(0,20),controller:m.controller===true?true:null,multiplayer:m.multiplayer===true?true:null,checkedAt:Number(m.checkedAt)||0,source:'Steam Store'};}
   if(p.profile)v.profile=profile(p.profile);
+  if(p.notes!==undefined||p.aliases!==undefined)Object.assign(v,personal({notes:p.notes||'',aliases:p.aliases||[]}));
   result[id]=v;
  }return result;
 }
 function uiState(input={}){
- const out={};for(const key of ['orbit-motion','orbit-remember-view','orbit-view','orbit-couch'])if(typeof input[key]==='string'&&input[key].length<4096)out[key]=input[key];
+ const out={};for(const key of ['orbit-motion','orbit-remember-view','orbit-view','orbit-couch','orbit-library-filters'])if(typeof input[key]==='string'&&input[key].length<4096)out[key]=input[key];
  if(typeof input['orbit-themes-v1']==='string'){
+  if(input['orbit-themes-v1'].length>3*1024*1024)throw Error('Theme images exceed the 3 MB theme storage limit.');
   const data=JSON.parse(input['orbit-themes-v1']);
   out['orbit-themes-v1']=JSON.stringify({active:typeof data.active==='string'?data.active:'orbit',custom:(data.custom||[]).slice(0,24).map(t=>({...validateTheme(t),id:/^custom-[a-z0-9-]+$/.test(t.id)?t.id:'custom-restored'}))});
  }return out;
 }
-function backup(store,ledger,ui,configs={}){return validateBackup({format:'orbit-backup',version:1,savedAt:Date.now(),settings:store.settings,preferences:store.preferences,imports:store.imports,collections:store.collections||[],roblox:store.roblox,playtime:{totals:ledger.totals,configs},ui});}
+function backup(store,ledger,ui,configs={}){return validateBackup({format:'orbit-backup',version:1,savedAt:Date.now(),settings:store.settings,accessibility:store.accessibility,preferences:store.preferences,imports:store.imports,collections:store.collections||[],wishlist:store.wishlist||[],smartCollections:store.smartCollections||[],addedAt:store.addedAt,addedTrackingInitialized:store.addedTrackingInitialized,roblox:store.roblox,playtime:{totals:ledger.totals,configs},ui});}
 function validateBackup(data){
  if(!plain(data)||data.format!=='orbit-backup'||data.version!==1)throw Error('This is not a supported Orbit backup.');
  const settings={};for(const [k,v]of Object.entries(data.settings||{}))if(typeof v==='boolean'&&safeId(k))settings[k]=v;
@@ -53,7 +62,7 @@ function validateBackup(data){
  // Only saved public experience identifiers, never account credentials.
  const roblox=plain(data.roblox)?{mode:data.roblox.mode==='app'?'app':'browser',games:(Array.isArray(data.roblox.games)?data.roblox.games:[]).slice(0,200).map(g=>({...experienceEntry(g),lastOpened:Number(g.lastOpened)||0}))}:undefined;
  if(roblox&&JSON.stringify(roblox).length>200000)throw Error('Experience list is too large.');
- return {format:'orbit-backup',version:1,savedAt:Number(data.savedAt)||Date.now(),settings,preferences:preferences(data.preferences||{}),imports,collections,roblox,playtime:{totals,configs},ui:uiState(data.ui||{})};
+ return {format:'orbit-backup',version:1,savedAt:Number(data.savedAt)||Date.now(),settings,accessibility:accessibility.validate(data.accessibility||{}),preferences:preferences(data.preferences||{}),imports,collections,wishlist:wishlist.validate(data.wishlist||[]),smartCollections:collectionState.smartDefinitions(data.smartCollections||[]),addedAt:collectionState.addedDates(data.addedAt),addedTrackingInitialized:data.addedTrackingInitialized===true,roblox,playtime:{totals,configs},ui:uiState(data.ui||{})};
 }
 async function inspectLibrary(games,exists){
  const rows=[];
@@ -61,7 +70,7 @@ async function inspectLibrary(games,exists){
   const checks=await Promise.all(g.versions.map(async v=>({v,target:v.executable||v.shortcut||v.location,available:(v.executable||v.shortcut||v.location)?await exists(v.executable||v.shortcut||v.location):false})));
   const hasAvailable=checks.some(c=>c.v.installed&&c.available);
   for(const {v,target,available}of checks){if((v.installed||v.origin==='manual')&&target&&!available)rows.push({id:g.id,versionId:v.id,title:g.title,reason:'Missing file or disconnected drive',path:target,action:hasAvailable?'review':'hide',label:hasAvailable?'Review copies':'Hide entry'});}
-  const seen=new Set();for(const v of g.versions){const key=v.executable?.replaceAll('/','\\').toLowerCase()||v.launch;if(!key)continue;if(seen.has(key))rows.push({id:g.id,versionId:v.id,title:g.title,reason:'Duplicate launch target',path:key,action:'review',label:'Review copies'});else seen.add(key);}
+  const seen=new Set();for(const v of g.versions){const key=(v.executable||v.shortcut)?.replaceAll('/','\\').toLowerCase()||v.launch;if(!key)continue;if(seen.has(key))rows.push({id:g.id,versionId:v.id,title:g.title,reason:'Duplicate launch target',path:key,action:'review',label:'Review copies'});else seen.add(key);}
  }return rows;
 }
 function completedDownload(previous,progress,state,installed){

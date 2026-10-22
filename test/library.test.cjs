@@ -5,11 +5,11 @@ const os = require('node:os');
 const path = require('node:path');
 const { normalizeTitle, parseVdf, mergeLibrary, actionFor, safeUrl, importRecords } = require('../src/library.cjs');
 const { steamGames, epicGames } = require('../src/discovery.cjs');
-test('duplicates merge across stores and installed wins over preferred uninstalled store', () => {
+test('copies are retained and an explicit preferred copy overrides automatic selection', () => {
   const records = [{ id: 'steam:1', title: 'Control®', source: 'Steam', installed: false }, { id: 'epic:control', title: 'Control', source: 'Epic Games', installed: true }];
   const first = mergeLibrary(records)[0];
   const games = mergeLibrary(records, { [first.id]: { preferred: 'steam:1' } });
-  assert.equal(games.length, 1); assert.equal(games[0].selected, 'epic:control'); assert.deepEqual(games[0].sources, ['Epic Games', 'Steam']);
+  assert.equal(games.length, 1); assert.equal(games[0].selected, 'steam:1'); assert.deepEqual(games[0].sources, ['Steam', 'Epic Games']);
 });
 test('remasters, editions, sequels, demos, and non-Latin titles stay distinct', () => {
   const titles = ['Control', 'Control Ultimate Edition', 'Control 2', 'Control Demo', 'Control Remastered', '游戏一', '游戏二'];
@@ -63,5 +63,11 @@ test('Epic validates the executable, excludes DLC, and ignores incomplete instal
     await fs.writeFile(path.join(root, `${i}.item`), JSON.stringify({ DisplayName: `Game ${i}`, AppName: `app${i}`, InstallLocation: root, LaunchExecutable: 'game.exe', CatalogNamespace: 'namespace', CatalogItemId: 'item', ...extra }));
   }
   const rows = await epicGames([], root); assert.equal(rows.length, 2); assert.equal(rows[0].installed, true); assert.equal(rows[1].installed, false);
-  assert.match(rows[0].launch, /namespace%3Aitem%3Aapp0/);
+  assert.match(rows[0].launch, /namespace%3Aitem%3Aapp0/);assert.deepEqual(rows[0].gameExecutables,[path.join(root,'game.exe')]);assert.deepEqual(rows[1].gameExecutables,[]);
+});
+
+test('Epic handles quoted game files and rejects helper files or paths outside the installation',async t=>{
+ const root=await fs.mkdtemp(path.join(os.tmpdir(),'orbit-epic-files-'));t.after(()=>fs.rm(root,{recursive:true,force:true}));const manifests=path.join(root,'manifests'),install=path.join(root,'game');await fs.mkdir(manifests);await fs.mkdir(path.join(install,'Binaries'),{recursive:true});await fs.writeFile(path.join(install,'Binaries','Actual Game.exe'),'fixture');await fs.writeFile(path.join(install,'setup.exe'),'fixture');await fs.writeFile(path.join(root,'Outside.exe'),'fixture');await fs.mkdir(path.join(install,'Directory.exe'));
+ for(const [i,file]of ['"Binaries/Actual Game.exe"','setup.exe','../Outside.exe','Directory.exe'].entries())await fs.writeFile(path.join(manifests,i+'.item'),JSON.stringify({DisplayName:'Game '+i,AppName:'app'+i,InstallLocation:install,LaunchExecutable:file}));
+ const rows=await epicGames([],manifests);assert.equal(rows.filter(g=>g.installed).length,1);assert.deepEqual(rows.find(g=>g.appId==='app0').gameExecutables,[path.join(install,'Binaries','Actual Game.exe')]);assert.ok(rows.every(g=>g.launch.startsWith('com.epicgames.launcher:')));
 });

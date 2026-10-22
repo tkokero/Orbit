@@ -12,3 +12,5 @@ Orbit's original source code is MIT licensed; see LICENSE.
 The project uses independently implemented readers for publicly described Steam/Epic/Ubisoft cache formats. Reference links are in README.md.
 
 Automatic installed-app updates use electron-updater (MIT) and the Windows installer is built with electron-builder (MIT). Bundled dependency licenses are retained in the distribution.
+
+The Windows build retains the complete Chromium notices in `resources/chromium-notices.html.gz`. Open **Settings → Manage → Third-party licenses** to read them offline. The viewer expands them temporarily and removes the temporary file when closed. `LICENSE.electron.txt` is also included with the installed app.

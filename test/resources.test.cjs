@@ -33,11 +33,11 @@ test('image cache validates bytes, falls back from corrupt art, and repairs dama
   assert.equal(await downloadImage(pathToFileURL(bad).href,folder),null);
   const rows=[{id:'1',title:'Fixture',coverCandidates:[pathToFileURL(bad).href,pathToFileURL(good).href]}];
   const report=await cacheCovers(rows,folder);assert.equal(report.available,1);
-  const metadata=await sharp(fileURLToPath(rows[0].cover)).metadata();assert.equal(metadata.format,'jpeg');assert.equal(metadata.width,320);assert.equal(metadata.height,480);
+  const metadata=await sharp(fileURLToPath(rows[0].cover)).metadata();assert.equal(metadata.format,'webp');assert.equal(metadata.width,320);assert.equal(metadata.height,480);
   const file=fileURLToPath(rows[0].cover),before=(await fs.stat(file)).mtimeMs;
   await cacheCovers(rows,folder);assert.equal((await fs.stat(file)).mtimeMs,before);
   await fs.writeFile(file,'damaged cache');await cacheCovers(rows,folder,()=>{},true);
-  assert.equal((await sharp(fileURLToPath(rows[0].cover)).metadata()).format,'jpeg');
+  assert.equal((await sharp(fileURLToPath(rows[0].cover)).metadata()).format,'webp');
 });
 
 test('fresh installs create the friend avatar cache and reuse compact icons',async t=>{

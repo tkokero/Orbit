@@ -1,0 +1,10 @@
+/* A single locally chosen font; no remote font requests or system installation. */
+(()=>{
+ let current=null,face=null,revision=0,busy=false,loading=true;
+ async function apply(font){const own=++revision;if(!font){if(face)document.fonts.delete(face);face=null;document.documentElement.style.removeProperty('--ui-font');document.documentElement.classList.remove('custom-font');return;}
+  const bytes=Uint8Array.from(atob(font.data),c=>c.charCodeAt(0)),candidate=new FontFace('OrbitCustom',bytes.buffer);await candidate.load();if(own!==revision)return;if(face)document.fonts.delete(face);document.fonts.add(candidate);face=candidate;document.documentElement.classList.add('custom-font');document.documentElement.style.setProperty('--ui-font',"'OrbitCustom', 'Segoe UI', Arial, sans-serif");
+ }
+ function sync(){const label=document.querySelector('#custom-font-name');if(label)label.textContent=current?.name||'Default · Segoe UI';const reset=document.querySelector('#custom-font-reset'),choose=document.querySelector('#custom-font-choose');if(reset)reset.disabled=loading||busy||!current;if(choose)choose.disabled=loading||busy;}
+ function mount(){const choose=document.querySelector('#custom-font-choose'),reset=document.querySelector('#custom-font-reset');if(!choose)return;sync();choose.onclick=()=>attempt(async()=>{if(busy||loading)return;busy=true;sync();try{const font=await window.orbit.chooseFont();if(!font)return;await apply(font);try{current=await window.orbit.saveFont(font);}catch(e){await apply(current);throw e;}sync();toast('Font applied.');}finally{busy=false;sync();}});reset.onclick=()=>attempt(async()=>{if(busy||loading)return;busy=true;sync();try{await window.orbit.saveFont(null);current=null;await apply(null);sync();toast('Default font restored.');}finally{busy=false;sync();}});}
+ const ready=(async()=>{try{current=await window.orbit.getFont?.();if(current)await apply(current);}catch{current=null;await apply(null);}finally{loading=false;sync();}})();window.orbitFonts={mount,ready};
+})();

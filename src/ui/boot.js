@@ -1,24 +1,16 @@
-/* One finite CSS sequence; library work runs concurrently underneath. */
+/* Scene playback and library loading are independent; both must finish. */
 (()=>{
- const cover=document.querySelector('#orbit-boot'),shell=document.querySelector('.app-shell');
- let reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;try{reduced ||=localStorage.getItem('orbit-motion')==='off'||localStorage.getItem('orbit-intro')==='off';}catch{}
- if(reduced)cover.classList.add('boot-still');
- let resolve,finished=false;const done=new Promise(r=>resolve=r),started=performance.now();
- window.orbitBoot={done,ready(){if(finished)return;finished=true;setTimeout(()=>{
-  document.body.classList.remove('booting');
-  shell.inert=false;
-  let completed=false,deadline,animations=[];
-  const finish=()=>{if(completed)return;completed=true;clearTimeout(deadline);for(const animation of animations)try{animation.cancel();}catch{}shell.inert=false;cover.remove();resolve();};
-  if(reduced){finish();return;}
-  cover.classList.add('boot-leaving');
-  const scene=cover.querySelector('.boot-scene');
-  deadline=setTimeout(finish,700);
-  try{animations=[
-   cover.animate([{opacity:1},{opacity:0}],{duration:420,easing:'cubic-bezier(.4,0,.2,1)',fill:'forwards'}),
-   scene.animate([{opacity:1,transform:'scale(1)'},{opacity:0,transform:'scale(1.12) translateY(-8px)'}],{duration:340,easing:'cubic-bezier(.4,0,.2,1)',fill:'forwards'})
-   // Animate only the cover: the interactive menu stays in its final layout.
-  ];
-  Promise.allSettled(animations.map(a=>a.finished)).then(finish,finish);
-  }catch{finish();}
- },Math.max(0,(reduced?0:1900)-(performance.now()-started)));}};
+ const cover=document.querySelector('#orbit-boot'),shell=document.querySelector('.app-shell');shell.inert=true;
+ const debugReplay=Boolean(window.orbitDebug)&&new URLSearchParams(location.search).get('debug-intro')==='1';
+ let reduced=(!debugReplay&&new URLSearchParams(location.search).get('resume')==='1')||matchMedia('(prefers-reduced-motion: reduce)').matches;try{reduced ||=localStorage.getItem('orbit-motion')==='off'||(!debugReplay&&localStorage.getItem('orbit-intro')==='off');}catch{}
+ const playback=OrbitStartup.play(cover,{reduced,holdFrame:true});let loaded=false,sceneDone=false,exiting=false,resolve;const done=new Promise(r=>resolve=r);
+ const hint=document.createElement('p');hint.className='startup-load-hint';hint.hidden=true;hint.textContent='Opening your library…';cover.append(hint);
+ async function leave(){if(!loaded||!sceneDone||exiting)return;exiting=true;cover.classList.add('boot-leaving');
+  try{await OrbitStartup.exit(cover,{reduced,reveal:()=>document.body.classList.add('boot-revealing')});}
+  finally{try{playback.release();}finally{cover.remove();document.body.classList.remove('booting','boot-revealing');shell.inert=false;resolve();}}
+ }
+
+ playback.done.then(()=>{sceneDone=true;hint.hidden=loaded;const skip=cover.querySelector('.startup-skip');if(skip){skip.disabled=true;skip.hidden=true;}leave();});
+ document.addEventListener('keydown',e=>{if(!exiting&&e.key==='Escape'&&cover.isConnected){e.preventDefault();playback.skip();}});
+ window.orbitBoot={done,ready(){loaded=true;hint.hidden=true;leave();},skip:()=>playback.skip()};
 })();

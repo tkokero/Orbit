@@ -1,29 +1,36 @@
 const $ = s => document.querySelector(s);
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 const THEME_STORAGE='orbit-themes-v1';
-let customThemes=[],activeTheme='orbit',themePreview=false;
+let customThemes=[],activeTheme='orbit',themePreview=false,themeEditorImage=null,darkPresses=0,superDark=false;
+try{superDark=localStorage.getItem('orbit-super-dark')==='on';}catch{}
 try{const saved=JSON.parse(localStorage.getItem(THEME_STORAGE)||'{}');customThemes=(saved.custom||[]).slice(0,24).map(t=>({...OrbitTheme.validate(t),id:typeof t.id==='string'&&/^custom-[a-z0-9-]+$/.test(t.id)?t.id:'custom-'+crypto.randomUUID()}));if(typeof saved.active==='string')activeTheme=saved.active;}catch{}
 const allThemes=()=>[...OrbitTheme.builtins,...customThemes];
-const selectedTheme=()=>allThemes().find(t=>t.id===activeTheme)||OrbitTheme.builtins[0];
+const selectedTheme=()=>{const theme=allThemes().find(t=>t.id===activeTheme)||OrbitTheme.builtins[0];return theme.id==='dark'&&superDark?{...theme,name:'Super Dark',colors:{...theme.colors,background:'#000000',surface:'#070707',accent:'#929292',positive:'#a6aaa6',secondary:'#999999',warm:'#aaa49c'}}:theme;};
 function saveThemes(){try{localStorage.setItem(THEME_STORAGE,JSON.stringify({active:activeTheme,custom:customThemes}));}catch{toast('Theme could not be saved on this computer.',true);}}
 function chooseTheme(id){activeTheme=allThemes().some(t=>t.id===id)?id:'orbit';themePreview=false;OrbitTheme.apply(selectedTheme(),document.documentElement);saveThemes();}
 OrbitTheme.apply(selectedTheme(),document.documentElement);
 function discardThemePreview(){if(themePreview){themePreview=false;OrbitTheme.apply(selectedTheme(),document.documentElement);}}
-function themeEditorValue(){return OrbitTheme.validate({schemaVersion:1,name:$('#theme-name').value,colors:Object.fromEntries(OrbitTheme.fields.map(key=>[key,$('#theme-color-'+key).value]))});}
-function fillThemeEditor(){const theme=selectedTheme();$('#theme-name').value=theme.id.startsWith('custom-')?theme.name:theme.name+' remix';for(const key of OrbitTheme.fields)$('#theme-color-'+key).value=theme.colors[key];$('#theme-warning').hidden=true;}
+function themeEditorValue(){return OrbitTheme.validate({schemaVersion:1,name:$('#theme-name').value,...(themeEditorImage?{image:{...themeEditorImage,mode:$('#theme-image-mode').value,opacity:Number($('#theme-image-opacity').value)}}:{}),colors:Object.fromEntries(OrbitTheme.fields.map(key=>[key,$('#theme-color-'+key).value]))});}
+function fillThemeEditor(){const theme=selectedTheme();$('#theme-name').value=theme.id.startsWith('custom-')?theme.name:theme.name+' remix';for(const key of OrbitTheme.fields)$('#theme-color-'+key).value=theme.colors[key];themeEditorImage=theme.image?{...theme.image}:null;syncThemeImageControls();$('#theme-warning').hidden=true;}
+function updateThemeImageOpacity(){const slider=$('#theme-image-opacity');if(!slider)return;const progress=(Number(slider.value)-Number(slider.min))/(Number(slider.max)-Number(slider.min))*100;slider.style.setProperty('--range-progress',progress+'%');const output=$('#theme-image-opacity-value');if(output)output.value=slider.value+'%';slider.setAttribute('aria-valuetext',slider.value+' percent image visibility');}
+function syncThemeImageControls(){const image=themeEditorImage,preview=$('#theme-image-preview');if(!preview)return;preview.hidden=!image;if(image){preview.src=image.data;}else preview.removeAttribute('src');$('#theme-image-mode').disabled=!image;$('#theme-image-mode').value=image?.mode||'manual';$('#theme-image-opacity').disabled=!image;$('#theme-image-opacity').value=image?.opacity??30;updateThemeImageOpacity();$('#theme-image-remove').disabled=!image;$('#theme-color-accent').disabled=Boolean(image&&image.mode==='auto');$('#theme-image-status').textContent=image?'Image copied into the theme. The original file is unchanged.':'Choose a background image to enable image visibility and automatic accent colors.';}
 function renderThemePicker(){const root=$('#theme-picker');if(!root)return;root.replaceChildren();for(const theme of allThemes()){
   const button=document.createElement('button');button.type='button';button.className='theme-option';button.setAttribute('aria-pressed',String(theme.id===selectedTheme().id));button.dataset.theme=theme.id;
-  const swatches=document.createElement('span');swatches.className='theme-swatches';swatches.setAttribute('aria-hidden','true');for(const key of ['background','accent','positive']){const swatch=document.createElement('i');swatch.style.backgroundColor=theme.colors[key];swatches.append(swatch);}const label=document.createElement('span');label.textContent=theme.name;button.append(swatches,label);root.append(button);
+  const swatches=document.createElement('span');swatches.className='theme-swatches';swatches.setAttribute('aria-hidden','true');for(const key of ['background','accent','positive']){const swatch=document.createElement('i');swatch.style.backgroundColor=key==='accent'?OrbitTheme.effectiveAccent(theme):theme.colors[key];swatches.append(swatch);}const label=document.createElement('span');label.textContent=theme.name;button.append(swatches,label);root.append(button);
 }$('#theme-delete').hidden=!activeTheme.startsWith('custom-');$('#theme-selection').textContent=selectedTheme().name;}
 function setupThemeEditor(){
-  renderThemePicker();fillThemeEditor();
-  $('#theme-picker').onclick=e=>{const b=e.target.closest('[data-theme]');if(!b)return;chooseTheme(b.dataset.theme);renderThemePicker();fillThemeEditor();};
-  $('#theme-form').oninput=()=>{try{const theme=themeEditorValue();themePreview=true;OrbitTheme.apply(theme,document.documentElement);const warning=$('#theme-warning');warning.hidden=OrbitTheme.contrast(theme.colors.text,theme.colors.background)>=4.5&&OrbitTheme.contrast(theme.colors.muted,theme.colors.background)>=3;}catch{}};
-  $('#theme-form').onsubmit=e=>{e.preventDefault();attempt(async()=>{const theme=themeEditorValue();const existing=customThemes.findIndex(t=>t.id===activeTheme);if(existing<0&&customThemes.length>=24)throw new Error('You can save 24 custom themes. Remove one to make room.');const id=existing>=0?activeTheme:'custom-'+crypto.randomUUID();const saved={...theme,id};if(existing>=0)customThemes[existing]=saved;else customThemes.push(saved);chooseTheme(id);renderThemePicker();fillThemeEditor();toast('Theme saved.');});};
+  window.orbitFonts?.mount();window.orbitStartupSettings?.mount();
+  darkPresses=0;
+  renderThemePicker();fillThemeEditor();const editor=$('#theme-editor');editor.ontoggle=()=>{editor.querySelector('.appearance-summary-action').textContent=editor.open?'Collapse':'Customize';};
+  $('#theme-picker').onclick=e=>{const b=e.target.closest('[data-theme]');if(!b)return;darkPresses=b.dataset.theme==='dark'?darkPresses+1:0;if(darkPresses===3){superDark=!superDark;darkPresses=0;try{localStorage.setItem('orbit-super-dark',superDark?'on':'off');}catch{}toast(superDark?'Lights out.':'Back to Dark.');}chooseTheme(b.dataset.theme);renderThemePicker();fillThemeEditor();};
+  $('#theme-form').oninput=()=>{updateThemeImageOpacity();try{if(themeEditorImage){themeEditorImage.mode=$('#theme-image-mode').value;themeEditorImage.opacity=Number($('#theme-image-opacity').value);$('#theme-color-accent').disabled=themeEditorImage.mode==='auto';}const theme=themeEditorValue();themePreview=true;OrbitTheme.apply(theme,document.documentElement);const warning=$('#theme-warning');warning.hidden=OrbitTheme.contrast(theme.colors.text,theme.colors.background)>=4.5&&OrbitTheme.contrast(theme.colors.muted,theme.colors.background)>=3;}catch{}};
+  $('#theme-form').onsubmit=e=>{e.preventDefault();attempt(async()=>{const theme=themeEditorValue();const existing=customThemes.findIndex(t=>t.id===activeTheme);if(existing<0&&customThemes.length>=24)throw new Error('You can save 24 custom themes. Remove one to make room.');const id=existing>=0?activeTheme:'custom-'+crypto.randomUUID();const saved={...theme,id};const candidate=existing>=0?customThemes.map((t,i)=>i===existing?saved:t):[...customThemes,saved];const serialized=JSON.stringify({active:id,custom:candidate});if(serialized.length>3*1024*1024)throw Error('Theme images take too much space. Remove an image or theme first.');localStorage.setItem(THEME_STORAGE,serialized);if(existing>=0)customThemes[existing]=saved;else customThemes.push(saved);chooseTheme(id);renderThemePicker();fillThemeEditor();toast('Theme saved.');});};
+  $('#theme-image-choose').onclick=()=>attempt(async()=>{const button=$('#theme-image-choose'),form=$('#theme-form');button.disabled=true;try{const image=await window.orbit.chooseThemeImage();if(!image||!form.isConnected)return;themeEditorImage=image;syncThemeImageControls();themePreview=true;OrbitTheme.apply(themeEditorValue(),document.documentElement);}finally{if(button.isConnected)button.disabled=false;}});
+  $('#theme-image-remove').onclick=()=>{themeEditorImage=null;syncThemeImageControls();themePreview=true;OrbitTheme.apply(themeEditorValue(),document.documentElement);};
   $('#theme-discard').onclick=()=>{discardThemePreview();fillThemeEditor();};
   $('#theme-delete').onclick=()=>{customThemes=customThemes.filter(t=>t.id!==activeTheme);chooseTheme('orbit');renderThemePicker();fillThemeEditor();};
-  $('#theme-export').onclick=()=>attempt(async()=>{const theme=themePreview?themeEditorValue():selectedTheme();const result=await window.orbit.exportTheme({schemaVersion:1,name:theme.name,colors:theme.colors});if(result)toast('Theme exported.');});
-  $('#theme-import').onclick=()=>attempt(async()=>{const imported=await window.orbit.importTheme();if(!imported)return;const theme=OrbitTheme.validate(imported);if(customThemes.length>=24)throw new Error('Remove a custom theme to make room.');const id='custom-'+crypto.randomUUID();customThemes.push({...theme,id});chooseTheme(id);renderThemePicker();fillThemeEditor();toast('Theme imported.');});
+  $('#theme-export').onclick=()=>attempt(async()=>{const theme=themePreview?themeEditorValue():selectedTheme();const result=await window.orbit.exportTheme({schemaVersion:1,name:theme.name,colors:theme.colors,...(theme.image?{image:theme.image}:{})});if(result)toast('Theme exported.');});
+  $('#theme-import').onclick=()=>attempt(async()=>{const imported=await window.orbit.importTheme();if(!imported)return;const theme=OrbitTheme.validate(imported);if(customThemes.length>=24)throw new Error('Remove a custom theme to make room.');const id='custom-'+crypto.randomUUID();const candidate=[...customThemes,{...theme,id}];const serialized=JSON.stringify({active:id,custom:candidate});if(serialized.length>3*1024*1024)throw Error('Theme images take too much space. Remove an image or theme first.');localStorage.setItem(THEME_STORAGE,serialized);customThemes.push({...theme,id});chooseTheme(id);renderThemePicker();fillThemeEditor();toast('Theme imported.');});
 }
 const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 let motionEnabled = true;
@@ -41,20 +48,14 @@ let rememberView=true;
 try {rememberView=localStorage.getItem('orbit-remember-view')!=='off';if(rememberView){const view=JSON.parse(localStorage.getItem('orbit-view')||'{}');if(['games','tools','friends'].includes(view.section))state.section=view.section;if(['all','installed','favorites','uninstalled'].includes(view.view))state.view=view.view;if(['','Steam','Epic Games','Roblox','Others'].includes(view.source))state.source=view.source;if(['recent','az','installed','platform'].includes(view.sort))state.sort=view.sort;state.list=Boolean(view.list);}}catch{}
 const bytes=n=>n<1024?n+' B':n<1024**2?(n/1024).toFixed(1)+' KB':n>=1024**3?(n/1024**3).toFixed(1)+' GB':(n/1024**2).toFixed(0)+' MB';
 function duration(seconds){const m=Math.max(1,Math.ceil(seconds/60));return m<60?m+' min':Math.floor(m/60)+' h '+(m%60)+' min';}
-function progressMarkup(p){return p?`<span class="install-caption">${esc(p.phase)}${Number.isFinite(p.percent)?` · ${p.percent}%`:''}</span>${p.done!=null&&p.total?`<span class="transfer-size">${(p.done/1024**3).toFixed(1)} / ${(p.total/1024**3).toFixed(1)} GB</span>`:''}${p.etaSeconds>0&&p.bytesPerSecond>0&&Date.now()-(p.sampledAt||0)<90000?`<span class="transfer-estimate">About ${duration(p.etaSeconds)} remaining · ${(p.bytesPerSecond/1024**2).toFixed(1)} MB/s</span>`:/^(Download|Installing)$/.test(p.phase)?'<span class="transfer-estimate">Estimating time remaining…</span>':''}${Number.isFinite(p.percent)?`<progress aria-label="${esc(p.phase)}" value="${p.percent}" max="100"></progress>`:''}`:'';}
-function renderDownloads(){
-  const root=$('#downloads'),games=state.games.filter(g=>g.installationProgress&&!g.hidden),expanded=root.querySelector('details')?.open||false;
-  root.hidden=!games.length;
-  unobserve(root);
-  root.innerHTML=`<details ${expanded?'open':''}><summary>Installations <span class="download-count">${games.length}</span><span class="download-hint">Progress &amp; launcher controls</span></summary><div class="download-list">${games.slice(0,12).map(g=>`<div class="download-item"><button data-download-game="${g.id}" class="download-name">${OrbitIcons.markup(g.id)}<span>${esc(g.title)}</span></button><div class="download-progress">${progressMarkup(g.installationProgress)}</div>${g.sources.some(s=>s==='Steam'||s==='Epic Games')?`<button class="link-button" data-download-source="${g.sources.includes('Steam')?'Steam':'Epic Games'}">Open downloads</button>`:''}</div>`).join('')}</div></details>`;
-  OrbitIcons.observe(root);
-}
+function progressMarkup(p){return p?`<span class="install-caption">${esc(p.phase)}${Number.isFinite(p.percent)?` · ${p.percent}%`:''}</span>${p.done!=null&&p.total?`<span class="transfer-size">${bytes(p.done)} / ${bytes(p.total)}</span>`:''}${p.etaSeconds>0&&p.bytesPerSecond>0&&Date.now()-(p.sampledAt||0)<90000?`<span class="transfer-estimate">About ${p.etaSeconds<60?Math.ceil(p.etaSeconds)+' s':duration(p.etaSeconds)} remaining · ${bytes(p.bytesPerSecond)}/s</span>`:/^(Download|Installing)$/.test(p.phase)?'<span class="transfer-estimate">Estimating time remaining…</span>':''}${Number.isFinite(p.percent)?`<progress aria-label="${esc(p.phase)}" value="${p.percent}" max="100"></progress>`:''}`:'';}
+function renderDownloads(){window.orbitCare?.updateDownloads();const root=$('#downloads');root.hidden=true;}
 
 const hours = n => `${(n/60).toLocaleString(undefined,{maximumFractionDigits:1})} h`;
 const date = n => n ? new Date(n).toLocaleString(undefined,{dateStyle:'medium',timeStyle:'short'}) : 'Unavailable';
 const status = g => g.robloxPlaceId?'Saved experience':g.installed ? 'Installed' : g.launcherAvailable ? 'Launcher ready' : 'Not installed';
-const action = g => g.robloxPlaceId?'Open game':g.installed ? (g.kind === 'tool' ? 'Open' : 'Play') : g.directLaunchAvailable ? 'Play' : g.launcherAvailable ? 'Open launcher' : 'Install';
-const modToolsFor=g=>state.games.filter(t=>t.kind==='tool'&&/r2modman|CurseForge/i.test(t.title)&&(!/^Minecraft/i.test(g.title)||/CurseForge/i.test(t.title)));
+const action = g => g.robloxPlaceId?'Open game':(g.selectedInstalled??g.installed) ? (g.kind === 'tool' ? 'Open' : 'Play') : g.directLaunchAvailable ? 'Play' : g.launcherAvailable ? (g.launchRoute?.mode==='game'?'Play':'Open launcher') : 'Install';
+const modToolsFor=g=>OrbitModSupport.filter(g,state.games.filter(t=>t.kind==='tool'));
 const sectionItems = () => state.games.filter(g => !g.hidden && g.kind === (state.section === 'tools' ? 'tool' : 'game'));
 let toastTimer, searchTimer, detailRequest = 0;
 function toast(message, error=false) { $('#toast').textContent=message; $('#toast').classList.toggle('error',error); $('#toast').hidden=false; clearTimeout(toastTimer); toastTimer=setTimeout(()=>$('#toast').hidden=true,error?7000:3500); }
@@ -63,27 +64,30 @@ function absorb(data) {
   if (!data) return;
   if (data.scannedAt !== state.scannedAt) state.featured='';
   Object.assign(state,{games:data.games,warnings:data.warnings||[],scannedAt:data.scannedAt,steamId:data.steamId,connections:data.connections||[],offline:Boolean(data.offline),cached:Boolean(data.cached),coverStatus:data.coverStatus||{},settings:data.settings||state.settings||{}});
-  for (const g of state.games) g.searchText=`${g.title} ${g.sources.join(' ')}`.toLowerCase();
+  for (const g of state.games) {g.searchIndex=OrbitSearch.index(g);g.searchText=`${g.title} ${g.sources.join(' ')}`.toLowerCase();}
   render();
 }
 function filtered() {
-  const query=state.search.toLowerCase();
+  const matchesSearch=OrbitSearch.matcher(state.search),otherSources=['Steam','Epic Games',...(state.games.some(g=>g.robloxPlaceId)?['Roblox']:[])];
   return state.games.filter(g => state.view==='hidden' ? g.hidden : !g.hidden && g.kind===(state.section==='tools'?'tool':'game'))
     .filter(g=>state.view!=='installed'||g.installed).filter(g=>state.view!=='uninstalled'||!g.installed)
     .filter(g=>state.view!=='favorites'||g.favorite)
-    .filter(g=>!state.source || (state.source==='Others' ? g.sources.some(s=>!['Steam','Epic Games',...(state.games.some(g=>g.robloxPlaceId)?['Roblox']:[])].includes(s)) : g.sources.includes(state.source)))
-    .filter(g=>!query||g.searchText.includes(query)).filter(g=>window.orbitFeatures?.matches(g)??true)
+    .filter(g=>!state.source || (state.source==='Others' ? g.sources.some(s=>!otherSources.includes(s)) : g.sources.includes(state.source)))
+    .filter(g=>window.orbitCare?.matches(g)??true).filter(matchesSearch).filter(g=>window.orbitFeatures?.matches(g)??true)
     .sort((a,b)=>state.sort==='recent'?b.lastPlayed-a.lastPlayed||a.title.localeCompare(b.title):state.sort==='installed'?Number(b.installed)-Number(a.installed)||a.title.localeCompare(b.title):state.sort==='platform'?a.sources[0].localeCompare(b.sources[0])||a.title.localeCompare(b.title):a.title.localeCompare(b.title));
 }
 function unobserve(root) { OrbitIcons.unobserve(root); root.querySelectorAll('img').forEach(img=>imageObserver.unobserve(img)); }
 const imageObserver = new IntersectionObserver(entries=>{
-  for(const entry of entries) if(entry.isIntersecting) {
-    const img=entry.target; imageObserver.unobserve(img);
-    if(img.dataset.achievement) {
-      window.orbit.achievementImage(img.dataset.game,img.dataset.achievement).then(src=>{if(img.isConnected&&src)img.src=src;else img.remove();}).catch(()=>img.remove());
-    } else if(img.dataset.src) { img.src=img.dataset.src; delete img.dataset.src; }
+  for(const entry of entries){
+    const img=entry.target;
+    if(!img.isConnected||document.hidden)continue;
+    if(!entry.isIntersecting){if((img.dataset.cover||img.dataset.hero)&&img.hasAttribute('src')){img.dataset.src=img.getAttribute('src');img.removeAttribute('src');window.orbitMemory?.trim();}continue;}
+    if(img.dataset.achievement){
+      imageObserver.unobserve(img);
+      window.orbit.achievementImage(img.dataset.game,img.dataset.achievement).then(src=>{if(img.isConnected&&src){if(document.hidden)img.dataset.src=src;else img.src=src;}else img.remove();}).catch(()=>img.remove());
+    }else if(img.dataset.src){img.src=img.dataset.src;delete img.dataset.src;}
   }
-},{rootMargin:'160px'});
+},{rootMargin:'100px'});
 function observeImages(root) {
   OrbitIcons.observe(root);
   root.querySelectorAll('img').forEach(img=>{
@@ -99,7 +103,20 @@ function observeImages(root) {
     if(img.dataset.src||img.dataset.achievement) imageObserver.observe(img);
   });
 }
+function releaseLibraryImages(){
+ window.orbitNews?.release();
+ for(const id of ['game-grid','recent-games']){const root=$('#'+id);if(root?.childElementCount){unobserve(root);root.replaceChildren();}}
+ const hero=$('#hero-image');if(hero){imageObserver.unobserve(hero);hero.removeAttribute('src');delete hero.dataset.src;}
+ window.orbitMemory?.trim();
+}
+function setHeroImage(src){
+ const img=$('#hero-image');if(!src){imageObserver.unobserve(img);img.removeAttribute('src');delete img.dataset.src;return;}
+ if((img.dataset.src||img.getAttribute('src'))!==src){imageObserver.unobserve(img);img.removeAttribute('src');img.dataset.src=src;}
+ img.dataset.hero='1';img.hidden=false;imageObserver.observe(img);
+}
 function render() {
+  if(window.orbitMemory?.suspended())return;
+  if(window.orbitShell?.renderExternal())return;
   const hasRoblox=state.games.some(g=>g.robloxPlaceId);
   if(state.source==='Roblox'&&!hasRoblox)state.source='';
   if(rememberView)try{localStorage.setItem('orbit-view',JSON.stringify({section:state.section,view:state.view==='hidden'?'all':state.view,source:state.source,sort:state.sort,list:state.list}));}catch{}
@@ -107,7 +124,7 @@ function render() {
   $('#sort').value=state.sort;
   const socialView=state.section==='friends';$('#library-panel').hidden=socialView;$('#friends-panel').hidden=state.section!=='friends';$('#add-game').hidden=socialView;
   $('#source-navigation').hidden=socialView;$('.sidebar-heading').hidden=socialView;$('#navigation').querySelectorAll('[data-view]').forEach(b=>b.hidden=socialView);
-  if(socialView){const visible=state.games.filter(g=>!g.hidden);$('#games-count').textContent=visible.filter(g=>g.kind==='game').length;$('#tools-count').textContent=visible.filter(g=>g.kind==='tool').length;$('#navigation').querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.section==='friends'));friendsUI.enter();return;}
+  if(socialView){releaseLibraryImages();const visible=state.games.filter(g=>!g.hidden);$('#games-count').textContent=visible.filter(g=>g.kind==='game').length;$('#tools-count').textContent=visible.filter(g=>g.kind==='tool').length;$('#navigation').querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.section==='friends'));friendsUI.enter();return;}
   friendsUI.leave();
 
   const items=sectionItems(), all=state.games.filter(g=>!g.hidden);
@@ -122,25 +139,29 @@ function render() {
   $('#navigation').querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.section?b.dataset.section===state.section&&state.view==='all'&&!state.source:b.dataset.view===state.view&&!state.source));
   const groups=[['Steam','assets/steam.svg',items.filter(g=>g.sources.includes('Steam')).length],['Epic Games','assets/epicgames.svg',items.filter(g=>g.sources.includes('Epic Games')).length],...(hasRoblox?[['Roblox','assets/roblox.svg',items.filter(g=>g.sources.includes('Roblox')).length]]:[]),['Others',null,items.filter(g=>g.sources.some(s=>!['Steam','Epic Games',...(hasRoblox?['Roblox']:[])].includes(s))).length]];
   $('#source-navigation').innerHTML=groups.map(([name,logo,count])=>`<button class="nav-item platform ${state.source===name?'active':''}" data-source="${name}">${logo?`<img src="${logo}" class="platform-logo" alt="">`:'<span class="logo-space"></span>'}<span>${name==='Epic Games'?'Epic Games':name}</span><span class="count">${count}</span></button>`).join('');
-  $('#warning-button').hidden=!state.warnings.length; $('#warning-button').textContent=`${state.warnings.length} notice${state.warnings.length===1?'':'s'}`;
+
   const games=filtered(), pages=Math.max(1,Math.ceil(games.length/PAGE_SIZE));$('#section-count').textContent=games.length; state.page=Math.max(0,Math.min(state.page,pages-1));
   const start=state.page*PAGE_SIZE, visible=games.slice(start,start+PAGE_SIZE), grid=$('#game-grid');
   unobserve(grid); grid.classList.toggle('list',state.list);
-  grid.innerHTML=state.list?`<div class="list-heading"><span>Game</span><span>Status</span><span>Playtime</span><span>Last played</span><span>Achievements</span><span></span></div>`+visible.map(g=>`<div class="game-row"><button class="list-game" data-game="${esc(g.id)}">${g.cover?`<img data-src="${esc(g.cover)}" data-cover="${esc(g.id)}" alt="">`:OrbitIcons.markup(g.id)}<span><strong>${esc(g.title)}</strong><small>${esc(g.sources.join(' · '))}${g.favorite?' · Favorite':''}</small></span></button><span class="list-status ${g.installed?'ready':''}">${esc(status(g))}${g.sizeBytes?`<small class="list-size">${bytes(g.sizeBytes)}</small>`:''}</span><span data-playtime="${esc(g.id)}">${g.playtimeKnown?hours(g.playtime):'—'}</span><span class="list-last">${g.lastPlayed?new Date(g.lastPlayed).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}):'—'}</span><span class="list-achievements">${g.achievements?.total?`${g.achievements.unlocked} / ${g.achievements.total}`:'—'}</span><button class="row-launch subtle-button" data-list-play="${esc(g.id)}">${action(g)}</button></div>`).join(''):visible.map(g=>`<button class="game-card" data-game="${g.id}" aria-label="${esc(g.title)}, ${status(g)}"><div class="cover-wrap"><span class="cover-placeholder">${esc(g.title)}</span>${g.robloxPlaceId?OrbitIcons.robloxMarkup(g.robloxPlaceId):''}${g.cover?`<img data-src="${esc(g.cover)}" data-cover="${g.id}" alt="" decoding="async">`:''}${g.favorite?'<span class="favorite-indicator">★</span>':''}<span class="card-peek" aria-hidden="true">View ${g.kind==='tool'?'tool':'game'}</span></div><div class="card-info"><div class="card-title">${esc(g.title)}</div><div class="card-meta"><span>${g.installed?'<i class="installed-dot"></i>':''}${esc(g.sources.join(' · '))}</span><span data-playtime="${g.id}">${g.playtimeKnown?hours(g.playtime):g.robloxPlaceId?'Experience':g.launcherAvailable?'Launcher':''}</span></div><div class="card-install" data-install="${g.id}" ${g.installationProgress?'':'hidden'}>${progressMarkup(g.installationProgress)}</div></div></button>`).join('');
+  grid.innerHTML=state.list?`<div class="list-heading"><span>Game</span><span>Status</span><span>Playtime</span><span>Last played</span><span>Achievements</span><span></span></div>`+visible.map(g=>`<div class="game-row"><button class="list-game" data-game="${esc(g.id)}">${g.cover?`<img data-src="${esc(g.cover)}" data-cover="${esc(g.id)}" alt="">`:OrbitIcons.markup(g.id)}<span><strong>${esc(g.title)}</strong><small>${esc(g.sources.join(' · '))}${g.versions.length>1?' · '+g.versions.length+' copies':''}${g.favorite?' · Favorite':''}</small></span></button><span class="list-status ${g.installed?'ready':''}">${esc(status(g))}${g.sizeBytes?`<small class="list-size">${bytes(g.sizeBytes)}</small>`:''}</span><span data-playtime="${esc(g.id)}">${g.playtimeKnown?hours(g.playtime):'—'}</span><span class="list-last">${g.lastPlayed?new Date(g.lastPlayed).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}):'—'}</span><span class="list-achievements">${g.achievements?.total?`${g.achievements.unlocked} / ${g.achievements.total}`:'—'}</span><button class="row-launch subtle-button" data-list-play="${esc(g.id)}">${action(g)}</button></div>`).join(''):visible.map(g=>`<button class="game-card" data-game="${g.id}" aria-label="${esc(g.title)}, ${status(g)}"><div class="cover-wrap"><span class="cover-placeholder">${esc(g.title)}</span>${g.robloxPlaceId?OrbitIcons.robloxMarkup(g.robloxPlaceId):''}${g.cover?`<img data-src="${esc(g.cover)}" data-cover="${g.id}" alt="" decoding="async">`:''}${g.favorite?'<span class="favorite-indicator">★</span>':''}<span class="card-peek" aria-hidden="true">View ${g.kind==='tool'?'tool':'game'}</span></div><div class="card-info"><div class="card-title">${esc(g.title)}</div><div class="card-meta"><span>${g.installed?'<i class="installed-dot"></i>':''}${esc(g.sources.join(' · '))}${g.versions.length>1?' · '+g.versions.length+' copies':''}</span><span data-playtime="${g.id}">${g.playtimeKnown?hours(g.playtime):g.robloxPlaceId?'Experience':g.launcherAvailable?'Launcher':''}</span></div><div class="card-install" data-install="${g.id}" ${g.installationProgress?'':'hidden'}>${progressMarkup(g.installationProgress)}</div></div></button>`).join('');
   observeImages(grid);
-  animateSurface(grid);
+  // Keep the scrollable click targets out of transient compositor layers.
+  // Fading this grid while its height/scroll offset changes can leave its
+  // painted cards outside Chromium's mouse hit-test region on Windows.
+  animateSurface($('#page-title'));
   $('#grid-view').classList.toggle('active',!state.list);$('#list-view').classList.toggle('active',state.list);
   $('#grid-view').setAttribute('aria-pressed',String(!state.list));$('#list-view').setAttribute('aria-pressed',String(state.list));
   $('#empty').hidden=games.length>0;$('#pagination').hidden=!games.length;
   $('#page-range').textContent=`${start+1}–${Math.min(start+PAGE_SIZE,games.length)} of ${games.length}`;
   $('#previous-page').disabled=state.page===0;$('#next-page').disabled=state.page===pages-1;
   renderHero(items);
+  window.orbitNews?.render();
   renderDownloads();
   window.orbitRecovery?.render();
 }
 function renderHero(items) {
   const show=state.section==='games'&&state.view!=='hidden'; $('#hero').hidden=!show;$('#recent-games').hidden=!show;
-  if(!show){$('#hero-image').removeAttribute('src');return;}
+  if(!show){setHeroImage(null);return;}
   const recent=[...items].filter(g=>g.lastPlayed).sort((a,b)=>b.lastPlayed-a.lastPlayed).slice(0,5);
   const featured=items.find(g=>g.id===state.featured)||recent[0]||items[0];
   if(featured) {
@@ -149,10 +170,10 @@ function renderHero(items) {
     $('#hero-description').textContent=[featured.playtimeKnown?hours(featured.playtime):'',featured.achievements?.total?`${featured.achievements.unlocked}/${featured.achievements.total} achievements`:'',featured.lastPlayed?'Last played '+date(featured.lastPlayed):''].filter(Boolean).join(' · ');
     $('#hero-play').disabled=false;$('#hero-details').disabled=false;$('#hero-play').textContent=action(featured);
     const img=$('#hero-image');
-    if(featured.hero) {if(img.getAttribute('src')!==featured.hero){img.src=featured.hero;img.hidden=false;}}
-    else {img.removeAttribute('src');if(!featured.heroRequested){featured.heroRequested=true;window.orbit.hero(featured.id).then(src=>{featured.hero=src;if(src&&state.featured===featured.id){img.src=src;img.hidden=false;}}).catch(()=>{});}}
+    if(featured.hero) setHeroImage(featured.hero);
+    else {setHeroImage(null);if(!featured.heroRequested){featured.heroRequested=true;window.orbit.hero(featured.id).then(src=>{featured.hero=src;if(src&&state.featured===featured.id&&!$('#library-panel').hidden&&!document.hidden)setHeroImage(src);}).catch(()=>{});}}
     img.onerror=()=>{img.hidden=true;};
-  } else {$('#hero-title').textContent='Your library';$('#hero-description').textContent='';$('#hero-image').removeAttribute('src');$('#hero-play').disabled=true;$('#hero-details').disabled=true;}
+  } else {$('#hero-title').textContent='Your library';$('#hero-description').textContent='';setHeroImage(null);$('#hero-play').disabled=true;$('#hero-details').disabled=true;}
   const root=$('#recent-games');unobserve(root);
   root.innerHTML=recent.map(g=>`<button data-recent="${g.id}" class="recent-game ${g.id===state.featured?'active':''}">${g.robloxPlaceId?OrbitIcons.robloxMarkup(g.robloxPlaceId):''}${g.cover?`<img data-src="${esc(g.cover)}" data-cover="${g.id}" alt="" decoding="async">`:''}<span class="recent-info"><strong>${esc(g.title)}</strong><small>${g.playtimeKnown?hours(g.playtime):''}${g.lastPlayed?' · '+new Date(g.lastPlayed).toLocaleDateString(undefined,{month:'short',day:'numeric'}):''}</small></span></button>`).join('');observeImages(root);
 }
@@ -170,13 +191,13 @@ function dismissDialog(dialog,finish){
   const current=getComputedStyle(dialog),from={opacity:current.opacity,transform:current.transform};
   dialog.getAnimations().forEach(a=>a.cancel());
   dialog.classList.add('dialog-closing');
-  let animation;try{animation=dialog.animate([from,{opacity:0,transform:'translateY(8px) scale(.985)'}],{duration:150,easing:'cubic-bezier(.4,0,1,1)',fill:'forwards'});}catch{dialog.classList.remove('dialog-closing');dialog.close();finish?.();return;}
+  let animation;try{animation=dialog.animate([from,{opacity:0,transform:'translateY(18px) scale(.955)'}],{duration:190,easing:'cubic-bezier(.5,0,.2,1)',fill:'forwards'});}catch{dialog.classList.remove('dialog-closing');dialog.close();finish?.();return;}
   const pending={animation};closingDialogs.set(dialog,pending);
   const complete=()=>{if(closingDialogs.get(dialog)!==pending)return;closingDialogs.delete(dialog);clearTimeout(pending.deadline);dialog.close();animation.cancel();dialog.classList.remove('dialog-closing');finish?.();};
   pending.deadline=setTimeout(complete,260);
   animation.finished.then(complete,complete);
 }
-function modal(title,body){cancelDialogClose($('#modal'));discardThemePreview();const root=$('#modal-body');unobserve(root);$('#modal-title').textContent=title;root.innerHTML=body;if(!$('#modal').open)$('#modal').showModal();observeImages(root);}
+function modal(title,body){window.OrbitHelp?.close();window.orbitSimple?.closeMenus();$('#modal').classList.toggle('settings-dialog',title==='Settings');$('#modal').classList.toggle('activity-dialog',title==='Activity'||title==='Game activity');cancelDialogClose($('#modal'));discardThemePreview();const root=$('#modal-body');unobserve(root);$('#modal-title').textContent=title;root.innerHTML=body;if(!$('#modal').open){$('#modal').showModal();window.OrbitFX?.open($('#modal'));}observeImages(root);}
 function bindDialogDismiss(dialog,dismiss){
   const outside=e=>{const r=dialog.getBoundingClientRect();return e.target===dialog&&(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom);};
   let backdropPointer=null;
@@ -186,64 +207,72 @@ function bindDialogDismiss(dialog,dismiss){
   dialog.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='w'&&!e.altKey&&!e.shiftKey){e.preventDefault();e.stopPropagation();dismiss();}});
   dialog.addEventListener('close',()=>{backdropPointer=null;});
 }
-function closeModal(){discardThemePreview();detailRequest++;unobserve($('#modal-body'));dismissDialog($('#modal'),()=>$('#modal-body').replaceChildren());}
+function closeModal(){window.OrbitHelp?.close();discardThemePreview();detailRequest++;unobserve($('#modal-body'));dismissDialog($('#modal'),()=>$('#modal-body').replaceChildren());}
 let updateState=null;
 function renderUpdateStatus(data){
  if(data)updateState=data;const root=$('#update-status');if(!root||!updateState)return;
  root.textContent=updateState.message;$('#update-version').textContent='Version '+updateState.version+(updateState.latest?' · Available '+updateState.latest:'');
  const progress=$('#update-progress');progress.hidden=updateState.phase!=='downloading';progress.value=Number.isFinite(updateState.percent)?updateState.percent:0;
  $('#check-updates').disabled=!updateState.supported||['checking','downloading','restarting'].includes(updateState.phase);
- $('#restart-update').hidden=updateState.phase!=='ready';$('#get-update-installer').hidden=updateState.supported;
+ $('#restart-update').hidden=updateState.phase!=='ready'&&!updateState.downloaded;$('#get-update-installer').hidden=updateState.supported;window.orbitCompanion?.updateStatus(updateState);
 }
-window.orbit.onUpdateStatus?.(data=>{const previous=updateState?.phase;renderUpdateStatus(data);if(data.phase==='ready'&&previous!=='ready')toast('An Orbit update is ready.');});
+window.orbit.onUpdateStatus?.(renderUpdateStatus);
 async function showComputerSpecs(refresh=false){
  const root=$('#computer-specs'),button=$('#scan-computer');if(!root||!window.orbit.systemInfo)return;
  button.disabled=true;root.textContent='Detecting this computer…';
- try{const pc=await window.orbit.systemInfo(refresh);if(!root.isConnected)return;const entries=[['Processor',pc.cpu||'Unavailable'],['Graphics',pc.gpu?.join(' / ')||'Unavailable'],['Memory',Number.isFinite(pc.ramGB)?pc.ramGB.toFixed(1)+' GB':'Unavailable'],['CPU threads',pc.logicalCores||'Unavailable'],['System',pc.os||'Unavailable'],['Free storage',Number.isFinite(pc.freeGB)?pc.freeGB.toFixed(1)+' GB'+(pc.drive?' on '+pc.drive:''):'Unavailable']];root.innerHTML=`<dl class="computer-specs">${entries.map(([name,value])=>`<div><dt>${name}</dt><dd>${esc(value)}</dd></div>`).join('')}</dl><p class="small-note">Detected locally. Requirement checks and FPS estimates use this computer. CPU/GPU comparisons and projected FPS remain approximate.</p>`;}
+ try{const pc=await window.orbit.systemInfo(refresh);if(!root.isConnected)return;const entries=[['Processor',pc.cpu||'Unavailable'],['Graphics',pc.gpu?.join(' / ')||'Unavailable'],['Memory',Number.isFinite(pc.ramGB)?pc.ramGB.toFixed(1)+' GB':'Unavailable'],['CPU threads',pc.logicalCores||'Unavailable'],['System',pc.os||'Unavailable'],['Free storage',Number.isFinite(pc.freeGB)?pc.freeGB.toFixed(1)+' GB'+(pc.drive?' on '+pc.drive:''):'Unavailable']];root.innerHTML=`<dl class="computer-specs">${entries.map(([name,value])=>`<div><dt>${name}</dt><dd>${esc(value)}</dd></div>`).join('')}</dl>`;}
  catch(error){if(root.isConnected)root.textContent=error.message;}
  finally{if(button.isConnected)button.disabled=false;}
 }
 function showSettings() {
-  const settingSwitch=(key,title,note)=>`<div class="setting-card setting-row"><div><h3>${title}</h3><p class="small-note">${note}</p></div><button class="setting-switch" role="switch" aria-label="${title}" aria-checked="${Boolean(state.settings?.[key])}" data-setting="${key}" ${key==='launchAtLogin'&&!state.settings?.startupAvailable?'disabled':''}></button></div>`;
+  const settingHelp=new Set(['offlineMode','closeToTray','autoUpdates','restartForUpdates','lowMemoryRendering']);
+  const settingSwitch=(key,title,note)=>`<div class="setting-card setting-row"><div><h3>${title}${settingHelp.has(key)?OrbitHelp.markup(title,note):''}</h3></div><button class="setting-switch" role="switch" aria-label="${title}" aria-checked="${Boolean(state.settings?.[key])}" data-setting="${key}" ${key==='launchAtLogin'&&!state.settings?.startupAvailable?'disabled':''}></button></div>`;
   const otherConnections=(state.connections||[]).filter(c=>!['Steam','Epic Games'].includes(c.source));
-  modal('Settings',`<div class="settings-tabs" role="tablist" aria-label="Settings sections"><button role="tab" id="tab-general" aria-controls="panel-general" aria-selected="true" tabindex="0" data-settings-tab="general">General</button><button role="tab" id="tab-libraries" aria-controls="panel-libraries" aria-selected="false" tabindex="-1" data-settings-tab="libraries">Libraries</button><button role="tab" id="tab-appearance" aria-controls="panel-appearance" aria-selected="false" tabindex="-1" data-settings-tab="appearance">Appearance</button><button role="tab" id="tab-manage" aria-controls="panel-manage" aria-selected="false" tabindex="-1" data-settings-tab="manage">Manage</button></div>
-  <section id="panel-general" role="tabpanel" aria-labelledby="tab-general"><div class="setting-card setting-row"><div><h3>Setup guide</h3><p class="small-note">Connect libraries and learn the controls in Orbit.</p></div><button class="subtle-button" id="reopen-setup">Open setup guide</button></div>
-    <div class="setting-card"><div class="setting-row"><div><h3>This computer</h3><p class="small-note">Use detected hardware for game requirement checks.</p></div><button class="subtle-button" id="scan-computer">Scan this PC</button></div><div id="computer-specs" role="status" aria-live="polite"></div></div>
+  modal('Settings',`<div class="settings-tabs" role="tablist" aria-label="Settings sections"><button role="tab" id="tab-general" aria-controls="panel-general" aria-selected="true" tabindex="0" data-settings-tab="general">General</button><button role="tab" id="tab-libraries" aria-controls="panel-libraries" aria-selected="false" tabindex="-1" data-settings-tab="libraries">Libraries</button><button role="tab" id="tab-appearance" aria-controls="panel-appearance" aria-selected="false" tabindex="-1" data-settings-tab="appearance">Appearance</button><button role="tab" id="tab-manage" aria-controls="panel-manage" aria-selected="false" tabindex="-1" data-settings-tab="manage">Manage</button><button role="tab" id="tab-about" aria-controls="panel-about" aria-selected="false" tabindex="-1" data-settings-tab="about">About</button></div>
+  <section id="panel-general" role="tabpanel" aria-labelledby="tab-general"><div class="setting-card setting-row"><div><h3>Quick start</h3></div><button class="subtle-button" id="reopen-setup">Open Quick start</button></div>
+    <div class="setting-card"><div class="setting-row"><div><h3>This computer<button type="button" class="info-button" data-orbit-help="Detected locally for game requirements and approximate FPS estimates. Use Scan this PC to refresh the hardware information." aria-label="About This computer" aria-expanded="false"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="10" cy="10" r="7.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M10 9v5M10 5.8v.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button></h3></div><button class="subtle-button" id="scan-computer">Scan this PC</button></div><div id="computer-specs" role="status" aria-live="polite"></div></div>
     ${settingSwitch('launchAtLogin','Launch at login','Open Orbit when you sign in to Windows.')}
     ${settingSwitch('offlineMode','Offline mode','Use local discovery and cached artwork. Online account connections, deals, and downloads remain in their original clients.')} ${settingSwitch('downloadNotifications','Installation notifications','Notify when a monitored installation finishes. Click the notification to open its game controls.')} ${settingSwitch('closeToTray','Keep running when closed','Close the window to the system tray. Right-click the Orbit tray icon to quit.')}
     ${settingSwitch('startMinimized','Start minimized','Start in the system tray when opened at login.')}
     ${settingSwitch('autoDiscover','Automatically find games','Keep your library up to date when games are installed or removed.')}
     ${settingSwitch('minimizeOnPlay','Minimize when playing','Give the game the screen after you press Play.')}
     ${settingSwitch('autoUpdates','Automatic updates','Check at startup and every six hours. Download updates in the background.')}
-    ${settingSwitch('restartForUpdates','Restart automatically after updates','Save Orbit’s state, quit fully, and open the new version when ready.')}
+    ${settingSwitch('restartForUpdates','Restart automatically after updates','Update Orbit without closing your games. Playtime is saved, timers resume, and automatic restarts stay in the background while playing.')}
     <div class="setting-card"><h3>Updates</h3><p id="update-version" class="small-note"></p><p id="update-status" class="small-note" role="status">Checking update support…</p><progress id="update-progress" max="100" value="0" aria-label="Update download progress" hidden></progress><div class="settings-actions"><button id="check-updates" class="subtle-button">Check for updates</button><button id="restart-update" class="primary-button" hidden>Restart now</button><button id="get-update-installer" class="subtle-button" hidden>Get Windows installer</button></div></div>
     ${settingSwitch('autoLoadFriends','Load friends at startup','Prepare existing friend connections in the background.')}
     ${settingSwitch('refreshFriends','Refresh friends automatically','Update presence once a minute while the Friends tab is active.')}
-    <div class="setting-card setting-row"><div><h3>Startup animation</h3><p class="small-note">Play the Orbit intro. Your library stays hidden until ready either way.</p></div><button id="intro-toggle" class="setting-switch" role="switch" aria-label="Startup animation" aria-checked="${localStorage.getItem('orbit-intro')!=='off'}"></button></div>
-    <div class="setting-card setting-row"><div><h3>Remember my view</h3><p class="small-note">Keep your library section, filters, sorting, and layout.</p></div><button id="remember-toggle" class="setting-switch" role="switch" aria-label="Remember my view" aria-checked="${rememberView}"></button></div>
+    <div class="setting-card setting-row"><div><h3>Startup animation</h3></div><button id="intro-toggle" class="setting-switch" role="switch" aria-label="Startup animation" aria-checked="${localStorage.getItem('orbit-intro')!=='off'}"></button></div>
+    <div class="setting-card setting-row"><div><h3>Remember my view<button type="button" class="info-button" data-orbit-help="Restores the library section, filters, sort order and grid or list layout." aria-label="About Remember my view" aria-expanded="false"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="10" cy="10" r="7.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M10 9v5M10 5.8v.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button></h3></div><button id="remember-toggle" class="setting-switch" role="switch" aria-label="Remember my view" aria-checked="${rememberView}"></button></div>
   </section><section id="panel-libraries" role="tabpanel" aria-labelledby="tab-libraries" hidden>
     <div class="setting-card"><div class="setting-row"><div><h3>Steam</h3><p class="small-note">${esc(state.connections?.find(c=>c.source==='Steam')?.status||'Connect your library.')}</p></div><button id="steam-connect" class="subtle-button">Connect account</button></div><p id="steam-connect-result" role="status"></p><details><summary>Advanced import</summary><form id="steam-form"><label>SteamID64<input id="steam-id" value="${esc(state.steamId||'')}" autocomplete="off" pattern="[0-9]{17}" required></label><label>API key<input id="steam-key" type="password" autocomplete="off" required></label><div class="form-row"><button type="submit" class="subtle-button">Import</button><button type="button" class="link-button" data-help="steamKey">Get key</button><button type="button" class="link-button" data-help="steamPrivacy">Privacy</button></div><p id="steam-result" role="status"></p></form></details></div>
-    <div class="setting-card"><div class="setting-row"><div><h3>Epic Games</h3><p class="small-note">${esc(state.connections?.find(c=>c.source==='Epic Games')?.status||'Connect your library.')}</p></div><button id="epic-sync" class="subtle-button">Import library</button></div><details><summary>Connection help</summary><p class="small-note">Sign in with Legendary, then select its executable.</p><button class="link-button" data-help="legendary">Open setup guide</button></details><p id="epic-result" role="status"></p></div>
-    <div class="setting-card"><h3>Install without Steam</h3><p class="small-note">Run a standalone installer, or open a store to manage its own downloads. After setup, Refresh or locate the game executable.</p><div class="settings-actions"><button class="subtle-button" id="settings-installer">Install from file</button>${['Epic Games','GOG','EA','Ubisoft Connect','Battle.net','Xbox'].map(source=>`<button class="link-button" data-install-store="${source}">${source}</button>`).join('')}</div></div><div class="setting-card"><h3>Other libraries</h3><p class="small-note">Supported installations connect when Orbit scans.</p><details><summary>View connections</summary>${otherConnections.map(c=>`<div class="connection-status"><strong>${esc(c.source)}</strong><span>${esc(c.status)}</span></div>`).join('')}</details></div>
+    <div class="setting-card"><div class="setting-row"><div><h3>Epic Games</h3><p class="small-note">${esc(state.connections?.find(c=>c.source==='Epic Games')?.status||'Connect your library.')}</p></div><button id="epic-sync" class="subtle-button">Import library</button></div><details><summary>Connection help</summary><p class="small-note">Sign in with Legendary, then select its executable.</p><button class="link-button" data-help="legendary">Open Quick start</button></details><p id="epic-result" role="status"></p></div>
+    <div class="setting-card"><h3>Install without Steam<button type="button" class="info-button" data-orbit-help="Runs a downloaded .exe or .msi installer. It does not download or unlock a game. Refresh the library afterward, or add the game executable if detection misses it. Store buttons open that client’s install controls." aria-label="About Install without Steam" aria-expanded="false"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="10" cy="10" r="7.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M10 9v5M10 5.8v.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button></h3><div class="settings-actions"><button class="subtle-button" id="settings-installer">Install from file</button>${['Epic Games','GOG','EA','Ubisoft Connect','Battle.net','Xbox'].map(source=>`<button class="link-button" data-install-store="${source}">${source}</button>`).join('')}</div></div><div class="setting-card"><h3>Other libraries</h3><details><summary>View connections</summary>${otherConnections.map(c=>`<div class="connection-status"><strong>${esc(c.source)}</strong><span>${esc(c.status)}</span></div>`).join('')}</details></div>
   </section>
   <section id="panel-appearance" role="tabpanel" aria-labelledby="tab-appearance" hidden>
+  <div class="setting-card startup-settings"><h3>Startup movies<button type="button" class="info-button" data-orbit-help="Use a built-in animation or a local MP4/WebM up to 15 seconds, 1080p and 64 MB. Orbit saves a local copy and plays custom videos silently. Reduced-motion settings take priority. Turn intros off with Startup animation in General." aria-label="About Startup movies" aria-expanded="false"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="10" cy="10" r="7.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M10 9v5M10 5.8v.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button></h3><div id="startup-choices" class="startup-choices" aria-label="Startup movie"></div><div class="settings-actions"><button id="startup-preview" class="subtle-button">Preview selected</button><button id="startup-video-choose" class="subtle-button">Choose video</button><button id="startup-video-remove" class="link-button" disabled>Remove video</button></div><div class="startup-audio-controls"><label class="discord-check"><input id="startup-sound-enabled" type="checkbox"> Startup sounds</label><label for="startup-sound-volume">Volume <output id="startup-sound-value">12%</output></label><input id="startup-sound-volume" type="range" min="0" max="30" step="1" value="12" aria-label="Startup sound volume"></div><p id="startup-video-name" class="small-note">No custom video selected</p></div>
+  ${settingSwitch('lowMemoryRendering','Reduce graphics memory','Use software rendering to reduce graphics memory. Turn this off if animations feel slow. Changing this requires quitting Orbit from the tray and reopening it.')}
   <div class="theme-saved-actions"><span id="theme-selection"></span><div class="theme-actions"><button id="theme-import" class="subtle-button">Import theme</button><button id="theme-export" class="subtle-button">Export</button><button id="theme-delete" class="link-button" hidden>Remove custom theme</button></div></div>
   <div id="theme-picker" class="theme-grid" aria-label="Color themes"></div>
-  <details id="theme-editor" class="theme-editor"><summary>Customize your colors</summary><form id="theme-form"><label>Theme name<input id="theme-name" maxlength="60" required></label><div class="theme-color-fields">${OrbitTheme.fields.map(key=>`<label>${({background:'Background',surface:'Surfaces',text:'Text',muted:'Secondary text',accent:'Accent',positive:'Play button',warm:'Warm highlight',secondary:'Cool highlight'})[key]}<input type="color" id="theme-color-${key}" aria-label="${key} color"></label>`).join('')}</div><p class="theme-warning" id="theme-warning" hidden>These text colors may be hard to read. Increase their contrast against the background.</p><div class="theme-actions"><button class="primary-button" type="submit">Save theme</button><button id="theme-discard" class="subtle-button" type="button">Discard preview</button></div></form></details><div class="setting-card setting-row"><div><h3>Playful motion</h3><p class="small-note">Soft highlights and smooth panel animations. Always respects your system's reduced-motion preference.</p></div><button id="motion-toggle" class="setting-switch" role="switch" aria-label="Playful motion" aria-checked="${motionEnabled}"></button></div><p class="small-note">Animations run only when you interact. Nothing loops in the background.</p></section>
-  <section id="panel-manage" role="tabpanel" aria-labelledby="tab-manage" hidden><div class="setting-card"><h3>Library</h3><p class="small-note">Bring in a catalog, save a copy, or restore hidden games.</p><div class="settings-actions"><button id="import-json" class="subtle-button">Import catalog</button><button id="export-json" class="subtle-button">Export catalog</button><button id="show-hidden" class="subtle-button">Hidden (${state.games.filter(g=>g.hidden).length})</button></div></div><div class="setting-card setting-row"><div><h3>Artwork</h3><p class="small-note">Fetch fresh copies of missing or damaged images.</p></div><button id="repair-images" class="subtle-button">Repair images</button></div><div class="setting-card setting-row"><div><h3>Local data</h3><p class="small-note">Back up your preferences, artwork, and tracked hours.</p></div><button id="open-data" class="subtle-button">Open data folder</button></div></section>`);
+  <details id="theme-editor" class="theme-editor"><summary><span class="appearance-summary-copy"><strong>Customize appearance</strong></span><span class="appearance-summary-action" aria-hidden="true">Customize</span></summary><div class="setting-row appearance-font-row"><div><h3>Interface font<button type="button" class="info-button" data-orbit-help="Choose a local TTF, OTF, WOFF or WOFF2 file up to 4 MB. Font changes apply immediately and are saved separately from the theme." aria-label="About Interface font" aria-expanded="false"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="10" cy="10" r="7.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M10 9v5M10 5.8v.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button></h3><p id="custom-font-name" class="small-note">Default · Segoe UI</p></div><div class="settings-actions"><button id="custom-font-choose" type="button" class="subtle-button">Choose font</button><button id="custom-font-reset" type="button" class="subtle-button" disabled>Reset font</button></div></div><form id="theme-form"><label>Theme name<input id="theme-name" maxlength="60" required></label><div class="theme-image-editor"><label>Background image<button type="button" class="info-button" data-orbit-help="Visibility is limited to 70% to keep text readable. Still PNG, JPEG, or WebP, up to 15 MB. Orbit saves a compressed copy and includes it when exporting the theme." aria-label="About Background image" aria-expanded="false"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="10" cy="10" r="7.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M10 9v5M10 5.8v.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button></label><img id="theme-image-preview" alt="Theme background preview" hidden><div class="settings-actions"><button id="theme-image-choose" type="button" class="subtle-button">Choose image</button><button id="theme-image-remove" type="button" class="subtle-button">Remove image</button></div><label>Accent colors<select id="theme-image-mode"><option value="auto">Automatic from image</option><option value="manual">Choose manually</option></select></label><label><span class="theme-visibility-label">Image visibility<output id="theme-image-opacity-value" for="theme-image-opacity">30%</output></span><input id="theme-image-opacity" type="range" min="0" max="70" step="5" value="30"></label><small id="theme-image-status" class="small-note"></small></div><div class="theme-color-fields">${OrbitTheme.fields.map(key=>`<label>${({background:'Background',surface:'Surfaces',text:'Text',muted:'Secondary text',accent:'Accent',positive:'Play button',warm:'Warm highlight',secondary:'Cool highlight'})[key]}<input type="color" id="theme-color-${key}" aria-label="${key} color"></label>`).join('')}</div><p class="theme-warning" id="theme-warning" hidden>These text colors may be hard to read. Increase their contrast against the background.</p><div class="theme-actions"><button class="primary-button" type="submit">Save theme</button><button id="theme-discard" class="subtle-button" type="button">Discard preview</button></div></form></details><div class="setting-card setting-row"><div><h3>Playful motion<button type="button" class="info-button" data-orbit-help="Panel transitions and highlights respect your system’s reduced-motion setting." aria-label="About Playful motion" aria-expanded="false"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="10" cy="10" r="7.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M10 9v5M10 5.8v.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button></h3></div><button id="motion-toggle" class="setting-switch" role="switch" aria-label="Playful motion" aria-checked="${motionEnabled}"></button></div></section>
+  <section id="panel-about" role="tabpanel" aria-labelledby="tab-about" hidden><div class="setting-card"><h3>Orbit <span class="prerelease-badge">Pre-release</span></h3><p id="about-version" class="small-note">Reading version…</p><p class="small-note">Orbit organizes and launches games from connected libraries and local files. MIT licensed.</p><button id="report-issue" class="subtle-button">Report an issue</button><button type="button" class="info-button" data-orbit-help="Include the build number and steps to reproduce. Keep account keys and private files out of the report." aria-label="About Reporting an issue" aria-expanded="false"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="10" cy="10" r="7.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M10 9v5M10 5.8v.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button></div><div class="setting-card"><h3>About the project</h3><p>Orbit is a personal project by me, kokero! I started it in October 2026 because I wanted to bring games from different launchers into one place. It grew from wanting a simpler way to organize a library, launch games, and track playtime into a lot more.</p><p>Built with Electron and JavaScript, with development assistance from OpenAI Codex (GPT-6.1 Sol), Orbit is shaped by testing, feedback from friends, and ongoing experimentation. It’s currently in pre-release, so features and design are still evolving.</p></div><section class="setting-card special-thanks"><h3>Special thanks</h3><p>Thank you to everyone who tests Orbit, shares feedback, suggests ideas, or supports the project. Your help makes Orbit better.</p><p class="small-note">A special thank you to friends for their testing and support.</p></section></section><section id="panel-manage" role="tabpanel" aria-labelledby="tab-manage" hidden><details class="setting-card"><summary>Scan warnings</summary>${state.warnings.length?state.warnings.map(w=>`<p class="small-note">${esc(w)}</p>`).join(''):'<p class="small-note">No scan warnings.</p>'}</details><div class="setting-card"><h3>Library</h3><div class="settings-actions"><button id="import-json" class="subtle-button">Import catalog</button><button id="export-json" class="subtle-button">Export catalog</button><button id="show-hidden" class="subtle-button">Hidden (${state.games.filter(g=>g.hidden).length})</button></div></div><div class="setting-card setting-row"><div><h3>Artwork</h3></div><button id="repair-images" class="subtle-button">Repair images</button></div><div class="setting-card setting-row"><div><h3>Local data<button type="button" class="info-button" data-orbit-help="Opens Orbit’s settings, artwork and local playtime folder. Opening the folder does not create a backup." aria-label="About Local data" aria-expanded="false"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="10" cy="10" r="7.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M10 9v5M10 5.8v.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button></h3></div><button id="open-data" class="subtle-button">Open data folder</button></div></section>`);
+  window.orbitDiscord?.mount();
+  window.orbitDev?.mountSettings();
+  $('#report-issue').onclick=()=>attempt(()=>window.orbit.reportIssue());
+  window.orbit.releaseNotes?.().then(data=>{const label=$('#about-version');if(label)label.textContent='Build '+(data.current?.version||'Unavailable')+' · Windows x64';}).catch(()=>{});
   $('#scan-computer').onclick=()=>showComputerSpecs(true);showComputerSpecs();
   setupThemeEditor();
   renderUpdateStatus();if(window.orbit.updateStatus)window.orbit.updateStatus().then(renderUpdateStatus).catch(()=>{});else $('#update-status').textContent='Update status is unavailable.';
   $('#check-updates').onclick=()=>attempt(async()=>renderUpdateStatus(await window.orbit.checkUpdates()));
   $('#restart-update').onclick=()=>attempt(async()=>renderUpdateStatus(await window.orbit.installUpdate()));
   $('#get-update-installer').onclick=()=>attempt(()=>window.orbit.getUpdateInstaller());
+  window.orbitCompanion?.mountUpdates();
   $('#reopen-setup').onclick=()=>{closeModal();window.orbitSetup.open();};
-  window.orbitFeatures?.mountSettings();
+  window.orbitFeatures?.mountSettings();window.orbitCompanion?.mountSettings();
   $('#settings-installer').onclick=()=>attempt(async()=>{const result=await window.orbit.runInstaller();if(result)toast(result.message);});
   document.querySelectorAll('[data-install-store]').forEach(b=>b.onclick=()=>attempt(()=>window.orbit.openInstallStore(b.dataset.installStore)));
-  const selectTab=name=>{document.querySelectorAll('[data-settings-tab]').forEach(b=>{const active=b.dataset.settingsTab===name;b.setAttribute('aria-selected',String(active));b.tabIndex=active?0:-1;});for(const nameOfPanel of ['general','libraries','appearance','manage'])$('#panel-'+nameOfPanel).hidden=nameOfPanel!==name;if(name!=='appearance')discardThemePreview();};
+  const selectTab=name=>{document.querySelectorAll('[data-settings-tab]').forEach(b=>{const active=b.dataset.settingsTab===name;b.setAttribute('aria-selected',String(active));b.tabIndex=active?0:-1;});for(const nameOfPanel of ['general','libraries','appearance','manage','privacy','about']){const panel=$('#panel-'+nameOfPanel);if(panel)panel.hidden=nameOfPanel!==name;}if(name!=='appearance')discardThemePreview();};
   document.querySelectorAll('[data-settings-tab]').forEach((b,index,buttons)=>{b.onclick=()=>selectTab(b.dataset.settingsTab);b.onkeydown=e=>{let next;if(e.key==='ArrowRight')next=(index+1)%buttons.length;if(e.key==='ArrowLeft')next=(index+buttons.length-1)%buttons.length;if(e.key==='Home')next=0;if(e.key==='End')next=buttons.length-1;if(next!==undefined){e.preventDefault();buttons[next].focus();selectTab(buttons[next].dataset.settingsTab);}};});
-  document.querySelectorAll('[data-setting]').forEach(b=>b.onclick=()=>attempt(async()=>{b.disabled=true;try{state.settings=await window.orbit.updateSettings({[b.dataset.setting]:b.getAttribute('aria-checked')!=='true'});b.setAttribute('aria-checked',String(state.settings[b.dataset.setting]));window.friendsUI?.settingsChanged();if(b.dataset.setting==='offlineMode'){window.orbitRecovery?.render();window.orbit.getLibrary().then(absorb).catch(()=>{});}}finally{b.disabled=false;}}));
+  document.querySelectorAll('[data-setting]').forEach(b=>b.onclick=()=>attempt(async()=>{b.disabled=true;try{state.settings=await window.orbit.updateSettings({[b.dataset.setting]:b.getAttribute('aria-checked')!=='true'});b.setAttribute('aria-checked',String(state.settings[b.dataset.setting]));window.friendsUI?.settingsChanged();if(b.dataset.setting==='lowMemoryRendering')toast('Quit Orbit from the tray and reopen it to apply rendering changes.');if(b.dataset.setting==='offlineMode'){window.orbitRecovery?.render();window.orbit.getLibrary().then(absorb).catch(()=>{});}}finally{b.disabled=false;}}));
   $('#intro-toggle').onclick=()=>{const enabled=$('#intro-toggle').getAttribute('aria-checked')!=='true';try{localStorage.setItem('orbit-intro',enabled?'on':'off');$('#intro-toggle').setAttribute('aria-checked',String(enabled));}catch{toast('Startup preference could not be saved.',true);}};
   $('#remember-toggle').onclick=()=>{rememberView=!rememberView;$('#remember-toggle').setAttribute('aria-checked',String(rememberView));try{localStorage.setItem('orbit-remember-view',rememberView?'on':'off');if(!rememberView)localStorage.removeItem('orbit-view');}catch{}};
   $('#open-data').onclick=()=>attempt(()=>window.orbit.openData());
@@ -260,7 +289,7 @@ function showSettings() {
 function showAdd(){modal(state.section==='tools'?'Add tool':'Add game',`<form id="add-form"><label class="form-field">Title<input id="new-title" required maxlength="300" autofocus></label><label class="form-field">Platform<select id="new-source">${['Other','Steam','Epic Games','GOG','Ubisoft Connect','EA','Battle.net','Xbox','GRYPHLINK','Riot Games','HoYoPlay','Roblox','Minecraft','Standalone'].map(s=>`<option>${s}</option>`).join('')}</select></label><div class="form-row"><button class="primary-button" type="submit">Choose executable</button><button class="subtle-button" type="button" id="add-installer">Install from file</button></div></form>`);$('#add-installer').onclick=()=>attempt(async()=>{const result=await window.orbit.runInstaller();if(result)toast(result.message);});$('#add-form').onsubmit=e=>{e.preventDefault();attempt(async()=>{const data=await window.orbit.add({title:$('#new-title').value,source:$('#new-source').value,kind:state.section==='tools'?'tool':'game'});if(data){absorb(data);closeModal();}});};}
 function showRobloxExperience(g){
  modal(g.title,`<div class="detail-heading">${OrbitIcons.robloxMarkup(g.robloxPlaceId)}<div><p>Roblox experience</p><p class="small-note">Place ${esc(g.robloxPlaceId)}</p></div></div><div class="detail-actions"><button class="primary-button" id="experience-play">Open game</button><button class="subtle-button" id="experience-page">Open page</button><button class="subtle-button" id="experience-favorite">${g.favorite?'Unfavorite':'Favorite'}</button><button class="subtle-button" id="experience-manage">Manage experiences</button><button class="link-button" id="experience-remove">Remove</button></div><section id="detail-utilities" class="settings-section"></section><p class="small-note">Uses the launch method in Roblox’s Experiences settings. Per-experience playtime and achievements are unavailable.</p>`);
- OrbitIcons.observe($('#modal-body'));window.orbitUtilities?.detail(g);
+ OrbitIcons.observe($('#modal-body'));window.orbitUtilities?.detail(g);window.orbitFeatures?.mountDetails(g);window.orbitCompanion?.mountDetails(g);window.orbitSimple?.details();
  $('#experience-play').onclick=()=>play(g.id);$('#experience-page').onclick=()=>attempt(async()=>toast((await window.orbit.launchRoblox(g.robloxPlaceId,true)).message));
  $('#experience-favorite').onclick=()=>attempt(async()=>{absorb(await window.orbit.preference(g.id,{favorite:!g.favorite}));await showDetails(g.id);});
  $('#experience-remove').onclick=()=>attempt(async()=>{await window.orbit.removeRoblox(g.robloxPlaceId);closeModal();});
@@ -272,11 +301,11 @@ async function showDetails(id) {
     const g=await window.orbit.details(id);if(request!==detailRequest)return;
     if(g.robloxPlaceId){showRobloxExperience(g);return;}
     const v=g.versions[0],isRoblox=/^Roblox(?: Player)?$/i.test(g.title);
-    modal(g.title,`<div class="detail-heading">${g.cover?`<img class="detail-art" src="${esc(g.cover)}" data-cover="${id}" alt="">`:''}<div class="detail-summary"><strong>${status(g)}</strong><p>${esc(g.sources.join(' · '))}</p>${g.description?`<p>${esc(g.description)}</p>`:''}</div></div>
+    modal(g.title,`<div class="detail-heading">${g.cover?`<img class="detail-art" src="${esc(g.cover)}" data-cover="${id}" alt="">`:''}<div class="detail-summary"><strong>${status(g)}</strong><p>${esc(g.sources.join(' · '))}</p><p class="small-note">${esc(g.ownership?.label||'Source information available below')}</p>${g.description?`<p>${esc(g.description)}</p>`:''}</div></div>
     <div class="detail-actions"><button class="primary-button" id="detail-play">${action(g)}</button><button class="subtle-button" id="detail-favorite">${g.favorite?'Unfavorite':'Favorite'}</button><button class="subtle-button" id="detail-locate">Locate executable</button>${g.installed?'<button class="subtle-button" id="detail-folder">Open folder</button>':''}</div>
     ${isRoblox?'<div class="detail-tabs" role="tablist" aria-label="Roblox details"><button class="subtle-button" role="tab" id="roblox-overview-tab" aria-controls="roblox-overview" aria-selected="true">Overview</button><button class="subtle-button" role="tab" id="roblox-experiences-tab" aria-controls="roblox-experiences" aria-selected="false">Experiences</button></div><div id="roblox-overview" role="tabpanel" aria-labelledby="roblox-overview-tab">':''}
     <div class="detail-install" data-install="${id}" ${g.installationProgress?'':'hidden'}>${progressMarkup(g.installationProgress)}</div><div class="stats-grid"><div><small>Playtime${g.statsSource?' · '+esc(g.statsSource):''}</small><strong data-playtime="${g.id}">${g.playtimeKnown?hours(g.playtime):'Unavailable'}</strong></div><div><small>Last played</small><strong class="small-stat">${date(g.lastPlayed)}</strong></div><div><small>Achievements</small><strong>${g.achievements?`${g.achievements.unlocked} / ${g.achievements.total}`:'Unavailable'}</strong></div><div><small>Size</small><strong>${g.sizeBytes?(g.sizeBytes/1024**3).toFixed(1)+' GB':'Unavailable'}</strong></div></div>
-    <section class="settings-section" id="detail-utilities"></section>${g.kind==='game'&&!g.storePlaytimeKnown?`<div class="settings-section"><h3>Local playtime <span data-tracking="${id}">${esc(g.tracking?.state||'idle')}</span></h3><div class="settings-actions"><button class="subtle-button" id="timer-toggle">${['running','paused','waiting'].includes(g.tracking?.state)?'Stop timer':'Start manual timer'}</button><button class="subtle-button" id="timer-configure">Choose game executable</button></div><p class="small-note">Tracks while Orbit is open. Automatic timers follow the game process; manual timers stop when you stop them or quit Orbit.</p></div>`:''}${achievementPanel(g)}${g.kind==='game'&&modToolsFor(g).length?`<div class="settings-section"><h3>Mod tools</h3><div class="settings-actions">${modToolsFor(g).map(t=>`<button class="subtle-button" data-mod-tool="${t.id}">${t.installed?'Open':'Get'} ${esc(t.title)}</button>`).join('')}</div></div>`:''}<div class="settings-section"><h3>Copies</h3>${g.versions.map(copy=>`<div class="version ${copy.id===v.id?'selected':''}"><div><strong>${esc(copy.source)}</strong><span>${status(copy)}${copy.playtimeKnown?' · '+hours(copy.playtime):''}</span>${copy.location?`<p>${esc(copy.location)}</p>`:''}${copy.catalogNote?`<details><summary>Source information</summary><p>${esc(copy.catalogNote)}</p></details>`:''}</div>${copy.id===v.id?'<span class="selected-label">Selected</span>':`<button class="subtle-button" data-prefer="${esc(copy.id)}">Prefer</button>`}</div>`).join('')}</div>
+    <section class="settings-section" id="detail-utilities"></section>${g.kind==='game'&&!g.storePlaytimeKnown?`<div class="settings-section"><h3>Local playtime <span data-tracking="${id}">${esc(g.tracking?.state||'idle')}</span></h3><div class="settings-actions"><button class="subtle-button" id="timer-toggle">${['running','paused','waiting'].includes(g.tracking?.state)?'Stop timer':'Start manual timer'}</button><button class="subtle-button" id="timer-configure">Choose game executable</button></div><p class="small-note">Tracks while Orbit is open. Automatic timers follow the game process; manual timers stop when you stop them or quit Orbit.</p></div>`:''}${achievementPanel(g)}${g.kind==='game'&&modToolsFor(g).length?`<div class="settings-section"><h3>Mod tools</h3><div class="settings-actions">${modToolsFor(g).map(t=>`<button class="subtle-button" data-mod-tool="${t.id}">${t.installed?'Open':'Get'} ${esc(t.title)}</button>`).join('')}</div></div>`:''}<div class="settings-section"><h3>All copies <span class="small-note">${g.versions.length}</span></h3><p class="small-note">Every detected copy is kept. Choose the preferred launch; automatic selection favors a working installed copy, then Steam.</p>${g.versions.map(copy=>`<div class="version ${copy.id===v.id?'selected':''}"><div><strong>${esc(copy.source)}</strong><span>${status(copy)}${copy.playtimeKnown?' · '+hours(copy.playtime):''}</span>${copy.launchRoute?`<p class="small-note">${esc(copy.launchRoute.label)}</p>`:''}${copy.location?`<p>${esc(copy.location)}</p>`:''}${copy.catalogNote?`<details><summary>Source information</summary><p>${esc(copy.catalogNote)}</p></details>`:''}</div>${copy.id===v.id?'<span class="selected-label">Preferred launch</span>':`<button class="subtle-button" data-prefer="${esc(copy.id)}">Prefer</button>`}</div>`).join('')}</div>
     <div class="settings-actions"><button class="subtle-button" id="detail-kind">Move to ${g.kind==='tool'?'Games':'Tools'}</button><button class="subtle-button" id="detail-repair">Repair image</button><button class="link-button" id="detail-hide">${g.hidden?'Restore':'Hide'}</button></div>${isRoblox?'</div><section id="roblox-experiences" role="tabpanel" aria-labelledby="roblox-experiences-tab" hidden></section>':''}`);
     if(isRoblox){let mounted=false;const tabs=[$('#roblox-overview-tab'),$('#roblox-experiences-tab')];tabs.forEach((tab,index)=>{tab.onclick=()=>{tabs.forEach((t,i)=>{t.setAttribute('aria-selected',String(i===index));t.tabIndex=i===index?0:-1;});$('#roblox-overview').hidden=index!==0;$('#roblox-experiences').hidden=index!==1;if(index===1&&!mounted){mounted=true;window.robloxUI.mount($('#roblox-experiences'));}};tab.onkeydown=e=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(e.key)){e.preventDefault();const next=e.key==='Home'?0:e.key==='End'?1:1-index;tabs[next].click();tabs[next].focus();}};});tabs[1].tabIndex=-1;}
     if ($('#timer-toggle')) { $('#timer-toggle').dataset.game=id; $('#timer-toggle').onclick=()=>attempt(async()=>{const current=await window.orbit.details(id);absorb(await (['running','paused','waiting'].includes(current.tracking?.state)?window.orbit.stopTimer(id):window.orbit.startTimer(id)));await showDetails(id);}); }
@@ -290,7 +319,7 @@ async function showDetails(id) {
     $('#detail-hide').onclick=()=>attempt(async()=>{absorb(await window.orbit.preference(id,{hidden:!g.hidden}));closeModal();});
     $('#detail-repair').onclick=()=>attempt(async()=>{const src=await window.orbit.repairImage(id);if(src){const card=state.games.find(x=>x.id===id);if(card)card.cover=src;render();await showDetails(id);}else toast('No working image found.',true);});
     window.orbitUtilities?.detail(g);
-    window.orbitFeatures?.mountDetails(g);
+    window.orbitFeatures?.mountDetails(g);window.orbitCompanion?.mountDetails(g);window.orbitSimple?.details();
     $('#modal-body').querySelectorAll('[data-prefer]').forEach(b=>b.onclick=()=>attempt(async()=>{absorb(await window.orbit.preference(id,{preferred:b.dataset.prefer}));await showDetails(id);}));
   } catch(e){toast(e.message,true);}
 }
@@ -298,14 +327,16 @@ function achievementPanel(g) {
   const a=g.achievements;if(!a?.total)return '';
   return `<div class="settings-section"><div class="achievement-heading"><h3>Achievements</h3><span>${Math.round(a.unlocked/a.total*100)}%</span></div><progress value="${a.unlocked}" max="${a.total}"></progress>${a.partial?`<p class="small-note">${a.items.length} cached details · ${a.total} total</p>`:''}<div class="achievement-list">${a.items.map(x=>`<div class="achievement ${x.unlocked?'unlocked':'locked'}">${x.image?`<img data-game="${g.id}" data-achievement="${esc(x.id)}" alt="">`:''}<div><strong>${esc(x.name)}</strong><p>${esc(x.description)}</p><small>${x.unlocked?'Unlocked'+(x.unlockedAt?' · '+new Date(x.unlockedAt).toLocaleDateString():''):'Locked'}${x.rarity!==null?' · '+x.rarity.toFixed(1)+'% of players':''}</small></div></div>`).join('')}</div></div>`;
 }
-async function play(id){try{const result=await window.orbit.play(id);toast(result.message);window.orbitFeatures?.afterPlay(result);return result;}catch(e){if(window.orbitRecovery)await window.orbitRecovery.troubleshoot(id,e.message);else toast(e.message,true);}}
+async function play(id){if(window.orbitLaunch?.pending(id))return;window.orbitLaunch?.start(id);try{const result=await window.orbit.play(id);window.orbitLaunch?.sent(id,result);window.orbitFeatures?.afterPlay(result);return result;}catch(e){window.orbitLaunch?.failed(id,e.message);if(window.orbitRecovery)await window.orbitRecovery.troubleshoot(id,e.message);else toast(e.message,true);}}
 function resetPage(){state.page=0;render();}
-$('#navigation').onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.section){state.section=b.dataset.section;state.view='all';}else state.view=b.dataset.view;state.source='';state.featured='';resetPage();};
-$('#source-navigation').onclick=e=>{const b=e.target.closest('[data-source]');if(b){state.source=b.dataset.source;state.view='all';resetPage();}};
+$('#navigation').onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.section){state.section=b.dataset.section;state.view='all';}else state.view=state.view===b.dataset.view?'all':b.dataset.view;state.source='';state.featured='';resetPage();};
+$('#source-navigation').onclick=e=>{const b=e.target.closest('[data-source]');if(b){state.source=state.source===b.dataset.source?'':b.dataset.source;state.view='all';resetPage();}};
 $('#downloads').onclick=e=>{const source=e.target.closest('[data-download-source]'),game=e.target.closest('[data-download-game]');if(source)attempt(()=>window.orbit.openDownloads(source.dataset.downloadSource));if(game)showDetails(game.dataset.downloadGame);};
 $('#game-grid').onclick=e=>{const launch=e.target.closest('[data-list-play]');if(launch){play(launch.dataset.listPlay);return;}const b=e.target.closest('[data-game]');if(b)showDetails(b.dataset.game);};
 $('#recent-games').onclick=e=>{const b=e.target.closest('[data-recent]');if(b){state.featured=b.dataset.recent;renderHero(sectionItems());}};
 $('#search').oninput=e=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>{state.search=e.target.value;resetPage();},100);};
+$('#search').onkeydown=e=>{if(e.key==='Escape'&&!e.isComposing&&(e.target.value||state.search)){e.preventDefault();e.stopPropagation();clearTimeout(searchTimer);e.target.value='';state.search='';resetPage();}};
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='f'&&!e.altKey&&!$('#modal').open){const input=state.section==='friends'?$('#friends-search'):$('#search');if(input?.getClientRects().length){e.preventDefault();input.focus();input.select();}}});
 $('#sort').onchange=e=>{state.sort=e.target.value;resetPage();};
 $('#grid-view').onclick=()=>{state.list=false;render();};$('#list-view').onclick=()=>{state.list=true;render();};
 for(const [id,delta] of [['previous-page',-1],['next-page',1]])$('#'+id).onclick=()=>{state.page+=delta;render();$('#game-grid').scrollIntoView({block:'start'});};
@@ -315,7 +346,7 @@ $('#modal').addEventListener('cancel',e=>{e.preventDefault();closeModal();});
 bindDialogDismiss($('#modal'),closeModal);
 $('#modal-close').title='Close (Esc or Ctrl+W)';
 $('#empty-action').onclick=()=>{state.view='all';state.source='';state.search='';$('#search').value='';resetPage();};
-$('#warning-button').onclick=()=>modal('Scan notices',state.warnings.map(w=>`<p class="warning-row">${esc(w)}</p>`).join(''));
+
 let closingWindow=false;
 document.querySelectorAll('[data-window]').forEach(b=>b.onclick=async()=>{
  const action=b.dataset.window;if(action!=='close'||!allowMotion()){window.orbit.control(action);return;}if(closingWindow)return;closingWindow=true;
@@ -366,7 +397,7 @@ window.runSmokeTests=async()=>{
   check('latest banner excludes tools',state.games.find(g=>g.id===state.featured)?.lastPlayed===Math.max(...sectionItems().map(g=>g.lastPlayed)));
   const local=state.games.find(g=>g.kind==='game'&&!g.storePlaytimeKnown);
   if(local){absorb(await window.orbit.startTimer(local.id));check('local timer starts through bridge',state.games.find(g=>g.id===local.id).tracking.state==='running');await showDetails(local.id);check('local timer controls in details',Boolean($('#timer-toggle')&&$('#timer-configure')));absorb(await window.orbit.stopTimer(local.id));check('local timer stops and preserves total',state.games.find(g=>g.id===local.id).tracking.state==='idle'&&state.games.find(g=>g.id===local.id).localPlaytime);closeModal();}
-  const controls=['#search','#sort','.view-toggle'].map(s=>$(s).getBoundingClientRect());
+  const controls=['#search','#sort',window.orbitSimple?'#library-view-button':'.view-toggle'].map(s=>$(s).getBoundingClientRect());
   check('toolbar controls share center and height',controls.every(r=>Math.abs(r.height-controls[0].height)<1&&Math.abs(r.top+r.height/2-controls[0].top-controls[0].height/2)<1));
   await new Promise(r=>setTimeout(r,300));
   const covers=[...document.querySelectorAll('.cover-wrap')].slice(0,6).map(n=>n.getBoundingClientRect());
@@ -381,11 +412,18 @@ refresh();
 async function runContextAction(id, command) {
   if (!command) return;
   const g=state.games.find(x=>x.id===id);
+  if(id&&!g)throw Error('This entry is no longer in the library. Refresh and try again.');
   switch(command.action) {
+    case 'return': return window.orbit.focusGame(id);
+    case 'launch-settings': return window.orbitFeatures.editProfile(await window.orbit.details(id));
+    case 'detection': return window.orbitRecovery.detection(id);
+    case 'artwork': return window.orbitPolish.artwork(await window.orbit.details(id));
+    case 'collection': {const names=new Set(g.collections||[]);if(names.has(command.name))names.delete(command.name);else names.add(command.name);absorb(await window.orbit.assignCollections({id,names:[...names]}));break;}
     case 'play': return play(id);
     case 'open-tool': return play(command.toolId);
     case 'details': return showDetails(id);
     case 'folder': return window.orbit.folder(id);
+    case 'shortcut': return toast((await window.orbit.createShortcut(id)).message);
     case 'copy-title': return window.orbit.copyTitle(id);
     case 'favorite': absorb(await window.orbit.preference(id,{favorite:!g.favorite})); break;
     case 'hide': absorb(await window.orbit.preference(id,{hidden:!g.hidden})); break;
@@ -403,32 +441,59 @@ async function runContextAction(id, command) {
     case 'settings': showSettings();break;
   }
 }
-function contextTarget(target){const card=target.closest('[data-game].game-card,[data-game].list-game,[data-recent]');return card?(card.dataset.game||card.dataset.recent):target.closest('#hero')?state.featured:null;}
-async function openContext(target,point){const id=contextTarget(target);await attempt(async()=>runContextAction(id,await (id?window.orbit.entryMenu(id,point):window.orbit.backgroundMenu({section:state.section,list:state.list},point))));}
-document.addEventListener('contextmenu',e=>{if($('#modal').open||e.target.closest('input,textarea,select'))return;if(!e.target.closest('main')||['friends'].includes(state.section))return;e.preventDefault();openContext(e.target,{x:e.clientX,y:e.clientY});});
-document.addEventListener('keydown',e=>{if((e.key==='ContextMenu'||e.key==='F10'&&e.shiftKey)&&!$('#modal').open&&!['friends'].includes(state.section)){e.preventDefault();const target=document.activeElement,r=target.getBoundingClientRect();openContext(target,{x:r.left+r.width/2,y:r.top+r.height/2});}});
+function contextTarget(target){
+ const direct=target.closest('[data-game].game-card,[data-game].list-game,[data-recent],[data-list-play],[data-return-game]');
+ if(direct)return direct.dataset.game||direct.dataset.recent||direct.dataset.listPlay||direct.dataset.returnGame;
+ const row=target.closest('.game-row,.running-game');if(row){const entry=row.querySelector('[data-game],[data-return-game]');return entry?.dataset.game||entry?.dataset.returnGame||null;}
+ return target.closest('#hero')?state.featured:null;
+}
+function contextAllowed(target){return !$('#modal').open&&!$('#library-panel').hidden&&state.section!=='friends'&&Boolean(target.closest('#library-panel'))&&!target.closest('input,textarea,select,[contenteditable="true"],[contenteditable=""]')&&Boolean(contextTarget(target)||!target.closest('button,a,summary,[popover]'));}
+async function openContext(target,point){
+ const id=contextTarget(target),surface=id&&target.closest('.game-card,.game-row,.recent-game,.running-game,#hero');
+ window.orbitSimple?.closeMenus();contextMenus++;
+ if(surface){surface.classList.add('context-target');const control=surface.matches('button')?surface:surface.querySelector('button');control?.focus({preventScroll:true});}
+ try{await attempt(async()=>runContextAction(id,await(id?window.orbit.entryMenu(id,point):window.orbit.backgroundMenu({section:state.section,list:state.list},point))));}
+ finally{surface?.classList.remove('context-target');contextMenus--;if(!contextMenus)flushLibraryUpdate();}
+}
+document.addEventListener('contextmenu',e=>{if(!contextAllowed(e.target))return;e.preventDefault();openContext(e.target,{x:e.clientX,y:e.clientY});});
+document.addEventListener('keydown',e=>{if((e.key==='ContextMenu'||e.key==='F10'&&e.shiftKey)&&contextAllowed(document.activeElement)){e.preventDefault();const target=document.activeElement,r=target.getBoundingClientRect();openContext(target,{x:r.left+r.width/2,y:r.top+r.height/2});}});
 window.orbit.onPlaytimeUpdate(updates=>{
-  for(const update of updates){const g=state.games.find(x=>x.id===update.id);if(!g||g.storePlaytimeKnown)continue;g.tracking={...g.tracking,...update};
-    if(update.since){g.playtime=update.seconds/60;g.playtimeKnown=true;g.localPlaytime=true;g.statsSource='Orbit (local)';}
-    document.querySelectorAll('[data-playtime]').forEach(n=>{if(n.dataset.playtime===g.id)n.textContent=g.playtimeKnown?hours(g.playtime):'';});
-    const toggle=$('#timer-toggle');if(toggle?.dataset.game===g.id)toggle.textContent=['running','paused','waiting'].includes(update.state)?'Stop timer':'Start manual timer';
-    document.querySelectorAll('[data-tracking]').forEach(n=>{if(n.dataset.tracking===g.id)n.textContent=update.state;});
-  }
+ const games=new Map(state.games.map(g=>[g.id,g])),changed=new Map();
+ for(const update of updates){const g=games.get(update.id);if(!g||g.storePlaytimeKnown)continue;g.tracking={...g.tracking,...update};
+  if(update.since){g.playtime=update.seconds/60;g.playtimeKnown=true;g.localPlaytime=true;g.statsSource='Orbit (local)';}changed.set(g.id,g);
+ }
+ document.querySelectorAll('[data-playtime],[data-tracking]').forEach(node=>{const g=changed.get(node.dataset.playtime||node.dataset.tracking);if(g)node.textContent=node.hasAttribute('data-playtime')?(g.playtimeKnown?hours(g.playtime):''):g.tracking.state;});
+ const toggle=$('#timer-toggle'),game=changed.get(toggle?.dataset.game);if(game)toggle.textContent=['running','paused','waiting'].includes(game.tracking.state)?'Stop timer':'Start manual timer';
 });
 
 // Keep the pressed element alive until Chromium has dispatched its click.
 // Background snapshots otherwise replace the button between down and up.
-let libraryPointer=null,pendingLibrary=null,libraryFlush=null;
-function applyLibraryUpdate(data){const ready=data.games.filter(g=>g.installed&&state.games.some(old=>old.id===g.id&&!old.installed));absorb(data);if(ready.length)toast(ready.length===1?ready[0].title+' is ready to play':ready.length+' games are ready to play');}
-function flushLibraryUpdate(){clearTimeout(libraryFlush);libraryFlush=null;if(libraryPointer!==null||!pendingLibrary)return;const data=pendingLibrary;pendingLibrary=null;applyLibraryUpdate(data);}
+let libraryPointer=null,pendingLibrary=null,libraryFlush=null,contextMenus=0;
+function applyLibraryUpdate(data){
+ const oldGames=new Map(state.games.map(g=>[g.id,g]));
+ const ready=data.games.filter(g=>g.installed&&oldGames.has(g.id)&&!oldGames.get(g.id).installed);
+ const focused=document.activeElement,attribute=['data-game','data-list-play','data-recent','data-source'].find(name=>focused?.hasAttribute(name)),value=attribute&&focused.getAttribute(attribute);
+ absorb(data);
+ if(attribute&&!focused.isConnected)document.querySelector('['+attribute+'="'+CSS.escape(value)+'"]')?.focus({preventScroll:true});
+ if(ready.length)toast(ready.length===1?ready[0].title+' is ready to play':ready.length+' games are ready to play');
+}
+function flushLibraryUpdate(){clearTimeout(libraryFlush);libraryFlush=null;if(libraryPointer!==null||contextMenus||!pendingLibrary)return;const data=pendingLibrary;pendingLibrary=null;applyLibraryUpdate(data);}
 function releaseLibraryPointer(e){if(e&&e.pointerId!==libraryPointer)return;libraryPointer=null;clearTimeout(libraryFlush);libraryFlush=setTimeout(flushLibraryUpdate,0);}
 document.addEventListener('pointerdown',e=>{if(e.button===0){clearTimeout(libraryFlush);libraryFlush=null;libraryPointer=e.pointerId;}},true);
 document.addEventListener('pointerup',releaseLibraryPointer,true);
 document.addEventListener('pointercancel',releaseLibraryPointer,true);
 window.addEventListener('blur',()=>releaseLibraryPointer());
 window.orbit.onLibraryUpdate(data=>{pendingLibrary=data;if(libraryPointer===null&&libraryFlush===null)flushLibraryUpdate();});
-window.orbit.onInstallationUpdate(updates=>{for(const update of updates){const g=state.games.find(g=>g.id===update.id);if(!g)continue;g.installationProgress=update.installationProgress;document.querySelectorAll('[data-install]').forEach(n=>{if(n.dataset.install===g.id){n.hidden=!g.installationProgress;n.innerHTML=progressMarkup(g.installationProgress);}});}renderDownloads();});
+window.orbit.onInstallationUpdate(updates=>{
+ const games=new Map(state.games.map(g=>[g.id,g])),changed=new Map();
+ for(const update of updates){const g=games.get(update.id);if(g){g.installationProgress=update.installationProgress;changed.set(g.id,g);}}
+ document.querySelectorAll('[data-install]').forEach(node=>{const g=changed.get(node.dataset.install);if(g){node.hidden=!g.installationProgress;node.innerHTML=progressMarkup(g.installationProgress);}});
+ renderDownloads();
+});
 
 let transferExpiry=null;
 function scheduleTransferExpiry(){clearTimeout(transferExpiry);transferExpiry=null;if(document.hidden||!document.hasFocus())return;const fresh=state.games.some(g=>g.installationProgress?.etaSeconds>0&&Date.now()-(g.installationProgress.sampledAt||0)<90000);if(fresh)transferExpiry=setTimeout(()=>{document.querySelectorAll('[data-install]').forEach(node=>{const g=state.games.find(g=>g.id===node.dataset.install);if(g?.installationProgress)node.innerHTML=progressMarkup(g.installationProgress);});renderDownloads();scheduleTransferExpiry();},15000);}
 window.orbit.onInstallationUpdate(()=>scheduleTransferExpiry());window.addEventListener('focus',scheduleTransferExpiry);window.addEventListener('blur',()=>{clearTimeout(transferExpiry);transferExpiry=null;});document.addEventListener('visibilitychange',scheduleTransferExpiry);
+
+
+

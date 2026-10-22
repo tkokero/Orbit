@@ -29,9 +29,10 @@ async function steamWebLibrary(session, steamRoot) {
   const records = importRecords(rows).map(r => ({ ...r, origin: 'steam-account', catalogNote: 'Owned app returned by your signed-in Steam account.' }));
   return { records, unresolved };
 }
-async function connectSteam({ parent, steamRoot, interactive = false }) {
+async function connectSteam({ parent, steamRoot, interactive = false, persistent = true }) {
   const { BrowserWindow, session } = require('electron');
-  const accountSession = session.fromPartition('persist:orbit-steam-account');
+  const partition=persistent?'persist:orbit-steam-account':'orbit-steam-account-ephemeral';
+  const accountSession = session.fromPartition(partition);
   // Only query an existing Orbit sign-in automatically. Never read another app's cookies.
   const cookies = await accountSession.cookies.get({ domain: '.steampowered.com', name: 'steamLoginSecure' });
   if (!interactive && !cookies.length) return null;
@@ -41,7 +42,7 @@ async function connectSteam({ parent, steamRoot, interactive = false }) {
     if (!interactive) return null;
     return new Promise((resolve, reject) => {
       steamWindow = new BrowserWindow({ parent, width: 1040, height: 800, title: 'Connect Steam to Orbit', autoHideMenuBar: true,
-        webPreferences: { partition: 'persist:orbit-steam-account', nodeIntegration: false, contextIsolation: true, sandbox: true } });
+        webPreferences: { partition, nodeIntegration: false, contextIsolation: true, sandbox: true } });
       accountSession.setPermissionRequestHandler((_wc, _permission, callback) => callback(false));
       steamWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
       steamWindow.webContents.on('will-navigate', (event, url) => {

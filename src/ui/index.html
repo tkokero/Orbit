@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' file: https: data:; connect-src 'none'; object-src 'none'; base-uri 'none'">
-  <title>Orbit</title><link rel="stylesheet" href="styles.css">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' file: https: data:; connect-src 'none'; media-src 'self' file:; object-src 'none'; base-uri 'none'">
+  <title>Orbit</title><link rel="stylesheet" href="styles.css"><script src="interface-help.js"></script>
 </head>
 <body class="booting">
-  <div id="orbit-boot" aria-label="Orbit is starting" role="status"><div class="boot-stars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="boot-scene" aria-hidden="true"><div class="boot-halo"></div><div class="boot-ring ring-one"></div><div class="boot-ring ring-two"></div><div class="boot-ring ring-three"></div><div class="boot-planet"></div><div class="boot-track"><span></span></div><div class="boot-comet"></div><div class="boot-wordmark">ORBIT</div><div class="boot-caption">Your games. Your space.</div></div></div>
-  <div class="titlebar"><strong><span class="orbit-mark" aria-hidden="true"></span>Orbit</strong><div class="window-buttons"><button data-window="minimize" aria-label="Minimize">−</button><button data-window="maximize" aria-label="Maximize">□</button><button data-window="close" aria-label="Close"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></div></div>
+  <div id="orbit-boot" aria-label="Orbit is starting" role="status"><div class="boot-bubbles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="boot-scene" aria-hidden="true"><div class="boot-halo"></div><div class="boot-ring ring-one"></div><div class="boot-ring ring-two"></div><div class="boot-ring ring-three"></div><div class="boot-planet"></div><div class="boot-track"><span></span></div><div class="boot-wordmark">Orbit</div></div></div>
+  <div class="titlebar"><strong><span class="orbit-mark" aria-hidden="true"></span>Orbit <span class="prerelease-badge">Pre-release</span></strong><div class="window-buttons"><button data-window="minimize" aria-label="Minimize"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M5 12h14" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button><button data-window="maximize" aria-label="Maximize"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx=".5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button><button data-window="close" aria-label="Close"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></div></div>
   <div class="app-shell">
-    <aside class="sidebar">
+    <aside class="sidebar" id="library-sidebar"><div class="sidebar-scroll">
       <nav id="navigation" aria-label="Library">
         <button class="nav-item active" data-section="games">Games <span id="games-count" class="count">0</span></button>
         <button class="nav-item" data-section="tools">Tools <span id="tools-count" class="count">0</span></button>
@@ -19,10 +19,10 @@
         <button class="nav-item" data-view="uninstalled">Not installed</button>
       </nav>
       <div class="sidebar-heading">Platforms</div><div id="source-navigation"></div>
-      <div class="sidebar-bottom"><button id="settings-button" class="nav-item">Settings</button></div>
+      </div><div class="sidebar-bottom"><button id="settings-button" class="nav-item">Settings</button></div>
     </aside>
     <main id="main-scroll">
-      <header class="toolbar"><div class="heading"><h1 id="page-title">Games</h1><span id="section-count" class="count"></span></div><div class="toolbar-right"><span id="sync-status" role="status"></span><button id="warning-button" hidden></button><button id="refresh" class="subtle-button">Refresh</button><button id="add-game" class="subtle-button">Add game</button></div></header>
+      <header class="toolbar"><div class="heading"><h1 id="page-title">Games</h1><span id="section-count" class="count"></span></div><div class="toolbar-right"><span id="sync-status" role="status"></span><button id="refresh" class="subtle-button">Refresh</button><button id="add-game" class="subtle-button">Add game</button></div></header>
       <div class="content" id="library-panel">
         <section class="hero" id="hero" aria-label="Recently played"><img id="hero-image" alt=""><div class="hero-shade"></div><div class="hero-content"><span id="hero-kicker" class="eyebrow">Recently played</span><h2 id="hero-title">Your library</h2><p id="hero-description"></p><div class="hero-actions"><button class="primary-button" id="hero-play" disabled>Play</button><button id="hero-details" class="hero-secondary" disabled>Details</button></div></div></section>
         <div id="recent-games" class="recent-games" aria-label="Recent games"></div>
@@ -43,6 +43,7 @@
     </main>
   </div>
   <dialog id="modal" closedby="closerequest"><div class="modal-header"><h2 id="modal-title"></h2><button id="modal-close" class="icon-button" aria-label="Close dialog"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></div><div id="modal-body"></div></dialog>
-  <div id="toast" role="status" hidden></div><script src="boot.js"></script><script src="themes.js"></script><script src="friends.js"></script><script src="icons.js"></script><script src="app.js"></script><script src="fps.js"></script><script src="utilities.js"></script><script src="roblox.js"></script><script src="setup.js"></script><script src="features.js"></script><script src="recovery.js"></script>
+  <div id="toast" role="status" hidden></div><script src="startup-audio.js"></script><script src="startup-cosmos.js"></script><script src="startup-nebula.js"></script><script src="startup-scenes.js"></script><script src="boot.js"></script><script src="themes.js"></script><script src="friends.js"></script><script src="icons.js"></script><script src="search.js"></script><script src="library-filters.js"></script><script src="mod-support.js"></script><script src="app.js"></script><script src="startup-settings.js"></script><script src="startup-secrets.js"></script><script src="fonts.js"></script><script src="discord.js"></script><script src="update-notice.js"></script><script src="dev-debug.js"></script><script src="fps.js"></script><script src="utilities.js"></script><script src="roblox.js"></script><script src="setup.js"></script><script src="smart-collections.js"></script><script src="features.js"></script><script src="companion.js"></script><script src="recovery.js"></script><script src="launch-feedback.js"></script><script src="library-extras.js"></script><script src="library-care.js"></script><script src="library-plus.js"></script><script src="polish.js"></script><script src="interface-fx.js"></script><script src="release-calendar.js"></script><script src="workspaces.js"></script><script src="sidebar.js"></script><script src="simple-controls.js"></script><script src="tour.js"></script><script src="memory.js"></script><script src="news-shelf.js"></script>
 </body>
 </html>
+

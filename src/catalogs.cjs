@@ -178,7 +178,7 @@ async function ubisoftCatalog() {
 }
 async function shortcutGames() {
   if (process.platform !== 'win32') return [];
-  const script = `[Console]::OutputEncoding=[System.Text.UTF8Encoding]::new(); $s=New-Object -ComObject WScript.Shell; $dirs=@("$env:ProgramData\\Microsoft\\Windows\\Start Menu\\Programs","$env:APPDATA\\Microsoft\\Windows\\Start Menu\\Programs","$env:USERPROFILE\\Desktop","$env:PUBLIC\\Desktop"); $r=@(Get-ChildItem $dirs -Filter '*.lnk' -Recurse -ErrorAction SilentlyContinue | Where-Object { $_.BaseName -match 'Endfield|Arknights|VALORANT|League of Legends|Genshin|Star Rail|Zenless|Minecraft|Roblox Player|^Roblox$|Wuthering|Tower of Fantasy|Honkai|Warframe|Path of Exile|r2modman|CurseForge|Prism Launcher|Modrinth App' -and $_.BaseName -notmatch 'Uninstall|Studio' } | ForEach-Object { $l=$s.CreateShortcut($_.FullName); [pscustomobject]@{title=$_.BaseName;shortcut=$_.FullName;target=$l.TargetPath;workingDirectory=$l.WorkingDirectory;icon=$l.IconLocation} }); ConvertTo-Json -InputObject $r -Compress`;
+  const script = `[Console]::OutputEncoding=[System.Text.UTF8Encoding]::new(); $s=New-Object -ComObject WScript.Shell; $dirs=@("$env:ProgramData\\Microsoft\\Windows\\Start Menu\\Programs","$env:APPDATA\\Microsoft\\Windows\\Start Menu\\Programs","$env:USERPROFILE\\Desktop","$env:PUBLIC\\Desktop"); $r=@(Get-ChildItem $dirs -Filter '*.lnk' -Recurse -ErrorAction SilentlyContinue | Where-Object { $_.BaseName -match 'Endfield|Arknights|VALORANT|League of Legends|Genshin|Star Rail|Zenless|Minecraft|Roblox Player|^Roblox$|Wuthering|Tower of Fantasy|Honkai|Warframe|Path of Exile|r2modman|CurseForge|Prism Launcher|Modrinth App' -and $_.BaseName -notmatch 'Uninstall|Studio' } | ForEach-Object { $l=$s.CreateShortcut($_.FullName); [pscustomobject]@{title=$_.BaseName;shortcut=$_.FullName;target=$l.TargetPath;workingDirectory=$l.WorkingDirectory;arguments=$l.Arguments;icon=$l.IconLocation} }); ConvertTo-Json -InputObject $r -Compress`;
   const { stdout } = await execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', script], { windowsHide: true, timeout: 25000, maxBuffer: 4e6 });
   const entries = JSON.parse(stdout.trim() || '[]'), records = [];
   for (const g of entries) {
@@ -186,9 +186,10 @@ async function shortcutGames() {
     const tool=toolName(g.title)||(/^Minecraft Launcher$/i.test(g.title)||/MinecraftLauncher\.exe$/i.test(g.target)?'Minecraft Launcher':null);
     const title = tool || (/^Minecraft(?: Launcher)?$/i.test(g.title)?'Minecraft':null) || (/endfield/i.test(g.title) ? 'Arknights: Endfield' : /^Roblox/i.test(g.title) ? 'Roblox' : g.title);
     const source = /GRYPH/i.test(g.target) ? 'GRYPHLINK' : /Riot/i.test(g.target) ? 'Riot Games' : /minecraft/i.test(g.title) ? 'Minecraft' : /roblox/i.test(g.title) ? 'Roblox' : /genshin|honkai|star rail|zenless/i.test(g.title) ? 'HoYoPlay' : 'Standalone';
-    // A launcher shortcut confirms launchability, not that the payload is fully downloaded.
-    records.push({ id: `shortcut:${source}:${title}`, title, source, origin: 'shortcut', installed: Boolean(tool), kind:tool?'tool':undefined, launcherAvailable: true,
-      shortcut: g.shortcut, launcherExecutable: g.target, location: path.dirname(g.target), iconFile: g.icon?.replace(/,\s*-?\d+$/, ''),
+    const gameExecutable=require('./playtime.cjs').safeGameExe(g.target)&&!/launcher|hoyoplay|gryphlink|riotclient|eadesktop|galaxyclient|ubisoftconnect/i.test(path.basename(g.target));
+    // A client shortcut is not an installation or entitlement; a real game executable is an installed copy.
+    records.push({ id: `shortcut:${source}:${title}`, title, source, origin: 'shortcut', installed: Boolean(tool||gameExecutable),executable:gameExecutable?g.target:undefined,kind:tool?'tool':undefined, launcherAvailable: true,
+      shortcutGameTarget:gameExecutable||/--launch-product=|--launch-game(?:=|\s)|--game(?:-id)?(?:=|\s)|-applaunch\s/i.test(g.arguments||''),shortcut: g.shortcut, launcherExecutable: g.target, location: path.dirname(g.target), iconFile: g.icon?.replace(/,\s*-?\d+$/, ''),
       catalogNote: 'Game-specific shortcut detected. Opens the original launcher, which checks installation and updates.',
       ...await riotLaunch(title,g.target,path.join(process.env.ProgramData || 'C:/ProgramData','Riot Games/RiotClientInstalls.json')) });
   }

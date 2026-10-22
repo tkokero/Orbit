@@ -1,3 +1,4 @@
+const ownership=require('./ownership.cjs'),routing=require('./launch-routing.cjs');
 const {windowsGameAction}=require('./mod-tools.cjs');
 const { checkedDirectLaunch } = require('./game-launch.cjs');
 const crypto = require('node:crypto');
@@ -40,22 +41,24 @@ function mergeLibrary(records, preferences = {}) {
   }
   const groups = new Map();
   for (const original of records) {
+    if(!ownership.allowed(original))continue;
     const referenceId = original.equivalentSteamId || (original.source === 'Steam' && original.appId);
-    const record = referenceId && steamTitles.has(referenceId) ? { ...original, title: steamTitles.get(referenceId) } : original;
+    let record = referenceId && steamTitles.has(referenceId) ? { ...original, title: steamTitles.get(referenceId) } : original;
     if (!record.title || !record.id) continue;
     const key = record.source==='Roblox'&&/^\d{1,20}$/.test(record.robloxPlaceId||'')?'roblox:experience:'+record.robloxPlaceId:normalizeTitle(record.title);
     if (!key) continue;
     if (!groups.has(key)) groups.set(key, []);
     const versions = groups.get(key);
+    const existing=versions.find(r=>r.id===record.id);if(existing?.installed&&record.installed&&existing.location&&record.location&&path.win32.normalize(existing.location).toLowerCase()!==path.win32.normalize(record.location).toLowerCase())record={...record,recordId:record.id,id:record.id+'@'+crypto.createHash('sha256').update(path.win32.normalize(record.location).toLowerCase()).digest('hex').slice(0,10)};
     const same = versions.findIndex(r => r.id === record.id);
-    if (same < 0) versions.push({ ...record });
+    if (same < 0) versions.push({ ...record,ownershipVerified:record.ownershipVerified===true||record.origin==='steam-account' });
     else {
       const previous = versions[same];
       const winner = record.installed && !previous.installed ? record : previous;
       const newestStats = (record.statsUpdatedAt || 0) > (previous.statsUpdatedAt || 0) ? record
         : (record.statsUpdatedAt || 0) < (previous.statsUpdatedAt || 0) ? previous
         : (record.achievements?.items?.length || 0) > (previous.achievements?.items?.length || 0) ? record : previous;
-      versions[same] = { ...record, ...previous, ...winner, cover: winner.cover || previous.cover || record.cover,
+      versions[same] = { ...record, ...previous, ...winner,ownershipVerified:previous.ownershipVerified===true||record.ownershipVerified===true||previous.origin==='steam-account'||record.origin==='steam-account',cover: winner.cover || previous.cover || record.cover,
         playtime: Math.max(record.playtime || 0, previous.playtime || 0),
         playtimeKnown: Boolean(record.playtimeKnown || previous.playtimeKnown),
         lastPlayed: Math.max(record.lastPlayed || 0, previous.lastPlayed || 0),
@@ -65,14 +68,10 @@ function mergeLibrary(records, preferences = {}) {
   return [...groups].map(([key, versions]) => {
     const id = crypto.createHash('sha256').update(key).digest('hex').slice(0, 20);
     const pref = preferences[id] || {};
-    versions.sort((a, b) => Number(b.installed) - Number(a.installed)
-      || Number(Boolean(b.launcherAvailable)) - Number(Boolean(a.launcherAvailable))
-      || Number(b.id === pref.preferred) - Number(a.id === pref.preferred)
-      || Number(Boolean(b.launch || b.executable)) - Number(Boolean(a.launch || a.executable))
-      || STORES.indexOf(a.source) - STORES.indexOf(b.source));
+    versions.sort((a,b)=>Number(b.id===pref.preferred)-Number(a.id===pref.preferred)||routing.rank(b)-routing.rank(a)||Number(b.source==='Steam')-Number(a.source==='Steam')||STORES.indexOf(a.source)-STORES.indexOf(b.source));
     const chosen = versions[0];
     const statsVersion = versions.find(v => v.playtimeKnown || v.achievements);
-    return { id, collections:pref.collections||[], robloxPlaceId:chosen.robloxPlaceId, title: chosen.title, kind: pref.kind || (versions.some(v => classify(v) === 'tool') ? 'tool' : 'game'), installed: Boolean(chosen.installed), launcherAvailable: Boolean(chosen.launcherAvailable), directLaunchAvailable: Boolean(chosen.directLaunchAvailable), installationProgress: versions.find(v=>v.installationProgress)?.installationProgress || null, selected: chosen.id,
+    return { id, ownership:ownership.evidence(versions.find(v=>ownership.evidence(v).state==='account')||chosen),launchRoute:routing.route(chosen),selectedInstalled:Boolean(chosen.installed),collections:pref.collections||[], robloxPlaceId:chosen.robloxPlaceId, title: chosen.title, kind: pref.kind || (versions.some(v => classify(v) === 'tool') ? 'tool' : 'game'), installed: versions.some(v=>v.installed), launcherAvailable: Boolean(chosen.launcherAvailable), directLaunchAvailable: Boolean(chosen.directLaunchAvailable), installationProgress: versions.find(v=>v.installationProgress)?.installationProgress || null, selected: chosen.id,
       versions, sources: [...new Set(versions.map(v => v.source))], cover: versions.find(v => v.cover)?.cover,
       hero: versions.find(v => v.hero)?.hero, favorite: Boolean(pref.favorite), hidden: Boolean(pref.hidden),
       lastPlayed: Math.max(0, ...versions.map(v => v.lastPlayed || 0)), lastOpened: pref.lastOpened || pref.lastPlayed || 0,

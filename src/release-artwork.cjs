@@ -1,0 +1,18 @@
+const fs=require('node:fs/promises'),path=require('node:path');
+const {readBounded,steamImage,cards,normalize}=require('./release-highlights.cjs');
+class ReleaseArtwork{
+ constructor({folder,fetchImpl=fetch,offline=()=>false,download,clock=Date.now}){Object.assign(this,{folder,fetch:fetchImpl,offline,download,clock});this.cache=new Map();this.pending=new Map();}
+ async load(){try{const file=path.join(this.folder,'release-art.json');if((await fs.stat(file)).size>1024*1024)return;const list=JSON.parse(await fs.readFile(file,'utf8'));for(const [id,v] of list.slice(-2000))if(typeof id==='string'&&Number.isFinite(v.at)&&v.at<=this.clock()+60000&&(v.url===null||this.allowed(v.url)))this.cache.set(id,v);}catch{}}
+ allowed(value){if(steamImage(value))return true;try{const u=new URL(value);return u.protocol==='https:'&&u.hostname==='cdn.mos.cms.futurecdn.net';}catch{return false;}}
+ async image(game){if(!game)return null;if(game.image?.startsWith('data:image/webp;base64,'))return game.image;let url=steamImage(game.image);const stored=this.cache.get(game.id);if(!url&&stored&&this.clock()-stored.at<12*60*60*1000)url=stored.url;if(!url&&stored&&stored.url===null&&this.clock()-stored.at<12*60*60*1000)return null;
+  if(!url&&!this.offline()){let pending=this.pending.get(game.id);if(!pending){pending=this.lookup(game).then(async found=>{this.cache.set(game.id,{at:this.clock(),url:found});while(this.cache.size>2000)this.cache.delete(this.cache.keys().next().value);clearTimeout(this.saveTimer);this.saveTimer=setTimeout(()=>this.save().catch(()=>{}),500);this.saveTimer.unref?.();return found;}).finally(()=>this.pending.delete(game.id));this.pending.set(game.id,pending);}url=await pending;}
+  if(!url&&/^\d+$/.test(game.id))url=`https://cdn.akamai.steamstatic.com/steam/apps/${game.id}/header.jpg`;if(!url)return null;return this.download(url,this.folder,{kind:'news',offline:this.offline()});
+ }
+ async lookup(game){try{if(/^\d+$/.test(game.id)){const u='https://store.steampowered.com/api/appdetails?appids='+game.id+'&filters=basic&l=english';const json=JSON.parse(await readBounded(await this.fetch(u,{signal:AbortSignal.timeout(7000)})));const image=steamImage(json[game.id]?.data?.header_image);if(image)return image;}
+  if(game.guide){const guide=new URL(game.guide);if(guide.protocol==='https:'&&guide.hostname==='www.gamesradar.com'){const html=await readBounded(await this.fetch(guide,{signal:AbortSignal.timeout(7000)}));for(const m of html.matchAll(/<meta\b[^>]*>/gi)){if(!/property=["']og:image["']/i.test(m[0]))continue;const value=/content=["']([^"']+)/i.exec(m[0])?.[1]?.replace(/&amp;/g,'&');if(value&&this.allowed(value))return value;}}}
+  const u=new URL('https://store.steampowered.com/search/results/');u.search=new URLSearchParams({term:game.title,category1:'998',count:'5',infinite:'1',l:'english',cc:'US'});const json=JSON.parse(await readBounded(await this.fetch(u,{signal:AbortSignal.timeout(7000)})));return cards(json.results_html).find(g=>normalize(g.title)===normalize(game.title))?.image||null;
+ }catch{return null;}}
+ async save(){await fs.mkdir(this.folder,{recursive:true});const file=path.join(this.folder,'release-art.json');await fs.writeFile(file+'.tmp',JSON.stringify([...this.cache]));await fs.rename(file+'.tmp',file);}
+}
+async function choosePreview(file){if((await fs.stat(file)).size>15*1024*1024)throw Error('Choose an image under 15 MB.');const bytes=await require('sharp')(file,{limitInputPixels:40e6}).rotate().resize({width:640,height:360,fit:'cover',withoutEnlargement:true}).webp({quality:78}).toBuffer();if(bytes.length>250000)throw Error('Choose a smaller preview image.');return 'data:image/webp;base64,'+bytes.toString('base64');}
+module.exports={ReleaseArtwork,choosePreview};

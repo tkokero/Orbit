@@ -58,10 +58,11 @@ async function epicGames(warnings, base = path.join(process.env.ProgramData || '
     try {
       const g = await json(path.join(base, name));
       if (!g?.DisplayName || !g.AppName || (g.MainGameAppName && g.MainGameAppName !== g.AppName)) continue;
-      const executable = g.InstallLocation && g.LaunchExecutable ? path.join(g.InstallLocation, g.LaunchExecutable) : '';
+      const launchFile=String(g.LaunchExecutable||'').trim().replace(/^"|"$/g,'');
+      const executable=g.InstallLocation&&launchFile?await require('./launch-routing.cjs').registeredTarget(g.InstallLocation,path.resolve(g.InstallLocation,launchFile)):null;
       const target = [g.CatalogNamespace, g.CatalogItemId, g.AppName].filter(Boolean).join(':');
       result.push({ id: `epic:${g.AppName}`, appId: g.AppName, title: g.DisplayName, source: 'Epic Games',
-        origin: 'scan', installationProgress: g.bIsIncompleteInstall ? {phase:'Installing in Epic Games',percent:null} : null, installed: Boolean(!g.bIsIncompleteInstall && executable && await exists(executable)), location: g.InstallLocation,
+        origin: 'scan', installationProgress: g.bIsIncompleteInstall ? {phase:'Installing in Epic Games',percent:null} : null, installed: Boolean(!g.bIsIncompleteInstall && executable), gameExecutables:!g.bIsIncompleteInstall&&executable?[executable]:[], location: g.InstallLocation, sizeBytes:Number(g.InstallSize)||0,
         launch: `com.epicgames.launcher://apps/${encodeURIComponent(target)}?action=launch&silent=true`,
         installUrl: 'com.epicgames.launcher://library' });
     } catch (e) { warnings.push(`Epic ${name}: ${e.message}`); }
@@ -100,8 +101,8 @@ async function registeredGames(games) {
     if (!/\.exe$/i.test(executable) || !await exists(executable)) executable = undefined;
     const ubisoftId = /^Uplay Install (\d+)$/.exec(g.PSChildName)?.[1];
     // DisplayIcon is not reliably a game's executable. Only protocol-backed games get one-click launch.
-    records.push({ id: `registry:${source}:${g.PSChildName}`, title: g.DisplayName, source, installed: true, origin: 'scan', location: g.InstallLocation,
-      launch: ubisoftId ? `uplay://launch/${ubisoftId}/0` : undefined,
+    records.push({ id: `registry:${source}:${g.PSChildName}`, title: g.DisplayName, source, installed: true, origin: 'scan', location: g.InstallLocation, sizeBytes:Number(g.InstallSize)||0,
+      executable:!ubisoftId?await require('./launch-routing.cjs').registeredTarget(g.InstallLocation,g.DisplayIcon):undefined,launch: ubisoftId ? `uplay://launch/${ubisoftId}/0` : undefined,
       installUrl: source === 'GOG' ? 'https://www.gog.com/account' : source === 'EA' ? 'https://www.ea.com/ea-app' : source === 'Battle.net' ? 'https://battle.net/download' : 'https://ubisoftconnect.com/' });
   }
   return records;

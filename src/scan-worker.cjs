@@ -10,9 +10,9 @@ const { mergeLibrary } = require('./library.cjs');
   const imported = await Promise.all(workerData.imports.map(async record => ({ ...record,
     installed: Boolean(record.executable && await exists(record.executable)) })));
   const remembered = retainedRecords(workerData.remembered).map(record => ({ ...record, installed: false, installationProgress: null, directLaunch: undefined, directLaunchAvailable: false, windowsAppId:undefined, launcherAvailable: false }));
-  const raw=[...result.records, ...imported, ...remembered];
+  const raw=[...result.records,...imported,...remembered].filter(require('./ownership.cjs').allowed);
   const cached=new Map((workerData.cachedRecords||[]).map(r=>[r.id,r]));
-  const records = workerData.offline?raw.map(r=>({...r,cover:cached.get(r.id)?.cover?.startsWith('file:')?cached.get(r.id).cover:r.cover?.startsWith('file:')?r.cover:undefined})):await prepareArtwork([...result.records, ...imported, ...remembered], result.steamRoot, result.artwork);
+  const records = workerData.offline?raw.map(r=>({...r,cover:cached.get(r.id)?.cover?.startsWith('file:')?cached.get(r.id).cover:r.cover?.startsWith('file:')?r.cover:undefined})):await prepareArtwork(raw, result.steamRoot, result.artwork);
   timings.prepareMs=Math.round(performance.now()-started)-timings.discoveryMs;
   const coverStatus = workerData.offline?{cached:true}:await cacheCovers(records, workerData.artworkFolder, () => {}, workerData.forceImages);
   const featured = mergeLibrary(records, workerData.preferences).filter(g => g.kind === 'game' && !g.hidden)

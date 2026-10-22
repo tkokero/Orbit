@@ -1,0 +1,14 @@
+/* Local-only sidebar width. Resize work is limited to one update per frame. */
+(()=>{
+ const sidebar=document.querySelector('.sidebar');if(!sidebar)return;const key='orbit-sidebar-width';let preferred=null,drag=null,frame=0;
+ try{const saved=localStorage.getItem(key);if(saved!==null&&Number.isFinite(Number(saved)))preferred=Number(saved);}catch{}
+ const handle=document.createElement('div');handle.className='sidebar-resizer';handle.tabIndex=0;handle.setAttribute('role','separator');handle.setAttribute('aria-orientation','vertical');handle.setAttribute('aria-label','Resize sidebar');handle.setAttribute('aria-controls','library-sidebar');handle.title='Drag to resize · Double-click to reset · Arrow keys to adjust';sidebar.append(handle);
+ const bounds=()=>({min:156,max:Math.max(156,Math.min(360,Math.floor(innerWidth*.32)))});
+ function apply(){frame=0;const {min,max}=bounds();if(preferred===null)sidebar.style.removeProperty('--sidebar-width');else sidebar.style.setProperty('--sidebar-width',Math.max(min,Math.min(max,preferred))+'px');const width=Math.round(sidebar.getBoundingClientRect().width);handle.setAttribute('aria-valuemin',String(min));handle.setAttribute('aria-valuemax',String(max));handle.setAttribute('aria-valuenow',String(width));handle.setAttribute('aria-valuetext',width+' pixels');}
+ function save(){try{if(preferred===null)localStorage.removeItem(key);else localStorage.setItem(key,String(preferred));}catch{}}
+ function finish(cancel=false){if(!drag)return;const pointer=drag.pointerId;if(cancel)preferred=drag.previous;drag=null;if(frame){cancelAnimationFrame(frame);frame=0;}apply();if(!cancel)save();document.body.classList.remove('sidebar-resizing');if(handle.hasPointerCapture(pointer))handle.releasePointerCapture(pointer);}
+ handle.onpointerdown=e=>{if(e.button!==0)return;e.preventDefault();drag={pointerId:e.pointerId,x:e.clientX,width:sidebar.getBoundingClientRect().width,previous:preferred};handle.setPointerCapture(e.pointerId);document.body.classList.add('sidebar-resizing');};
+ handle.onpointermove=e=>{if(!drag||drag.pointerId!==e.pointerId)return;const {min,max}=bounds();preferred=Math.round(Math.max(min,Math.min(max,drag.width+e.clientX-drag.x)));if(!frame)frame=requestAnimationFrame(apply);};handle.onpointerup=()=>finish();handle.onpointercancel=()=>finish(true);handle.onlostpointercapture=()=>finish(true);
+ handle.ondblclick=()=>{preferred=null;save();apply();};handle.onkeydown=e=>{const {min,max}=bounds();let next=sidebar.getBoundingClientRect().width;if(e.key==='ArrowLeft')next-=e.shiftKey?30:10;else if(e.key==='ArrowRight')next+=e.shiftKey?30:10;else if(e.key==='Home')next=min;else if(e.key==='End')next=max;else if(e.key==='Enter'){e.preventDefault();preferred=null;save();apply();return;}else return;e.preventDefault();preferred=Math.round(Math.max(min,Math.min(max,next)));apply();save();};
+ window.addEventListener('resize',apply);window.addEventListener('blur',()=>finish(true));apply();
+})();

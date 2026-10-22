@@ -1,0 +1,11 @@
+{
+  "version": "0.2.3",
+  "notes": [
+    "Update Orbit while games keep running, with session recovery and quieter automatic restarts.",
+    "Explore Nebula Drift and a hidden Big Bang startup, plus more expressive cosmic animations.",
+    "Smooth transitions and optional space-themed sounds accompany the startup scenes.",
+    "Get started with a clearer Quick start and a smoothly animated guided tour.",
+    "Larger sidebar controls, consistent themed menus, and hover help make everyday actions easier.",
+    "Improved animation efficiency, resource cleanup, and interface reliability."
+  ]
+}
