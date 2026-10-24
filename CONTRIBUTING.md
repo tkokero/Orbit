@@ -26,7 +26,7 @@ Theme contributions use the public schema in THEMES.md. Keep presets readable in
 
 ## Publishing Windows updates
 
-Run `npm ci`, `npm test`, then `npm run dist`. Publish `Orbit-Setup.exe`, its `.blockmap`, and `latest.yml` from `outputs/installer/` on the existing `v1.0.0-pre.1` release. Upload the installer and blockmap before publishing the metadata. The feed is fixed to that release's HTTPS download URL.
+Run `npm ci`, `npm test`, then `npm run dist`. Publish `Orbit-Setup.exe`, its `.blockmap`, `latest.yml`, the portable Windows ZIP, and matching source on a new versioned release. Verify the uploaded installer and blockmap before updating the compatibility feed at `v0.2.0-pre.1`, which existing installations use. Its `latest.yml` must point to the new release assets with absolute HTTPS URLs. Preserve the previous manifest under its versioned filename before replacing the current manifest. Keep the legacy feed address unchanged.
 
 Every new update must have a greater `package.json` version. Use `npm version prerelease --preid=pre --no-git-tag-version` before building the next prerelease; the release page can remain consolidated. Never reuse a package version for different update contents. Keep the updater feed and per-user NSIS installation format compatible. The Windows ZIP is a manual portable distribution, not an update payload.
 

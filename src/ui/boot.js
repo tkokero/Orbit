@@ -2,7 +2,7 @@
 (()=>{
  const cover=document.querySelector('#orbit-boot'),shell=document.querySelector('.app-shell');shell.inert=true;
  const debugReplay=Boolean(window.orbitDebug)&&new URLSearchParams(location.search).get('debug-intro')==='1';
- let reduced=(!debugReplay&&new URLSearchParams(location.search).get('resume')==='1')||matchMedia('(prefers-reduced-motion: reduce)').matches;try{reduced ||=localStorage.getItem('orbit-motion')==='off'||(!debugReplay&&localStorage.getItem('orbit-intro')==='off');}catch{}
+ let reduced=(!debugReplay&&new URLSearchParams(location.search).get('resume')==='1')||matchMedia('(prefers-reduced-motion: reduce)').matches;try{reduced ||=localStorage.getItem('orbit-couch')==='on'||localStorage.getItem('orbit-motion')==='off'||(!debugReplay&&localStorage.getItem('orbit-intro')==='off');}catch{}
  const playback=OrbitStartup.play(cover,{reduced,holdFrame:true});let loaded=false,sceneDone=false,exiting=false,resolve;const done=new Promise(r=>resolve=r);
  const hint=document.createElement('p');hint.className='startup-load-hint';hint.hidden=true;hint.textContent='Opening your library…';cover.append(hint);
  async function leave(){if(!loaded||!sceneDone||exiting)return;exiting=true;cover.classList.add('boot-leaving');

@@ -1,5 +1,16 @@
-const FEED='https://github.com/tkokero/Orbit/releases/download/v0.2.0-pre.1';
-const INSTALLER='https://github.com/tkokero/Orbit/releases/download/v0.2.3/Orbit-Setup.exe';
+const {FEED,RELEASES}=require('./release-config.cjs');
+const INSTALLER=RELEASES;
+async function installerDestination(fetchImpl=fetch){
+ try{
+  const response=await fetchImpl(FEED+'/latest.yml',{signal:AbortSignal.timeout(8000)});
+  if(!response.ok)throw Error('Update feed unavailable.');
+  const source=await response.text();if(source.length>65536)throw Error('Invalid update feed.');
+  const info=require('yaml').parse(source),file=info.files?.find(f=>typeof f.url==='string'&&/Orbit-Setup\.exe$/i.test(f.url))?.url||info.path;
+  const url=new URL(file,FEED+'/');
+  if(url.origin!=='https://github.com'||!/^\/tkokero\/Orbit\/releases\/download\/[^/]+\/Orbit-Setup\.exe$/.test(url.pathname)||url.search||url.hash||url.username||url.password)throw Error('Invalid installer destination.');
+  return url.href;
+ }catch{return RELEASES;}
+}
 function releaseText(value){return (Array.isArray(value)?value.filter(x=>x&&typeof x==='object').map(x=>(x.version?String(x.version)+'\n':'')+String(x.note||'')).join('\n\n'):typeof value==='string'?value:'').replace(/<[^>]*>/g,'').slice(0,16000);}
 function updateError(error){const value=String(error?.message||error);return /404/.test(value)&&/latest\.yml|channel|update info/.test(value)?'Update information is not published yet. You can keep using this build and check again later.':'Could not check for updates. Try again later.';}
 class OrbitUpdater{
@@ -54,4 +65,4 @@ class OrbitUpdater{
  }
  stop(){this.generation++;this.stopChecking();if(this.restartTimer)this.timers.clearTimeout(this.restartTimer);this.restartTimer=null;}
 }
-module.exports={OrbitUpdater,FEED,INSTALLER,releaseText,updateError};
+module.exports={OrbitUpdater,FEED,INSTALLER,installerDestination,releaseText,updateError};

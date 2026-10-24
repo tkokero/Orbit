@@ -31,9 +31,16 @@
   function ink(color){return contrast(color,'#000000')>contrast(color,'#ffffff')?'#000000':'#ffffff';}
   function effectiveAccent(theme){let color=theme.image?.mode==='auto'?theme.image.accent:theme.colors.accent;if(theme.image?.mode!=='auto')return color;const target=luminance(theme.colors.surface)>.4?0:255,base=color.slice(1).match(/../g).map(x=>parseInt(x,16));for(let step=0;step<=10;step++){const t=step/10,value='#'+base.map(x=>Math.round(x+(target-x)*t).toString(16).padStart(2,'0')).join('');if(contrast(value,theme.colors.surface)>=3)return value;}return color;}
   function mix(a,b,t){const x=a.slice(1).match(/../g),y=b.slice(1).match(/../g);return '#'+x.map((v,i)=>Math.round(parseInt(v,16)*(1-t)+parseInt(y[i],16)*t).toString(16).padStart(2,'0')).join('');}
+  function readableMuted(c){
+    const score=color=>Math.min(contrast(color,c.background),contrast(color,c.surface));
+    if(score(c.muted)>=4.5)return c;
+    const target=score(c.text)>=4.5?c.text:score('#ffffff')>score('#000000')?'#ffffff':'#000000';
+    for(let step=1;step<=100;step++){const candidate=mix(c.muted,target,step/100);if(score(candidate)>=4.5){c.muted=candidate;return c;}}
+    c.muted=target;return c;
+  }
   function effectiveColors(theme){
     const c={...theme.colors,accent:effectiveAccent(theme)};
-    if(!theme.image)return c;
+    if(!theme.image)return readableMuted(c);
     // Build image surfaces from the accent hue, rather than blending in the preset's blue.
     const rgb=c.accent.slice(1).match(/../g).map(v=>parseInt(v,16)),lo=Math.min(...rgb),hi=Math.max(...rgb);
     const hue=hi-lo<12?c.accent:'#'+rgb.map(v=>Math.round(40+(v-lo)/(hi-lo)*215).toString(16).padStart(2,'0')).join('');
@@ -47,8 +54,8 @@
       for(let step=1;step<=10;step++){const candidate=mix(c.accent,light?'#000000':'#ffffff',step/10);if(contrast(candidate,c.surface)>=3){c.accent=candidate;break;}}
     }
     c.positive=c.accent;c.secondary=mix(c.accent,c.text,.18);
-    return c;
+    return readableMuted(c);
   }
-  function apply(theme,element){const c=effectiveColors(theme),style=element.style;style.setProperty('--theme-background',theme.image?`linear-gradient(color-mix(in srgb, ${c.background}, transparent ${theme.image.opacity}%),color-mix(in srgb, ${c.background}, transparent ${theme.image.opacity}%)),url("${theme.image.data}")`:'linear-gradient(155deg,var(--ambient) 0,var(--bg) 440px)');for(const [field,variable]of Object.entries({background:'bg',surface:'panel',text:'text',muted:'muted',accent:'accent',positive:'green',warm:'warm',secondary:'cool'}))style.setProperty('--'+variable,c[field]);style.setProperty('--accent-ink',ink(c.accent));style.setProperty('--positive-ink',ink(c.positive));style.setProperty('--active-logo-filter',ink(c.accent)==='#ffffff'?'invert(1)':'invert(.12)');style.setProperty('--logo-filter',luminance(c.surface)>.4?'invert(.12)':'invert(1)');style.colorScheme=luminance(c.background)>.4?'light':'dark';}
+  function apply(theme,element){const c=effectiveColors(theme),style=element.style;style.setProperty('--theme-photo-surface',theme.image?'transparent':'var(--sidebar)');style.setProperty('--theme-background',theme.image?`linear-gradient(color-mix(in srgb, ${c.background}, transparent ${theme.image.opacity}%),color-mix(in srgb, ${c.background}, transparent ${theme.image.opacity}%)),url("${theme.image.data}")`:'linear-gradient(155deg,var(--ambient) 0,var(--bg) 440px)');for(const [field,variable]of Object.entries({background:'bg',surface:'panel',text:'text',muted:'muted',accent:'accent',positive:'green',warm:'warm',secondary:'cool'}))style.setProperty('--'+variable,c[field]);style.setProperty('--accent-ink',ink(c.accent));style.setProperty('--positive-ink',ink(c.positive));style.setProperty('--active-logo-filter',ink(c.accent)==='#ffffff'?'invert(1)':'invert(.12)');style.setProperty('--logo-filter',luminance(c.surface)>.4?'invert(.12)':'invert(1)');style.colorScheme=luminance(c.background)>.4?'light':'dark';}
   return{fields,builtins,validate,contrast,apply,effectiveAccent,effectiveColors};
 });

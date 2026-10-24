@@ -1,6 +1,6 @@
 const fs=require('node:fs/promises'),path=require('node:path'),{fileURLToPath}=require('node:url');
 const MiB=1024*1024,DAY=86400000,FOLDERS={'artwork':64*MiB,'store-artwork':8*MiB,'friend-avatars':8*MiB};
-const ownImage=/^[a-f0-9]{28}-(?:cover|hero|icon)\.(?:jpg|webp)$/;
+const ownImage=/^[a-f0-9]{28}-(?:cover|hero|icon|news|article)\.(?:jpg|webp)$/;
 async function inspect(userData){const rows=[];for(const [name,limit]of Object.entries(FOLDERS)){const folder=path.resolve(userData,name);if(path.dirname(folder)!==path.resolve(userData))throw Error('Invalid cache path.');let entries=[];try{entries=await fs.readdir(folder,{withFileTypes:true});}catch(e){if(e.code!=='ENOENT')throw e;}for(const entry of entries){if(!entry.isFile()||!ownImage.test(entry.name))continue;const file=path.join(folder,entry.name);try{const stat=await fs.lstat(file);if(stat.isFile()&&!stat.isSymbolicLink())rows.push({file,folder:name,limit,bytes:stat.size,mtime:stat.mtimeMs});}catch(e){if(e.code!=='ENOENT')throw e;}}}return rows;}
 async function cacheUsage(userData){const rows=await inspect(userData);return {bytes:rows.reduce((n,r)=>n+r.bytes,0),files:rows.length};}
 async function trimImageCaches(userData,urls=[],{removeUnused=false,now=Date.now()}={}){

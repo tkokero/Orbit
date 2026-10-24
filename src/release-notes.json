@@ -1,11 +1,12 @@
 {
-  "version": "0.2.3",
+  "version": "0.2.5",
   "notes": [
-    "Update Orbit while games keep running, with session recovery and quieter automatic restarts.",
-    "Explore Nebula Drift and a hidden Big Bang startup, plus more expressive cosmic animations.",
-    "Smooth transitions and optional space-themed sounds accompany the startup scenes.",
-    "Get started with a clearer Quick start and a smoothly animated guided tour.",
-    "Larger sidebar controls, consistent themed menus, and hover help make everyday actions easier.",
-    "Improved animation efficiency, resource cleanup, and interface reliability."
+    "New Controller Mode with customizable bindings, artwork-focused game pages, and optional interface sounds.",
+    "Refreshed Desktop UI with clearer text, consistent buttons, improved spacing, and better artwork sizing.",
+    "Resize popups and choose between shared sizing or separate saved sizes for each menu.",
+    "Read Steam announcements inside Orbit.",
+    "Improved downloads, easier access to collections, and clearer game menus.",
+    "Expanded Discord Rich Presence privacy controls for shared games and activity.",
+    "Better settings and theme preservation, navigation, game launch handling, and background checkups."
   ]
 }

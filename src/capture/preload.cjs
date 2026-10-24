@@ -1,0 +1,2 @@
+const {contextBridge,ipcRenderer}=require('electron');
+contextBridge.exposeInMainWorld('captureIO',{config:()=>ipcRenderer.invoke('capture:config'),append:p=>ipcRenderer.invoke('capture:append',p),begin:()=>ipcRenderer.invoke('capture:begin'),read:i=>ipcRenderer.invoke('capture:read',i),write:(data,position)=>ipcRenderer.invoke('capture:write',data,position),finish:ok=>ipcRenderer.invoke('capture:finish',ok),status:data=>ipcRenderer.send('capture:status',data)});

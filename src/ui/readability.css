@@ -1,0 +1,62 @@
+/* Shared type, with larger console text. Custom fonts continue to override --ui-font. */
+@font-face{font-family:'Orbit Rounded';src:url('../assets/fonts/Nunito-Variable.ttf') format('truetype');font-style:normal;font-weight:200 1000;font-display:swap}
+:root{font-family:var(--ui-font,'Orbit Rounded','Segoe UI',sans-serif);font-size:15px;--type-body:15px;--type-label:15px;--type-note:13px;--type-title:22px}
+:root.couch-mode{--type-body:18px;--type-label:18px;--type-note:16px;--type-title:26px}
+body{line-height:1.5}
+button,input,select,textarea{font-family:inherit}
+:is(h1,h2,h3,h4){font-weight:800;line-height:1.25;letter-spacing:-.025em}
+:is(button,summary){font-weight:700}
+:is(input,textarea)::placeholder{color:var(--muted);opacity:1}
+/* Descriptions are readable text, rather than miniature captions. */
+html #modal-body{font-size:var(--type-body);line-height:1.65}
+html :is(.small-note,.setting-card p,.settings-section p,.management-status,.download-overview p,.empty p,.info-popover,.controller-binding-fields p){font-size:var(--type-note);line-height:1.65}
+html :is(.setting-card h3,.settings-section h3,.controller-binding-fields legend){font-size:var(--type-label);font-weight:800;line-height:1.4}
+html :is(.setting-card,.settings-section,.extras-form,.profile-field,.controller-input-settings,.theme-editor) label{font-size:var(--type-label);line-height:1.5}
+html #modal-body :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),textarea,select){font-size:var(--type-body);line-height:1.5}
+html :is(.settings-group h2,.setting-card h2){font-size:var(--type-title);font-weight:800;line-height:1.3}
+html :is(.subtle-button,.primary-button,.hero-secondary,.link-button,.desktop-select-trigger,.desktop-select-menu>button,.control-menu-label,.desktop-summary,.discord-check,.discord-game-policy){font-size:var(--type-label);line-height:1.4}
+html :is(.desktop-action,.settings-dialog .settings-tabs button,#workspace-tabs button,.nav-item){font-size:14px;font-weight:750;line-height:1.4}
+html :is(.settings-dialog .settings-tabs button,.nav-item){min-height:46px}
+html :is(.settings-search-result strong,.theme-button,.startup-choice>strong,.launch-mode-card strong,.discord-disclosure>summary){font-size:var(--type-label);font-weight:800;line-height:1.4}
+html :is(.settings-search-result span,.sidebar-heading,.count,.eyebrow,.control-menu-label,.pagination,.prerelease-badge){font-size:12px;line-height:1.45}
+html :is(.theme-button span,.theme-swatch span,.connection-status,.version span,.version p,.version summary,.stats-grid small,.achievement p,.achievement small,.card-meta,.recent-game small,.news-card small){font-size:12px;line-height:1.5}
+html :is(.version strong,.detail-summary,.achievement strong,.card-title,.recent-game .recent-info strong,.news-card strong,.management-toolbar label,.download-row-content [data-transfer-progress]){font-size:14px;line-height:1.5}
+html :is(.hero p,.storage-entry,.download-name small,.download-metrics span){font-size:14px;line-height:1.5}
+html .recent-game{height:auto;min-height:76px}
+html :is(.form-row,.settings-actions,.detail-actions,.launch-mode-footer){gap:12px;row-gap:14px}
+html :is(.setting-row>div,.settings-group,.settings-section,.profile-field){min-width:0}
+html :is(.setting-card h3,.setting-card p,.profile-label label,.discord-game strong){overflow-wrap:anywhere}
+html #modal-body :is(.setting-card h3,.settings-section h3){font-size:var(--type-label);font-weight:800;line-height:1.4}
+html #modal-body :is(.small-note,.setting-card p,.settings-section p,.controller-binding-fields p){font-size:var(--type-note);line-height:1.65}
+html #modal-body :is(.settings-group h2,.setting-card h2){font-size:var(--type-title);font-weight:800}
+html #modal-body :is(.setting-card,.theme-editor,.settings-section) label,html #launch-profile .profile-label>label{font-size:var(--type-label)}
+:root:not(.couch-mode) :is(.desktop-action,.desktop-select-trigger,.subtle-button,.primary-button,.hero-secondary,.link-button,.settings-dialog .settings-tabs button,#workspace-tabs button,.nav-item){font-size:14px;line-height:1.4;font-weight:750}
+:root:not(.couch-mode) :is(.card-title,.recent-game .recent-info strong,.version strong,.achievement strong,.detail-summary){font-size:14px}
+:root:not(.couch-mode) :is(.card-meta,.recent-game small,.stats-grid small,.sidebar-heading,.nav-item .count){font-size:12px;line-height:1.5}
+html .console-instruments>.binding-auto-swap{font-size:var(--type-label)}
+html :is(.desktop-action,.subtle-button,.primary-button,.desktop-select-trigger):not(.setting-switch):not(.icon-button):not(.info-button){height:auto;min-height:42px}
+html .toolbar-right .desktop-action{height:auto;min-height:42px}
+:root:not(.couch-mode) .library-controls :is(#search,.desktop-select-trigger,#library-view-button,#library-filter-button){height:42px;min-height:42px}
+html .startup-choice>strong{font-size:16px}
+html .discord-game strong{font-size:var(--type-label)}
+html .discord-game small{font-size:var(--type-note)}
+html .detail-summary{font-size:var(--type-body)}
+/* Labels and descriptions share a clear baseline on the console settings pages. */
+html .console-surface{font-size:var(--type-body);line-height:1.6}
+html #couch-home .console-surface button.console-button,html .couch-mode :is(.orbit-console-dialog,.controller-game-context,.controller-select) button.console-button{font-size:18px;font-weight:800;line-height:1.4}
+html :is(.console-surface .couch-settings-layout>nav button.console-button,.drawer-label){font-size:17px}
+html #couch-home .console-surface .couch-settings-layout>nav button.console-button{justify-content:flex-start;font-size:17px}
+html .couch-topbar button{font-size:16px}
+html #modal .modal-header h2{font-weight:850;letter-spacing:-.025em}
+html :is(.console-surface .couch-control-row,.console-instrument-heading,.couch-inline-form label,.controller-binding-fields label){font-size:var(--type-label)}
+html :is(.console-instruments .console-timing>label,.console-form-footer p,.console-surface .couch-feature-panel p,.console-empty p,.couch-page-status,.couch-inline-form p,.console-surface .couch-transfer-body p,.console-surface .couch-transfer-numbers){font-size:var(--type-body);line-height:1.6}
+html :is(.console-panel-heading small,.console-kicker,.console-transfer-source,.console-transfer-hud small,.console-transfer-hud>p,.console-number small,.console-sound-bank small,.controller-facts dt,.controller-info-card>.eyebrow,.controller-game-tags span,.controller-session-list small,.couch-drawer-hint,#couch-home>footer){font-size:var(--type-note);line-height:1.5;letter-spacing:.03em}
+html :is(.controller-info-card p,.controller-facts dd,.controller-info-card summary,.controller-session-list>li){font-size:18px;line-height:1.65}
+html :is(.console-button-label,.console-option-copy strong){font-weight:800}
+/* Popup dimensions live in popups.css; typography stays at its readable size. */
+html .modal-header{flex:none}
+html .launch-mode-footer{flex:none;flex-wrap:wrap}
+html .launch-mode-footer>button{white-space:normal}
+/* Utility controls retain their own compact geometry and symbol sizing. */
+@media(max-width:1100px){html .settings-group-grid{grid-template-columns:1fr}html .console-surface .couch-settings-layout{gap:28px;grid-template-columns:200px minmax(0,1fr)}html .console-instruments{grid-template-columns:1fr}}
+@media(max-width:750px){html .modal-header{gap:12px}html .console-surface .couch-settings-layout{grid-template-columns:1fr}html .console-surface .couch-settings-layout>nav{position:static;flex-direction:row;flex-wrap:wrap}html .startup-choices>.startup-choice{grid-template-columns:56px minmax(0,1fr);gap:14px;padding:16px}html .startup-choice .startup-choice-icon{width:56px;height:56px}html .toolbar-right{justify-content:flex-start}}

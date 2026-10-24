@@ -1,0 +1,30 @@
+const fs=require('node:fs/promises'),path=require('node:path');
+module.exports=async({window,target})=>{
+ const report={passed:true,checks:[]},wait=ms=>new Promise(r=>setTimeout(r,ms)),run=script=>window.webContents.executeJavaScript(script),check=(name,passed)=>{report.checks.push({name,passed:Boolean(passed)});report.passed&&=Boolean(passed);},capture=async name=>{await wait(100);await fs.writeFile(path.join(target,name),(await window.webContents.capturePage()).toPNG());};
+ window.webContents.setBackgroundThrottling(false);window.show();window.focus();
+ await run("Object.defineProperty(navigator,'getGamepads',{configurable:true,value:()=>[]});document.querySelectorAll('dialog[open]').forEach(d=>d.close());orbitFeatures.setCouch(false)");
+ for(const [width,height]of [[1920,1080],[940,720]])for(const theme of ['dark','cloud']){
+  const suffix=width+'-'+theme;window.setSize(width,height);
+  await run(`document.querySelectorAll('dialog[open]').forEach(d=>d.close());orbitFeatures.setCouch(false);OrbitTheme.apply(OrbitTheme.builtins.find(t=>t.id===${JSON.stringify(theme)}),document.documentElement);showSettings();true`);await wait(150);await run('document.fonts.ready');
+  const metrics=await run(`(()=>{const d=document.querySelector('#modal'),body=document.querySelector('#modal-body'),heading=body.querySelector('.setting-card h3'),p=body.querySelector('.setting-card p'),nav=body.querySelector('.settings-tabs button'),r=d.getBoundingClientRect();return {font:document.fonts.check('700 16px "Orbit Rounded"')&&[...document.fonts].some(f=>f.family==='Orbit Rounded'&&f.status==='loaded'),family:getComputedStyle(document.documentElement).fontFamily,body:parseFloat(getComputedStyle(body).fontSize),heading:parseFloat(getComputedStyle(heading).fontSize),note:parseFloat(getComputedStyle(p).fontSize),nav:parseFloat(getComputedStyle(nav).fontSize),fits:d.scrollWidth<=d.clientWidth+1&&r.left>=28&&r.top>=28&&r.right<=innerWidth-28&&r.bottom<=innerHeight-28};})()`);
+  check('local rounded font loads · '+suffix,metrics.font&&metrics.family.includes('Orbit Rounded'));
+  check('desktop settings have readable body, labels and descriptions · '+suffix,metrics.body>=15&&metrics.heading>=15&&metrics.note>=13&&metrics.nav>=14);
+  check('settings popup is inset and stays within the window · '+suffix,metrics.fits);await capture('settings-'+suffix+'.png');
+  for(const tab of ['appearance','privacy','libraries','manage']){
+   const m=await run(`(()=>{const tab=document.querySelector('#tab-${tab}');if(!tab)return null;tab.click();const p=document.querySelector('#panel-${tab}');return {fits:p.scrollWidth<=p.clientWidth+1};})()`);if(m)check('settings category fits without horizontal clipping · '+tab+' · '+suffix,m.fits);
+  }
+  await run("document.querySelector('#tab-appearance').click();document.querySelector('#startup-choices').scrollIntoView({block:'center',behavior:'instant'})");await capture('appearance-'+suffix+'.png');
+  await run("(async()=>{closeModal();const g=state.games.find(g=>g.installed&&g.kind==='game');await orbitFeatures.editProfile(g)})()");await wait(130);
+  check('launch settings keep readable text and compact utility icons · '+suffix,await run("(()=>{const p=document.querySelector('#launch-profile');return [...p.querySelectorAll('.profile-label label')].every(e=>parseFloat(getComputedStyle(e).fontSize)>=15)&&[...p.querySelectorAll('.info-button')].every(e=>e.offsetWidth===26&&e.offsetHeight===26)&&p.scrollWidth<=p.clientWidth+1;})()"));await capture('profile-'+suffix+'.png');
+  await run("closeModal();OrbitCouch.open();OrbitCouch.skipEntry();OrbitCouch.act('settings')");await wait(180);await run('OrbitControllerFocus.cancel()');
+  const consoleMetrics=await run("(()=>{const root=document.querySelector('.console-surface'),nav=root.querySelector('[data-settings-category]'),label=root.querySelector('.console-instrument-heading'),note=root.querySelector('.controller-binding-fields p'),r=root.getBoundingClientRect();return {body:parseFloat(getComputedStyle(root).fontSize),nav:parseFloat(getComputedStyle(nav).fontSize),label:parseFloat(getComputedStyle(label).fontSize),note:parseFloat(getComputedStyle(note).fontSize),fits:root.scrollWidth<=root.clientWidth+1,controls:[...root.querySelectorAll('.console-select-trigger')].every(e=>e.scrollWidth<=e.clientWidth+1)};})()");
+  check('console text is sized for a controller · '+suffix,consoleMetrics.body>=18&&consoleMetrics.nav>=17&&consoleMetrics.label>=18&&consoleMetrics.note>=16);
+  check('console controls fit without horizontal clipping · '+suffix,consoleMetrics.fits&&consoleMetrics.controls);await capture('controller-settings-'+suffix+'.png');
+  check('theme secondary text has at least 4.5 contrast on panels · '+suffix,await run("(()=>{const t=OrbitTheme.effectiveColors(OrbitTheme.builtins.find(t=>t.id==='"+theme+"'));return OrbitTheme.contrast(t.muted,t.surface)>=4.5&&OrbitTheme.contrast(t.muted,t.background)>=4.5;})()"));
+ }
+ check('custom font still overrides the rounded default without changing saved preferences',await run("(()=>{const s=document.documentElement.style,previous=s.getPropertyValue('--ui-font');s.setProperty('--ui-font','Arial');const applied=getComputedStyle(document.documentElement).fontFamily==='Arial';previous?s.setProperty('--ui-font',previous):s.removeProperty('--ui-font');return applied;})()"));
+ await run("document.documentElement.classList.add('motion-off');OrbitControllerFocus.cancel();OrbitControllerFocus.focus(document.querySelector('[data-settings-category=privacy]'));true");
+ check('reduced motion keeps focus immediate without active scroll animation',await run("!OrbitControllerFocus.scrolling&&document.activeElement.matches('[data-settings-category=privacy]')"));
+ await run("document.documentElement.classList.remove('motion-off');orbitFeatures.setCouch(false);document.querySelectorAll('dialog[open]').forEach(d=>d.close())");
+ await fs.writeFile(path.join(target,'readability-report.json'),JSON.stringify(report,null,2));return report;
+};

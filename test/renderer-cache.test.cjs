@@ -1,7 +1,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 function fixture(){
  let now=10000,next=0,clears=0,api;const timers=new Map(),listeners=new Map(),document={hidden:false,addEventListener:(name,fn)=>listeners.set(name,fn)};
- const electron={contextBridge:{exposeInMainWorld:(name,value)=>{if(name==='orbit')api=value;}},ipcRenderer:{},webFrame:{clearCache:()=>clears++}};
+ const electron={contextBridge:{exposeInMainWorld:(name,value)=>{if(name==='orbit')api=value;}},ipcRenderer:{sendSync:()=>false,},webFrame:{clearCache:()=>clears++}};
  vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../src/preload.cjs'),'utf8'),{require:name=>{assert.equal(name,'electron');return electron;},process:{argv:[]},document,Date:{now:()=>now},setTimeout:(fn,delay)=>{timers.set(++next,{fn,at:now+delay});return next;},clearTimeout:id=>timers.delete(id)});
  function advance(ms){now+=ms;for(const [id,timer]of [...timers])if(timer.at<=now){timers.delete(id);timer.fn();}}
  return {api,advance,timers,get clears(){return clears;},hide(){document.hidden=true;listeners.get('visibilitychange')();},show(){document.hidden=false;listeners.get('visibilitychange')();}};

@@ -21,3 +21,5 @@ test('Roblox experiences retain collection shortcuts without offering process-sp
  const items=entryMenu({...game,robloxPlaceId:'123'},[],{collections:['Playing']});
  assert.equal(items[0].label,'Open game');assert.ok(items.some(i=>i.label==='Collections'));assert.ok(!items.some(i=>i.label==='Local playtime'||i.id==='return'));
 });
+
+test('only running games offer a close action',()=>{assert.ok(entryMenu(game,[],{running:true}).some(i=>i.id==='close-game'));assert.ok(!entryMenu(game).some(i=>i.id==='close-game'));});

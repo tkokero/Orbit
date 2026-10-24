@@ -84,7 +84,7 @@ async function decodeImage(url, folder, { kind = 'cover', force = false, offline
       bytes = await imageBytes(response);
     }
     if (!bytes.length || bytes.length > 15e6) return null;
-    const size = kind === 'hero' ? { width: 1200, height: 450 } : kind === 'news' ? { width: 640, height: 360 } : kind === 'icon' ? { width: 64, height: 64 } : { width: 320, height: 480 };
+    const size = kind === 'hero' ? { width: 1200, height: 450 } : kind === 'article' ? { width: 1400, height: 8000 } : kind === 'news' ? { width: 640, height: 360 } : kind === 'icon' ? { width: 64, height: 64 } : { width: 320, height: 480 };
     const output = await sharp(bytes, { limitInputPixels: 40e6, failOn: 'error' }).rotate()
       .resize({ ...size, fit: 'inside', withoutEnlargement: true }).flatten({ background: '#12171e' }).webp({ quality: 80, effort: 3 }).toBuffer();
     const temp = target + '.' + crypto.randomUUID() + '.tmp';

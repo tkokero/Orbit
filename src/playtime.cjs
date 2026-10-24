@@ -16,6 +16,9 @@ const KNOWN = [
   [/^roller champions/i, ['RollerChampions.exe']], [/^brawlhalla$/i, ['Brawlhalla.exe']]
 ];
 const key = p => String(p || '').replaceAll('/', '\\').toLowerCase();
+// Roblox can keep its player process alive in the tray after the game window closes.
+// Minimized windows still count; an unavailable window probe must not end a session.
+const isSessionProcess = p => !(/^RobloxPlayer(?:Beta)?$/i.test(p.name) && p.activity === 'no-window');
 function safeGameExe(p) { return typeof p === 'string' && /\.exe$/i.test(p) && !LAUNCHERS.test(path.win32.basename(p)); }
 function nativePlaytime(game) { return Boolean(game.storePlaytimeKnown ?? game.playtimeKnown); }
 function candidatesFor(game, config = {}) {
@@ -145,8 +148,8 @@ class PlaytimeTracker {
       const rows = await this.find([...new Set([...this.pending.values()].flatMap(p => p.candidates.names))]);
       if (this.stopped) return;
       for (const [id, pending] of this.pending) {
-        const found = rows.find(p => matchesProcess(p, pending.candidates));
-        if (found) await this.start(pending.game, { mode: 'automatic', pid: found.pid, path: found.path, started: found.started });
+        const found = rows.find(p => isSessionProcess(p) && matchesProcess(p, pending.candidates));
+        if (found) await this.start(pending.game, { mode: 'automatic', detected:true, pid: found.pid, path: found.path, started: found.started });
         else if (Date.now() > pending.deadline) { this.pending.delete(id); this.emit(); }
       }
     } finally { this.lookupBusy = false; this.ensureTimer(); }
@@ -170,8 +173,8 @@ class PlaytimeTracker {
     try {
       const rows = await this.find(names);
       for (const { game, candidates: expected } of candidates) {
-        const found = rows.find(p => matchesProcess(p, expected));
-        if (found) await this.start(game, { mode: 'automatic', pid: found.pid, path: found.path, started: found.started });
+        const found = rows.find(p => isSessionProcess(p) && matchesProcess(p, expected));
+        if (found) await this.start(game, { mode: 'automatic', detected:true, pid: found.pid, path: found.path, started: found.started });
       }
     } catch {} finally { this.resumeSessions = []; }
   }
@@ -201,4 +204,4 @@ class PlaytimeTracker {
     await this.save();
   }
 }
-module.exports = { PlaytimeLedger, PlaytimeTracker, candidatesFor, matchesProcess, safeGameExe, nativePlaytime, findProcesses };
+module.exports = { PlaytimeLedger, PlaytimeTracker, candidatesFor, matchesProcess, isSessionProcess, safeGameExe, nativePlaytime, findProcesses };

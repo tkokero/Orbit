@@ -7,6 +7,6 @@
    const modal=document.querySelector('#modal-body');unobserve(modal);window.OrbitIcons?.release(modal);modal.querySelectorAll('img[src]').forEach(img=>{img.dataset.src=img.getAttribute('src');img.removeAttribute('src');});
   }
 
-  else if(suspended){suspended=false;document.documentElement.classList.remove('renderer-suspended');render();window.OrbitIcons?.observe(document.querySelector('#workspace-page'));if(document.querySelector('#modal').open)observeImages(document.querySelector('#modal-body'));}
+  else if(suspended){suspended=false;document.documentElement.classList.remove('renderer-suspended');render();window.OrbitIcons?.observe(document.querySelector('#workspace-page'));if(document.querySelector('#modal').open){observeImages(document.querySelector('#modal-body'));window.OrbitIcons?.observe(document.querySelector('#modal-body'));}}
  });
 })();

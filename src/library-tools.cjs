@@ -16,7 +16,7 @@ function profile(input={}){
  if(!Array.isArray(args)||args.length>64||args.some(a=>typeof a!=='string'||a.length>2048||a.includes('\0')))throw Error('Arguments must be a JSON array of up to 64 strings.');
  const executable=input.executable||'';
  if(executable&&(!path.win32.isAbsolute(executable)||! /\.exe$/i.test(executable)))throw Error('Choose an absolute executable path.');
- return {args,executable,controller:['inherit','couch','desktop'].includes(input.controller)?input.controller:'inherit',tools:[...new Set((Array.isArray(input.tools)?input.tools:[]).filter(safeId))].slice(0,8)};
+ return {args,executable,launchChoice:typeof input.launchChoice==='string'&&input.launchChoice.length<=2048?input.launchChoice:'ask',controller:['inherit','couch','desktop'].includes(input.controller)?input.controller:'inherit',tools:[...new Set((Array.isArray(input.tools)?input.tools:[]).filter(safeId))].slice(0,8)};
 }
 function preferences(input){
  if(!plain(input)||Object.keys(input).length>20000)throw Error('Invalid preferences.');
@@ -36,9 +36,9 @@ function preferences(input){
  }return result;
 }
 function uiState(input={}){
- const out={};for(const key of ['orbit-motion','orbit-remember-view','orbit-view','orbit-couch','orbit-library-filters'])if(typeof input[key]==='string'&&input[key].length<4096)out[key]=input[key];
+ const out={};for(const key of ['orbit-motion','orbit-remember-view','orbit-view','orbit-couch','orbit-library-filters','orbit-controller-input-v1','orbit-controller-sound-v1','orbit-controller-startup-v1','orbit-couch-home-v1','orbit-startup-volume','orbit-startup-sound','orbit-startup-style','orbit-secret-startups','orbit-super-dark','orbit-sidebar-width'])if(typeof input[key]==='string'&&input[key].length<1024*1024)out[key]=input[key];
  if(typeof input['orbit-themes-v1']==='string'){
-  if(input['orbit-themes-v1'].length>3*1024*1024)throw Error('Theme images exceed the 3 MB theme storage limit.');
+  if(input['orbit-themes-v1'].length>4*1024*1024)throw Error('Theme images exceed the 4 MB theme storage limit.');
   const data=JSON.parse(input['orbit-themes-v1']);
   out['orbit-themes-v1']=JSON.stringify({active:typeof data.active==='string'?data.active:'orbit',custom:(data.custom||[]).slice(0,24).map(t=>({...validateTheme(t),id:/^custom-[a-z0-9-]+$/.test(t.id)?t.id:'custom-restored'}))});
  }return out;

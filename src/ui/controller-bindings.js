@@ -1,0 +1,7 @@
+(()=>{
+ const choices={confirm:[-1,0,1,2,3],back:[-1,0,1,2,3],menu:[8,9,10,11],wheel:[2,3,8,9,10,11],previous:[4,5,6,7],next:[4,5,6,7]},names={confirm:'Select',back:'Back',menu:'Menu / hold for game options',wheel:'Hold for quick wheel',previous:'Previous tab',next:'Next tab'},labels=['A / Cross / B','B / Circle / A','X / Square / Y','Y / Triangle / X','LB / L1 / L','RB / R1 / R','LT / L2 / ZL','RT / R2 / ZR','View / Share / −','Menu / Options / +','Left stick','Right stick'];
+ function fields(config){return `<fieldset class="controller-binding-fields"><legend>Button bindings</legend><p>D-pad or left stick: move · Right stick: scroll</p><div>${Object.entries(choices).map(([key,list])=>`<label><span>${names[key]}</span><select name="binding-${key}" aria-label="${names[key]}">${list.map(i=>`<option value="${i}" ${config.bindings[key]===i?'selected':''}>${i<0?'Automatic':labels[i]}</option>`).join('')}</select></label>`).join('')}</div></fieldset>`;}
+ function read(form){return Object.fromEntries(Object.keys(choices).map(key=>[key,Number(form.elements['binding-'+key].value)]));}
+ function reset(form){for(const [key,value]of Object.entries(OrbitControllerCore.bindings())){const select=form.elements['binding-'+key];select.value=String(value);select.dispatchEvent(new Event('change',{bubbles:true}));}form.elements.swap.checked=false;form.querySelector('[role=status]').textContent='Default bindings selected. Save to apply.';}
+ window.OrbitControllerBindings={fields,read,reset};
+})();

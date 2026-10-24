@@ -7,7 +7,7 @@ function newsBanner(contents){
  return null;
 }
 function normalizeNews(data,now=Date.now()){
- const seen=new Set(),rows=[];for(const row of Array.isArray(data.appnews?.newsitems)?data.appnews.newsitems:[]){if(!['steam_community_announcements','steam_updates'].includes(row.feedname))continue;const url=safePostUrl(row.url);if(!url||seen.has(url))continue;seen.add(url);const title=plain(row.title,200);if(!title)continue;const date=Number(row.date)*1000;rows.push({id:String(row.gid||url).slice(0,300),title,url,summary:plain(row.contents,800),banner:newsBanner(row.contents),author:plain(row.author,100),feed:plain(row.feedlabel,80),date:Number.isFinite(date)&&date>0&&date<=now+86400000?date:null});}return rows.sort((a,b)=>(b.date||0)-(a.date||0)).slice(0,8);
+ const seen=new Set(),rows=[];for(const row of Array.isArray(data.appnews?.newsitems)?data.appnews.newsitems:[]){if(!['steam_community_announcements','steam_updates'].includes(row.feedname))continue;const url=safePostUrl(row.url);if(!url||seen.has(url))continue;seen.add(url);const title=plain(row.title,200);if(!title)continue;const date=Number(row.date)*1000;rows.push({id:String(row.gid||url).slice(0,300),title,url,summary:plain(row.contents,800),content:String(row.contents||'').slice(0,200000),banner:newsBanner(row.contents),author:plain(row.author,100),feed:plain(row.feedlabel,80),date:Number.isFinite(date)&&date>0&&date<=now+86400000?date:null});}return rows.sort((a,b)=>(b.date||0)-(a.date||0)).slice(0,8);
 }
 function steamId(game){const version=game.versions?.find(v=>v.source==='Steam'||v.equivalentSteamId);const id=String(version?.source==='Steam'?version.appId:version?.equivalentSteamId||'');return /^[1-9]\d{0,9}$/.test(id)&&Number(id)<=4294967295?id:null;}
 class GameNews{

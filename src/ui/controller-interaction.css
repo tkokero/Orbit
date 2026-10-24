@@ -1,0 +1,22 @@
+/* Full card focus, and hints belonging to the active dialog. */
+.launch-mode-layout{grid-auto-rows:max-content;align-content:start}
+.launch-mode-option>input.controller-focus+.launch-mode-card{outline:3px solid var(--accent);outline-offset:3px;background:var(--raised);border-color:var(--accent)}
+.launch-mode-remember:has(>.controller-focus){outline:2px solid var(--accent);outline-offset:5px;border-radius:12px;color:var(--text)}
+.controller-dialog-prompts{flex:none;margin:16px 0 0;padding:14px 2px 0;border-top:1px solid var(--line);font-size:15px;line-height:1.5;color:var(--muted);white-space:normal}
+:root:not(.couch-mode):not(.controller-input) .controller-dialog-prompts{display:none}
+.controller-select>[data-dialog-prompts]{margin-top:18px}
+.controller-launch>[data-dialog-prompts]{position:absolute;bottom:20px;left:32px;right:32px;margin:0}
+/* Read controls in their displayed order, without a detached second instrument column. */
+.console-surface .console-instruments>.console-stick,.console-surface .console-instruments>.console-timing{grid-column:1/-1}
+.console-surface .console-instruments>.console-stick{display:grid;grid-template-columns:minmax(0,1fr) 100px minmax(0,1.5fr);align-items:center;gap:24px}
+.console-surface .console-stick .console-stick-visual{width:88px;height:88px}
+.console-surface .console-stick .console-stick-visual i{width:62px;height:62px}
+.console-surface .console-stick .console-stick-visual i:nth-child(2){width:38px;height:38px}
+.console-surface .console-timing{display:grid;grid-template-columns:1fr;gap:24px}
+.console-surface .console-timing>.console-instrument-heading{grid-column:1/-1}
+.console-surface .console-timing>label{display:grid;grid-template-columns:minmax(160px,.7fr) minmax(0,1.5fr);align-items:center;gap:24px}
+.console-number:has(input.controller-focus){outline:3px solid var(--accent);outline-offset:4px}
+.console-surface .console-number input.controller-focus{outline:none}
+@media(max-width:1050px){.console-surface .console-instruments>.console-stick{grid-template-columns:minmax(0,1fr) minmax(0,1.3fr)}.console-surface .console-stick .console-stick-visual{display:none}.console-surface .console-timing{grid-template-columns:1fr}}
+@media(max-width:700px){.console-surface .console-timing>label{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.handoff-departing,.handoff-returning{animation:none!important}}

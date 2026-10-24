@@ -1,0 +1,301 @@
+/* Orbit desktop: related to Controller Mode, sized for pointer and keyboard use. */
+:root:not(.couch-mode) #source-navigation .nav-item .desktop-action-icon{display:grid;place-items:center;width:28px;height:28px;flex:0 0 28px;background:none!important;border-radius:0;color:inherit}
+:root:not(.couch-mode) #source-navigation .launcher-symbol{width:22px;height:22px;display:block}
+:root:not(.couch-mode) .desktop-action:has(.launcher-symbol):hover .desktop-action-icon{transform:none}
+:root:not(.couch-mode){--control-radius:999px;--control-height:38px;
+ & .titlebar{height:60px;min-height:60px;gap:24px;padding-left:22px;border-bottom:1px solid var(--line);background:var(--bg)}
+ & .titlebar>strong{min-width:170px;font-size:16px;letter-spacing:1px;gap:12px}
+ & .app-shell{height:calc(100vh - 60px)}
+ & #workspace-tabs{align-items:center;gap:7px;padding:7px 0}
+ & #workspace-tabs button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:37px;padding:7px 15px;border:1px solid transparent;border-radius:999px;font-size:12px;background:transparent;color:var(--muted);transition:background-color 140ms,border-color 140ms,transform 160ms var(--ease)}
+ & #workspace-tabs button[aria-pressed=true]{color:var(--text);background:var(--raised);border-color:color-mix(in srgb,var(--accent),transparent 65%)}
+ & #workspace-tabs button[aria-pressed=true]:after{display:none}
+ & #workspace-tabs button:hover{background:var(--panel);color:var(--text)}
+ & #workspace-tabs .desktop-action-icon{width:21px;height:21px;flex-basis:21px;background:none}
+ & .sidebar{padding:22px 12px 14px;border-right:1px solid var(--line)}
+ & .nav-item{min-height:44px;gap:11px;border-radius:999px;padding:7px 12px;margin-bottom:5px;font-size:12px;color:var(--muted);background:transparent;box-shadow:none;transition:background-color 140ms,transform 170ms var(--ease)}
+ & .nav-item.active{background:var(--raised);color:var(--text);box-shadow:inset 3px 0 var(--accent)}
+ & .nav-item:hover{background:var(--panel);color:var(--text);transform:translateX(2px)}
+ & .nav-item.active .desktop-action-icon{background:var(--accent);color:var(--accent-ink)}
+ & .nav-item.active .count{background:var(--panel);color:var(--text)}
+ & .nav-item .count{margin-left:auto;border-radius:999px;background:transparent;font-size:10px;padding:3px 4px;min-width:23px}
+ & .sidebar-heading{color:var(--muted);font-size:9px;letter-spacing:1.5px;padding:24px 14px 14px}
+ & .sidebar-bottom{border-top:1px solid var(--line);padding-top:12px}
+ & .nav-divider{background:var(--line);margin:4px 14px 20px}
+ & #main-scroll{background:none}
+ & main>.toolbar,& main>.content{width:100%;max-width:1880px;margin-inline:auto}
+ & #main-scroll{scrollbar-gutter:stable both-edges}
+ & .toolbar{height:88px;padding:0 30px;gap:20px}
+ & .heading{gap:14px;min-width:0}
+ & .heading h1{font-size:29px;letter-spacing:-.7px;font-weight:700}
+ & .desktop-page-icon{position:relative;width:46px;height:46px;display:grid;place-items:center;flex:none;border:1px solid color-mix(in srgb,var(--accent),transparent 68%);border-radius:50% 44% 50% 42%;color:var(--accent)}
+ & .desktop-page-icon:after{content:'';position:absolute;right:0;top:3px;width:6px;height:6px;background:var(--accent);border-radius:50%}
+ & .desktop-page-icon svg{width:28px;height:28px}
+ & .heading .count{background:none;border:0;padding:0;color:var(--muted)}
+ & .toolbar-right{gap:8px;flex-wrap:wrap;justify-content:flex-end}
+ & .content{padding:0 30px 32px;max-width:1880px}
+ & .desktop-action:where(:not(.nav-item):not([data-workspace]):not(.setting-switch):not(.settings-tabs button)){display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:38px;padding:6px 15px 6px 7px;font-size:12px;font-weight:600;border:1px solid var(--line);border-radius:999px;background:var(--panel);color:var(--text);box-shadow:0 2px 0 color-mix(in srgb,var(--bg),transparent 20%);transition:transform 170ms cubic-bezier(.2,.8,.2,1.2),border-color 130ms,background-color 130ms,box-shadow 130ms}
+ & .desktop-action-icon{width:26px;height:26px;flex:0 0 26px;display:grid;place-items:center;color:var(--accent);background:color-mix(in srgb,var(--accent),transparent 93%);border-radius:50%;transition:transform 170ms cubic-bezier(.2,.8,.2,1.2)}
+ & .desktop-action-icon svg{display:block;width:19px;height:19px}
+ & .desktop-action:is(:hover,:focus-visible):where(:not(:disabled):not(.nav-item):not([data-workspace])){transform:translateY(-2px);border-color:var(--accent);background:var(--raised);box-shadow:0 4px 0 var(--bg)}
+ & .desktop-action:hover:not(:disabled) .desktop-action-icon{transform:rotate(-7deg) scale(1.06)}
+ & .desktop-action:active:not(:disabled):not(.nav-item):not([data-workspace]){transform:translateY(1px) scale(.98);box-shadow:none}
+ & .desktop-action.primary-button,& #add-game.desktop-action{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+ & .primary-button .desktop-action-icon,& #add-game .desktop-action-icon{color:var(--accent-ink);background:color-mix(in srgb,var(--accent-ink),transparent 91%)}
+ & #hero-play.desktop-action,& #detail-play.desktop-action{background:var(--green);color:var(--positive-ink);border-color:var(--green)}
+ & #hero-play.desktop-action:before{display:none}
+ & #hero-play .desktop-action-icon,& #detail-play .desktop-action-icon{color:var(--positive-ink);background:color-mix(in srgb,var(--positive-ink),transparent 91%)}
+ & .desktop-action:disabled{opacity:.4;transform:none;box-shadow:none}
+ & .hero{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(270px,1fr);gap:28px;align-items:center;padding:20px;height:auto;min-height:0;overflow:hidden;isolation:isolate;border:1px solid var(--line);border-radius:26px;background:linear-gradient(135deg,var(--panel),color-mix(in srgb,var(--panel),var(--bg) 40%));box-shadow:none}
+ & .hero>img{position:static;inset:auto;width:100%;height:auto;object-fit:contain;object-position:center;border-radius:18px;max-height:none}
+ & .hero>img[data-src]:not([src]){display:block;aspect-ratio:3.1;background:var(--raised)}
+ & .hero:has(>img:not([src]):not([data-src])){grid-template-columns:1fr}
+ & .hero-shade{display:none}
+ & .hero-content{position:static;inset:auto;transform:none;padding:12px 10px 12px 0;max-width:none}
+ & .hero h2{font-size:clamp(27px,2.5vw,43px);line-height:1.12;letter-spacing:-1px;max-height:none;max-width:none;margin:16px 0 14px}
+ & .hero p{font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:22px;max-width:400px}
+ & .hero .eyebrow{border:0;background:none;padding:0;letter-spacing:.6px;color:var(--muted);font-weight:500}
+ & .hero .eyebrow:before{width:6px;height:6px;background:var(--accent)}
+ & .hero-actions{gap:10px;flex-wrap:wrap}
+ & .recent-games{gap:12px;margin:16px 0 0}
+ & .recent-game{height:66px;min-width:0;border:1px solid transparent;border-radius:18px;background:transparent;padding:7px 10px;gap:11px;transition:transform 170ms var(--ease),background-color 130ms,border-color 130ms}
+ & .recent-game:hover{transform:translateY(-2px);background:var(--panel);border-color:var(--line)}
+ & .recent-game.active{background:var(--panel);border-color:var(--line)}
+ & .recent-game img{height:50px;width:auto;max-width:50px;object-fit:contain;border-radius:7px}
+ & .recent-game .recent-info{min-width:0;white-space:normal}
+ & .recent-game .recent-info strong{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:11px;line-height:1.35}
+ & .recent-game small{display:block;font-size:9px;margin-top:4px;color:var(--muted)}
+ & .library-collections{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:18px 0;border-top:1px solid var(--line);margin:24px 0 0}
+ & .library-collections>label{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:600;margin-right:6px}
+ & .library-collections>label svg{color:var(--accent);flex:none}
+ & .library-collections>.desktop-select-trigger{min-width:210px;max-width:min(380px,100%)}
+ & .library-collections.has-selection>.desktop-select-trigger{border-color:var(--accent);background:var(--raised)}
+ & .library-controls{margin:4px 0 22px;gap:14px;flex-wrap:wrap}
+ & .search-box{width:min(370px,100%);flex:1;min-width:180px}
+ & .search-box input{border-radius:999px;height:40px;background:var(--panel);border-color:var(--line)}
+ & .filters{gap:8px;flex-wrap:wrap;justify-content:flex-end}
+ & .game-grid:not(.list){grid-template-columns:repeat(auto-fill,minmax(min(100%,190px),1fr));gap:26px 20px;padding:4px}
+ & .game-card{padding:5px;border:1px solid transparent;border-radius:21px;background:transparent;transition:transform 180ms cubic-bezier(.2,.8,.2,1.15),border-color 130ms,background-color 130ms}
+ & .game-card:is(:hover,:focus-visible){transform:translateY(-4px);background:var(--panel);border-color:color-mix(in srgb,var(--accent),transparent 30%)}
+ & .game-card:active{transform:translateY(-1px) scale(.985)}
+ & .cover-wrap{border-radius:16px;background:var(--bg)}
+ & .cover-wrap img{object-fit:contain}
+ & .card-info{padding:8px 6px 7px}
+ & .card-title{font-size:13px;font-weight:600;margin-top:6px;line-height:1.4}
+ & .card-meta{font-size:10px;margin-top:5px}
+ & .game-grid.list .game-card{border-radius:18px;border-color:var(--line);padding:10px 14px;background:var(--panel)}
+ & .game-grid.list .game-card:hover{transform:translateX(3px)}
+ & .game-grid.list .cover-wrap{width:56px;height:84px;border-radius:9px}
+ & .card-peek{font-size:10px;border-color:var(--line);background:var(--panel);box-shadow:0 3px 12px #0004}
+ & .pagination{border-color:var(--line);padding-top:20px;margin-top:26px}
+ & .empty{background:none;border:0;border-top:1px solid var(--line);border-radius:0;padding:55px 15px}
+ & .empty:before{content:'✦';width:72px;height:72px;border:1px solid var(--line);border-radius:50%;background:var(--panel);color:var(--accent);font-size:35px;transform:none}
+ & .control-menu{padding:12px;border:1px solid var(--line);border-radius:22px;box-shadow:0 16px 50px #0005;background:var(--bg)}
+ & .control-menu .desktop-action{width:100%;justify-content:flex-start!important;border:0!important;background:none!important;box-shadow:none!important;padding:7px!important;border-radius:12px!important}
+ & .control-menu .desktop-action:hover{background:var(--panel)!important;transform:translateX(2px)!important}
+ & .control-menu-label{font-size:10px;padding:10px;color:var(--muted);border-bottom:1px solid var(--line);margin-bottom:6px}
+ & dialog:not(.controller-game-page):not(.controller-game-context):not(.controller-select):not(.controller-keyboard):not(.controller-wheel):not(.controller-arrival){border:1px solid var(--line);border-radius:28px;padding:27px;box-shadow:0 22px 80px #0006;max-width:calc(100vw - 36px);max-height:calc(100vh - 40px)}
+ & #modal:not(.settings-dialog){width:min(1000px,calc(100vw - 36px))}
+ & #modal .modal-header{gap:18px;padding-bottom:20px;margin-bottom:23px;border-bottom:1px solid var(--line);align-items:center}
+ & #modal .modal-header h2{font-size:26px;line-height:1.2;letter-spacing:-.6px;overflow-wrap:anywhere;margin:0}
+ & dialog::backdrop{background:#0009;backdrop-filter:none}
+ & .modal-header .icon-button{width:34px;height:34px;min-width:34px;min-height:34px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--line);padding:0}
+
+ & .settings-dialog #modal-body{grid-template-columns:210px minmax(0,1fr);gap:20px 28px}
+ & .settings-dialog .settings-tabs{padding:0;background:none;border:0;gap:6px;border-radius:0}
+ & .settings-dialog .settings-tabs button{display:flex;align-items:center;justify-content:flex-start;gap:11px;min-height:43px;font-size:12px;border:1px solid transparent;border-radius:999px;padding:7px 12px;color:var(--muted);background:none;text-align:left}
+ & .settings-dialog .settings-tabs button[aria-selected=true]{background:var(--raised);border-color:var(--line);color:var(--text)}
+ & .settings-dialog .settings-tabs button[aria-selected=true] .desktop-action-icon{background:var(--accent);color:var(--accent-ink)}
+ & .settings-search{padding:0 0 17px;border-bottom:1px solid var(--line)}
+ & .settings-search input{border-radius:999px;padding-left:16px;min-height:42px}
+ & .settings-group{margin-bottom:30px}
+ & .settings-group h2{font-size:17px;letter-spacing:-.2px;margin:5px 0 15px}
+ & .settings-group-grid{gap:0 20px}
+ & .setting-card{border:0;border-bottom:1px solid var(--line);border-radius:0;background:none;padding:19px 2px;min-height:84px}
+ & .setting-card h3{font-size:12px;font-weight:600;line-height:1.5;margin:0 0 7px}
+ & .setting-row{gap:15px}
+ & .setting-switch{width:48px;min-width:48px;flex:0 0 48px;height:28px;min-height:28px;max-height:28px;margin:0;padding:0;border-radius:999px}
+ & .setting-switch:after{width:20px;height:20px;left:3px;top:3px}
+ & .setting-switch[aria-checked=true]:after{transform:translateX(20px)}
+ & .theme-options{gap:12px}
+ & .theme-button,.theme-swatch{border-radius:18px}
+ & .theme-editor{border-radius:22px;border-color:var(--line);padding:20px;background:var(--panel)}
+ & input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),& textarea{border-radius:14px;border-color:var(--line);min-height:38px;background:var(--panel);color:var(--text)}
+ & .desktop-select-trigger{display:inline-flex;align-items:center;justify-content:space-between;gap:14px;border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:999px;min-height:38px;max-width:100%;padding:9px 14px;text-align:left;font-size:12px;line-height:1.5;transition:background-color 140ms,border-color 140ms}
+ & .desktop-select-trigger>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ & .desktop-select-trigger>svg{width:13px;height:13px;flex:none;fill:none;stroke:var(--muted);stroke-width:1.5}
+ & .desktop-select-trigger:hover,& .desktop-select-trigger[aria-expanded=true]{border-color:var(--accent);background:var(--raised)}
+ & .settings-dialog .desktop-select-trigger,& .extras-form .desktop-select-trigger{width:100%;margin:8px 0}
+ & .detail-heading{gap:26px;align-items:flex-start;padding:0 0 24px;margin-bottom:20px;border-bottom:1px solid var(--line)}
+ & .detail-art{width:150px;height:auto;max-height:none;object-fit:contain;border-radius:17px}
+ & .detail-summary{min-width:0;font-size:13px;line-height:1.75}
+ & .detail-actions{gap:10px;flex-wrap:wrap;padding:3px 0 24px;border-bottom:1px solid var(--line)}
+ & .stats-grid{gap:12px;padding:12px 0}
+ & .stats-grid>div{border:0;border-radius:19px;background:var(--panel);padding:20px}
+ & .stats-grid strong{font-size:24px}
+ & .stats-grid .small-stat{font-size:14px;line-height:1.5}
+ & .settings-section{border-color:var(--line)}
+ & .simple-game-options,& .personal-notes,& .collection-choices{border:1px solid var(--line);border-radius:20px;background:none;overflow:hidden;margin:18px 0}
+ & details>summary{padding:15px 18px;font-size:13px;min-height:45px}
+ & .simple-game-options[open]>#detail-utilities,& .personal-notes[open]>form,& .collection-choices[open]>div{padding:18px}
+ & .game-menu-art.console-artwork{width:min(100%,700px);margin:0 auto 24px;border-radius:20px}
+ & .storage-overview{background:none;border:0;padding:5px 0 26px}
+ & .storage-drive{border-radius:21px;background:var(--panel);padding:20px;border-color:var(--line)}
+ & .storage-drive[aria-pressed=true]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+ & .storage-entry{border:0;border-bottom:1px solid var(--line);background:none;border-radius:0;padding:20px 4px;gap:18px}
+ & .storage-game>.small-game-art{border-radius:14px;width:56px;height:56px;flex-basis:56px}
+ & .storage-row-actions{gap:8px}
+ & .storage-size>strong{font-size:20px}
+ & .management-toolbar{padding:18px;border:1px solid var(--line);border-radius:22px;background:var(--panel);gap:16px;margin-bottom:22px}
+ & .management-toolbar label{gap:7px;font-size:11px}
+ & .management-toolbar .desktop-select-trigger{width:100%}
+ & .management-empty{border:0;background:none;border-radius:0;border-top:1px solid var(--line);min-height:200px}
+ & .management-empty-icon{width:64px;height:64px;border-radius:50%;background:var(--panel);color:var(--accent);font-size:30px!important}
+ & .download-overview{margin-bottom:24px;gap:16px}
+ & .download-overview h2{font-size:21px;letter-spacing:-.4px}
+ & .download-overview p{font-size:12px;color:var(--muted)}
+ & .download-orbit-badge{width:50px;height:50px;border-radius:50% 44% 50% 42%;background:var(--raised)}
+ & .download-metrics{display:flex;gap:48px;padding:16px 0 22px;margin:0 0 24px;border-bottom:1px solid var(--line)}
+ & .download-metrics>div{border:0;padding:0;background:none;border-radius:0;gap:8px}
+ & .download-metrics strong{font-size:27px;color:var(--text)}
+ & .download-metrics span{font-size:11px}
+ & #downloads-workspace .download-center-row{grid-template-columns:minmax(200px,1.2fr) minmax(160px,.9fr) auto;gap:22px;padding:20px 0;border:0;border-bottom:1px solid var(--line);border-radius:0;background:none;align-items:center;margin:0}
+ & .download-name{gap:18px!important;align-items:center;min-width:0}
+ & .download-name>.console-artwork{width:170px;flex:0 0 170px;min-height:0;border-radius:14px}
+ & .download-name>.console-artwork[data-art-shape=portrait]{width:70px;flex-basis:70px;max-width:70px;margin:0 25px}
+ & .download-name>.console-artwork[data-art-shape=square]{width:90px;flex-basis:90px;max-width:90px}
+ & .download-name strong{font-size:13px;line-height:1.5}
+ & .download-name small{font-size:10px;margin-top:5px}
+ & .download-center-row progress{height:6px;margin:10px 0}
+ & .completed-download{gap:14px;padding:16px 3px}
+ & .completed-download strong{font-size:12px}
+ & .download-history{border-color:var(--line)}
+ & .installation-dialog[open]{width:min(800px,calc(100vw - 36px));padding:26px}
+ & .installation-choice,& .launch-mode-card,& .steam-folder-card{border-radius:22px;border-color:var(--line);background:var(--panel);transition:transform 170ms var(--ease),background-color 140ms,border-color 140ms}
+ & .installation-choice:hover,& .launch-mode-card:hover,& .steam-folder-card:hover{transform:translateY(-2px);background:var(--raised);border-color:var(--accent)}
+ & .installation-summary{padding:20px;border-radius:21px;background:var(--panel)}
+ & .installation-footer{padding-top:20px;margin-top:24px;gap:10px;border-color:var(--line)}
+ & .friends-heading h2{font-size:22px}
+ & .social-platforms{gap:14px;margin-bottom:25px}
+ & .social-platform-card,& .friend-card{border-radius:22px;border-color:var(--line);background:var(--panel);transition:transform 170ms var(--ease),border-color 140ms}
+ & .friend-card:hover{transform:translateY(-3px);border-color:var(--accent)}
+ & #store-workspace .steam-deals{border:0;border-radius:0;background:none}
+ & .deal-card,& .calendar-entry,& .wishlist-row{border-radius:20px;border-color:var(--line)}
+ & .info-popover{border-radius:18px;border-color:var(--line);background:var(--panel);box-shadow:0 8px 30px #0005;font-size:12px;line-height:1.65;padding:17px}
+ & #toast{border-radius:999px;padding:14px 22px;border:1px solid var(--line);box-shadow:0 8px 28px #0004}
+}
+/* Download artwork is separate from controls, with its original proportions. */
+html .download-banner{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(260px,1fr);gap:24px;align-items:center;padding:20px;border-radius:25px;min-height:0;background:var(--panel);isolation:isolate}
+html .download-banner-art{position:static;inset:auto;z-index:auto;min-width:0;background:none;border-radius:17px;overflow:hidden}
+html .download-banner-art img{display:block;position:static;width:100%;height:auto;object-fit:contain;max-height:none}
+html .download-banner-shade{display:none}
+html .download-banner-content{position:static;min-height:0;padding:8px 0;gap:17px;color:var(--text);min-width:0}
+html .download-banner h2{font-size:clamp(23px,2.1vw,32px);max-width:100%;line-height:1.2;letter-spacing:-.6px;color:var(--text)}
+html .download-banner .eyebrow{background:none;border:0;padding:0;color:var(--muted);letter-spacing:.4px}
+html .download-banner-progress{width:100%;margin-top:8px}
+html .download-banner .transfer-heading,html .download-banner-stats{color:var(--muted)}
+html .download-banner progress{background:var(--line)}
+html .download-banner progress::-webkit-progress-bar{background:var(--line)}
+html .download-banner .subtle-button{background:var(--raised);color:var(--text);border-color:var(--line)}
+html .download-banner:has(.download-banner-art:empty){grid-template-columns:1fr}
+.desktop-select-menu{position:fixed;inset:auto;overflow:auto;padding:7px;border:1px solid var(--line);border-radius:18px;background:var(--panel);color:var(--text);box-shadow:0 12px 35px #0006;scrollbar-width:thin}
+.desktop-select-menu>button{display:block;width:100%;text-align:left;padding:11px 14px;border-radius:11px;min-height:39px;font-size:12px;line-height:1.5;background:none;border:1px solid transparent;color:var(--text);white-space:normal;overflow-wrap:anywhere}
+.desktop-select-menu>button:is(:hover,:focus-visible){background:var(--raised);outline:none;border-color:var(--accent)}
+.desktop-select-menu>button[aria-selected=true]{background:var(--raised);color:var(--accent)}
+.desktop-select-menu>button[aria-selected=true]:after{content:'✓';float:right;margin-left:12px}
+@media(max-width:1180px){:root:not(.couch-mode){& .titlebar{gap:12px;padding-left:15px}& .titlebar>strong{min-width:150px}& #workspace-tabs{gap:3px}& #workspace-tabs button{padding-inline:10px;font-size:11px}& #workspace-tabs .desktop-action-icon{width:18px;flex-basis:18px}& .toolbar,& .content{padding-inline:22px}& .hero{grid-template-columns:minmax(0,1.3fr) minmax(240px,1fr);gap:22px;padding:17px}& .hero h2{font-size:30px}& .recent-games{grid-template-columns:repeat(4,minmax(0,1fr))}& .recent-game:nth-child(5){display:none}& .download-name>.console-artwork{width:130px;flex-basis:130px}& #downloads-workspace .download-center-row{grid-template-columns:minmax(200px,1.3fr) minmax(130px,.8fr) auto;gap:15px}& .settings-dialog #modal-body{grid-template-columns:180px minmax(0,1fr);gap:18px}& .settings-group-grid{grid-template-columns:1fr}}}
+@media(max-width:900px){:root:not(.couch-mode){& .titlebar{height:100px;min-height:100px;flex-wrap:wrap;gap:0}& .titlebar>strong{height:46px;flex:1}& .window-buttons{height:46px}& #workspace-tabs{order:3;flex-basis:100%;height:54px;justify-content:center;padding:6px 12px;gap:7px}& .app-shell{height:calc(100vh - 100px)}& .toolbar{height:auto;min-height:84px;padding-block:18px;flex-wrap:wrap}& .heading h1{font-size:25px}& .hero{grid-template-columns:1fr;padding:16px}& .hero-content{padding:3px 7px 8px}& .hero h2{font-size:31px}& .hero p{max-width:none;margin-bottom:16px}& .recent-games{grid-template-columns:repeat(3,minmax(0,1fr))}& .recent-game:nth-child(4){display:none}& #downloads-workspace .download-center-row{grid-template-columns:minmax(0,1fr) auto}& #downloads-workspace .download-center-row [data-transfer-progress]{grid-column:1/-1;grid-row:2}& .download-name>.console-artwork{width:160px;flex-basis:160px}& .download-metrics{gap:30px}& .settings-group-grid{grid-template-columns:1fr}}html .download-banner{grid-template-columns:1fr;gap:20px}html .download-banner-content{padding:0}}
+@media(max-width:580px){:root:not(.couch-mode){& .titlebar{padding-left:10px}& .titlebar>strong{min-width:0;font-size:14px}& .prerelease-badge{display:none}& #workspace-tabs{gap:3px;padding-inline:4px}& #workspace-tabs button{padding:8px;gap:5px;font-size:10px}& #workspace-tabs .desktop-action-icon{width:16px;height:16px;flex-basis:16px}& #workspace-tabs svg{width:16px;height:16px}& .sidebar{width:156px;padding-inline:7px}& .nav-item{font-size:11px;padding-inline:8px;gap:7px}& .nav-item .desktop-action-icon{width:22px;height:22px;flex-basis:22px}& .toolbar,& .content{padding-inline:14px}& .toolbar-right{justify-content:flex-start}& .heading{gap:10px}& .heading h1{font-size:23px}& .desktop-page-icon{width:36px;height:36px}& .hero{padding:12px;border-radius:20px}& .hero h2{font-size:26px}& .recent-games{grid-template-columns:1fr 1fr}& .recent-game:nth-child(3){display:none}& .game-grid:not(.list){grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:13px 8px}& .filters{justify-content:flex-start}& #modal.settings-dialog{padding:18px}& .settings-dialog #modal-body{grid-template-columns:minmax(0,1fr);gap:12px}& .settings-dialog .settings-tabs{flex-direction:row;gap:5px}& .settings-dialog .settings-tabs button{width:auto;white-space:nowrap;padding:7px 10px;gap:5px;font-size:11px}& .settings-dialog .settings-tabs .desktop-action-icon{width:21px;height:21px;flex-basis:21px}& .detail-art{width:95px}& .detail-heading{gap:17px}& .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}& .download-metrics{gap:18px}& .download-metrics strong{font-size:22px}& .download-metrics span{font-size:10px}& .download-name>.console-artwork{width:100px;flex-basis:100px}& .management-toolbar{padding:14px;gap:12px}}}
+@media(prefers-reduced-motion:reduce){:root:not(.couch-mode){& .desktop-action,& .desktop-action-icon,& .nav-item,& .recent-game,& .game-card,& .friend-card,& .installation-choice,& .launch-mode-card,& .steam-folder-card{transition:none!important;transform:none!important}}}
+.motion-off:not(.couch-mode) :is(.desktop-action,.desktop-action-icon,.nav-item,.recent-game,.game-card,.friend-card,.installation-choice,.launch-mode-card,.steam-folder-card){transition:none!important;transform:none!important}
+
+:root:not(.couch-mode) .library-controls :is(.desktop-select-trigger,.desktop-action,.search-box input){height:40px;min-height:40px}
+:root:not(.couch-mode) .desktop-action.primary-button:is(:hover,:focus-visible){background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+:root:not(.couch-mode) #hero-play.desktop-action:is(:hover,:focus-visible),:root:not(.couch-mode) #detail-play.desktop-action:is(:hover,:focus-visible){background:var(--green);color:var(--positive-ink);border-color:var(--green)}
+:root:not(.couch-mode) .news-shelf-heading button.desktop-action{width:34px;height:34px;min-height:34px;padding:0;display:grid;place-items:center;font-size:22px}
+
+:root:not(.couch-mode) #downloads-workspace .download-center-row{min-height:0;padding:18px 0}
+:root:not(.couch-mode) #downloads-workspace .download-name{grid-row:auto}
+:root:not(.couch-mode) #main-scroll:has(#downloads-workspace)>.toolbar{display:none}
+:root:not(.couch-mode) .download-orbit-badge svg{width:31px;height:31px}
+:root:not(.couch-mode) .hero[data-art-shape=portrait]>img{max-width:230px;justify-self:center}
+:root:not(.couch-mode) .hero[data-art-shape=square]>img{max-width:360px;justify-self:center}
+:root:not(.couch-mode) .news-banner{align-self:start}
+:root:not(.couch-mode) .news-art{height:auto;aspect-ratio:16/9;flex:none;border-radius:14px}
+:root:not(.couch-mode) .news-art img[src]{position:static;width:100%;height:100%;object-fit:cover;object-position:center}
+.achievement-art{position:relative;display:grid;place-items:center;width:40px;height:40px;flex:0 0 40px;border-radius:11px;background:var(--raised);color:var(--accent)}
+.achievement-art>svg{width:23px;height:23px}.achievement-art>img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;border-radius:inherit}.achievement-art>img:not([src]){opacity:0}
+
+:root:not(.couch-mode) .news-detail-banner{height:auto;aspect-ratio:auto;max-height:none;background:none;border-radius:20px}
+:root:not(.couch-mode) .news-detail-banner img{height:auto;object-fit:contain}
+
+:root:not(.couch-mode) .sidebar-scroll .nav-item{padding-inline:8px;gap:8px}
+:root:not(.couch-mode) .sidebar-scroll .desktop-action-icon{width:24px;height:24px;flex-basis:24px}
+:root:not(.couch-mode) .sidebar-scroll .count{min-width:20px;padding-inline:3px}
+
+:root:not(.couch-mode) #settings-button{background:transparent}
+:root:not(.couch-mode) #settings-button:hover,:root:not(.couch-mode):has(#modal.settings-dialog[open]) #settings-button{background:var(--raised);color:var(--text)}
+:root:not(.couch-mode) .social-platform{border-radius:22px;border-color:var(--line);background:var(--panel)}
+:root:not(.couch-mode) .release-calendar{border:0;border-bottom:1px solid var(--line);border-radius:0;background:none;padding:4px 0 28px}
+:root:not(.couch-mode) .release-days button{min-height:84px;border-radius:16px;background:var(--panel)}
+:root:not(.couch-mode) .release-days button[aria-pressed=true]:not(.has-preview){background:var(--accent);color:var(--accent-ink)}
+:root:not(.couch-mode) .release-days button[aria-pressed=true]:not(.has-preview) :is(.release-tile-empty,.release-tile-count){color:inherit}
+:root:not(.couch-mode) .release-agenda{border-left:1px solid var(--line);padding-left:24px}
+:root:not(.couch-mode) .release-list:not(:has(button)):before{content:'✦';width:65px;height:65px;margin:35px auto 16px;display:grid;place-items:center;border-radius:50%;border:1px solid var(--line);background:var(--panel);font-size:32px;color:var(--accent)}
+:root:not(.couch-mode) .release-list:not(:has(button))>.small-note{text-align:center}
+@media(max-width:900px){:root:not(.couch-mode) .release-agenda{border-left:0;padding-left:0}}
+
+/* Details expand inside a stable window, with one scrolling content area. */
+:root:not(.couch-mode) #modal.game-details-dialog[open]{display:flex;flex-direction:column;overflow:hidden}
+:root:not(.couch-mode) .game-details-dialog .modal-header{flex:none}
+:root:not(.couch-mode) .game-details-dialog #modal-body{flex:1;min-height:0;overflow:auto;scrollbar-gutter:stable;padding-right:6px;overscroll-behavior:contain}
+:root:not(.couch-mode) .game-details-dialog details::details-content{transition:none}
+:root:not(.couch-mode) :is(.personal-notes,.collection-choices){padding:0}
+:root:not(.couch-mode) :is(.personal-notes,.collection-choices)>summary.desktop-summary{margin:0;border:0;border-radius:0;background:none;padding:14px 16px}
+#modal.game-details-dialog :is(.personal-notes,.collection-choices)>summary.desktop-summary{margin:0;border:0;border-radius:0;background:none;padding:14px 16px}
+:root:not(.couch-mode) .desktop-summary{display:flex;align-items:center;gap:11px}
+:root:not(.couch-mode) .desktop-summary-symbol{width:27px;height:27px;flex:0 0 27px;display:grid;place-items:center;color:var(--accent);background:color-mix(in srgb,var(--accent),transparent 93%);border-radius:50%}
+:root:not(.couch-mode) .desktop-summary-symbol svg{width:21px;height:21px}
+:root:not(.couch-mode) #theme-editor{padding:0}
+:root:not(.couch-mode) #theme-editor>summary{justify-content:flex-start;gap:13px;min-height:72px;padding:17px 20px}
+:root:not(.couch-mode) .appearance-summary-copy{flex:1}
+:root:not(.couch-mode) .appearance-summary-action{border-radius:999px;padding:9px 16px}
+:root:not(.couch-mode) #theme-editor>summary~:is(form,.appearance-font-row){margin-inline:20px}
+:root:not(.couch-mode) #theme-form{padding-bottom:20px}
+:root:not(.couch-mode) #add-form{display:grid;gap:20px}
+:root:not(.couch-mode) #add-form>.form-field{display:flex;flex-direction:column;align-items:stretch;gap:9px;font-size:12px}
+:root:not(.couch-mode) #add-form input,:root:not(.couch-mode) #add-form .desktop-select-trigger{margin:0;width:100%;min-height:44px}
+:root:not(.couch-mode) #add-form .form-row{border-top:1px solid var(--line);padding-top:19px}
+:root:not(.couch-mode) :is(.search-box,.command-search) input:is(:hover,:focus){border-color:var(--accent);background:var(--raised)}
+:root:not(.couch-mode) .simple-game-options #detail-utilities{display:flex;flex-direction:column;gap:16px;padding:18px;margin:0}
+:root:not(.couch-mode) .simple-game-options #detail-utilities>:is(details,.settings-actions){margin:0}
+:root:not(.couch-mode) .simple-game-options #detail-utilities>.desktop-action{align-self:flex-start}
+:root:not(.couch-mode) .simple-game-options #detail-utilities .settings-actions{gap:9px}
+
+/* Downloads use readable artwork cards at the workspace's natural width. */
+:root:not(.couch-mode) #download-center{container-type:inline-size}
+:root:not(.couch-mode) #download-center{gap:18px}
+:root:not(.couch-mode) #download-center>:is(.download-overview,.download-metrics,.management-toolbar,.management-status){margin:0}
+:root:not(.couch-mode) #download-center>[data-download-items]{gap:18px}
+:root:not(.couch-mode) #download-center>.management-status{font-size:12px;line-height:1.5;padding:0 4px}
+:root:not(.couch-mode) .storage-game>div>strong{color:var(--text)}
+:root:not(.couch-mode) [data-download-items]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;align-items:start}
+:root:not(.couch-mode) #downloads-workspace .download-center-row{display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr);gap:22px;padding:20px;margin:0;min-height:190px;background:var(--panel);border:1px solid var(--line);border-radius:24px;align-items:center;min-width:0}
+:root:not(.couch-mode) .download-row-art{min-width:0;display:flex;align-items:center;justify-content:center}
+:root:not(.couch-mode) .download-row-art>.console-artwork{width:100%;border-radius:16px}
+:root:not(.couch-mode) .download-row-art>.console-artwork[data-art-shape=portrait]{max-width:110px}
+:root:not(.couch-mode) .download-row-art>.console-artwork[data-art-shape=square]{max-width:160px}
+:root:not(.couch-mode) .download-row-content{min-width:0;display:flex;flex-direction:column;align-items:stretch;gap:16px}
+:root:not(.couch-mode) .download-row-content .download-name strong{font-size:16px;line-height:1.4}
+:root:not(.couch-mode) .download-row-content .download-name small{font-size:11px}
+:root:not(.couch-mode) .download-row-content [data-transfer-progress]{font-size:12px;line-height:1.6}
+:root:not(.couch-mode) .download-row-content .download-row-actions{display:flex;justify-content:flex-start;gap:8px;flex-wrap:wrap}
+:root:not(.couch-mode) .download-row-art>.native-installer-icon{width:90px;height:90px;font-size:36px;border-radius:24px}
+:root:not(.couch-mode) [data-download-items]>.management-empty{grid-column:1/-1}
+:root:not(.couch-mode) .download-overview{padding-top:24px}
+:root:not(.couch-mode) .download-overview h2{font-size:28px}
+:root:not(.couch-mode) .download-metrics{gap:12px;padding:0;border:0;margin:24px 0}
+:root:not(.couch-mode) .download-metrics>div{flex:1;display:grid;gap:9px;background:var(--panel);padding:18px 22px;border:1px solid var(--line);border-radius:20px;min-width:0}
+@container(max-width:1050px){:root:not(.couch-mode) [data-download-items]{grid-template-columns:1fr}:root:not(.couch-mode) #downloads-workspace .download-center-row{grid-template-columns:minmax(140px,.65fr) minmax(0,1fr)}}
+@container(max-width:480px){:root:not(.couch-mode) #downloads-workspace .download-center-row{grid-template-columns:1fr;gap:18px;padding:16px}:root:not(.couch-mode) .download-row-art>.console-artwork{max-width:100%}}
+@media(max-width:900px){:root:not(.couch-mode) .download-metrics>div{padding:14px}:root:not(.couch-mode) .download-metrics strong{font-size:23px}}

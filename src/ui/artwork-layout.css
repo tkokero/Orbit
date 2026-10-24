@@ -1,0 +1,27 @@
+/* Intrinsic artwork dimensions: no crop, stretch, or fixed empty frames. */
+/* Compact storage banners intentionally share a footprint; portrait fallbacks remain contained. */
+html .storage-game>.storage-game-art.console-artwork{flex:0 0 128px;width:128px;max-width:128px;aspect-ratio:16/9!important;height:72px!important;min-height:72px!important;align-self:center;margin:0;border-radius:13px;background:var(--raised)}
+html .storage-game>.storage-game-art.console-artwork img{width:128px!important;height:72px!important;object-fit:cover!important}
+html .storage-game>.storage-game-art.console-artwork[data-art-shape=portrait] img,html .storage-game>.storage-game-art.console-artwork[data-art-shape=square] img{object-fit:contain!important}
+html .console-artwork:has(img[src]:not([hidden])){display:block;align-self:start;aspect-ratio:auto!important;height:auto!important;min-height:0!important;max-height:none!important;background:none;border:0}
+html .console-artwork img{position:relative!important;z-index:1;inset:auto!important;width:100%!important;height:auto!important;max-height:none!important;object-fit:contain!important;display:block;border-radius:inherit}
+.console-artwork[data-art-shape=portrait]{max-width:220px;justify-self:center;margin-inline:auto}.console-artwork[data-art-shape=square]{max-width:420px;justify-self:center;margin-inline:auto}
+.console-artwork.art-ready .console-art-fallback{display:none}
+html .controller-game-hero{height:auto;min-height:0;aspect-ratio:auto}.controller-game-hero>img[data-controller-hero][src]{position:static;width:100%;height:auto;max-height:none;object-fit:contain}.controller-game-hero>div{position:absolute;inset:0;justify-content:flex-end}
+.console-surface .couch-transfer:first-child .console-artwork,.console-surface .couch-transfer-detail .couch-transfer .console-artwork{max-height:none}
+.console-download-feed{align-items:start}.console-download-feed .couch-transfer .couch-transfer-body{padding-top:18px}.console-download-feed .couch-transfer:first-child{align-items:center}
+/* Info icons are small inline controls, never full-sized action buttons. */
+html button.info-button,html .couch-mode button.info-button,html .orbit-console-dialog button.info-button,html #modal-body button.info-button{display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 26px!important;width:26px!important;height:26px!important;min-width:26px!important;min-height:26px!important;max-width:26px!important;padding:4px!important;margin:0 0 0 5px!important;border:0!important;border-radius:50%!important;box-shadow:none!important;background:transparent!important;vertical-align:middle;transform:none!important;font-size:16px;line-height:1}
+html button.info-button svg{width:16px;height:16px;flex:none}html button.info-button:hover,html button.info-button:focus-visible{background:var(--raised)!important;color:var(--accent)}
+#launch-profile{display:grid;gap:22px}#launch-profile .profile-field{display:grid;gap:10px;padding:0;margin:0;min-width:0}#launch-profile .profile-label{display:flex;align-items:center;gap:3px;min-height:26px}#launch-profile .profile-label>label{display:inline!important;margin:0;padding:0;line-height:1.5;font-size:13px;color:var(--muted)}
+#launch-profile .profile-field>input,#launch-profile .profile-field>select,#launch-profile .profile-field>.console-select-trigger{width:100%;margin:0;min-height:44px}#launch-profile .settings-actions{display:flex;align-items:center;gap:9px;margin:0;min-width:0}#launch-profile .settings-actions input{flex:1;min-width:0;margin:0}#launch-profile .settings-actions button{flex:none}#launch-profile .profile-tools{margin:0;min-width:0;padding:18px;border:1px solid var(--line);border-radius:18px}#launch-profile .profile-tools label{display:flex;gap:10px;align-items:center;margin:9px 0}#launch-profile>button{justify-self:start}#launch-profile .console-select-trigger{justify-content:flex-start!important}
+@media(max-width:600px){#launch-profile .settings-actions{flex-wrap:wrap}#launch-profile .settings-actions input{flex-basis:100%}}
+
+.console-art-fallback{z-index:0}
+.download-banner-art .console-artwork{margin:0;width:100%;border:0;background:none}
+.artwork-test{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;margin:20px}
+
+.controller-game-hero:has(>img:not([src])){aspect-ratio:3.1;min-height:220px}
+.controller-game-hero[data-art-shape=portrait],.controller-game-hero[data-art-shape=square]{display:grid;grid-template-columns:minmax(180px,30%) 1fr;gap:4vw;padding:30px 5vw;align-items:end}
+.controller-game-hero[data-art-shape=portrait]>img{max-width:260px;justify-self:center}.controller-game-hero[data-art-shape=square]>img{max-width:400px;justify-self:center}
+.controller-game-hero[data-art-shape=portrait]>div,.controller-game-hero[data-art-shape=square]>div{position:static;background:none;padding:10px 0}
