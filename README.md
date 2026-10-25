@@ -4,7 +4,7 @@ A Windows launcher for your game libraries, local games, and tools. Find somethi
 
 ![Orbit with an example Desktop library](docs/screenshots/orbit-library.png)
 
-*Screenshots use sample data from the current development build. Published builds may differ. Orbit is in pre-release.*
+*Example library with real games and publisher artwork. Profiles, playtime, and downloads are sample data. Screenshots show the development build; published builds may differ.*
 
 ## Get started
 
