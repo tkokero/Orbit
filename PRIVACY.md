@@ -1,33 +1,33 @@
-# Orbit Privacy Policy
+# Privacy
 
-*Last updated: October 23, 2026*
+Updated October 25, 2026. Orbit is a personal game-launcher project by kokero.
 
-Orbit is a personal project developed by kokero for organizing and launching games.
+## Local data
 
-## Data stored locally
+Orbit stores library information, game paths, settings, themes, and enabled session history locally. Optional features also store cached artwork/news, custom media, download history, save backups, profile links, and remembered connections. Protected account credentials are not shown in normal renderer data.
 
-Orbit stores library information, settings, game paths, and enabled playtime and session history on your computer. Optional features may also save account sessions, cached content, custom media, installer download history, and backups. Downloaded installers are saved to the location you choose.
+## Online requests
 
-## Online features
+Account connections, artwork, news, prices, calendars, updates, and requested installer downloads contact their providers. Each service receives the information needed for the request and applies its own privacy policy. Offline mode stops new online checks; cached information may be outdated.
 
-Orbit contacts third-party services when using features such as account connections, artwork, news, prices, release calendars, updates, and installer downloads you request. Those services receive the information needed to handle requests and apply their own privacy policies.
+## Discord
 
-## Discord Rich Presence
+**Friends** is an optional read-only connection for basic identity, accepted friends, and available presence. It requires Discord's desktop app. It does not request messages, voice, invitations, or friend-management access.
 
-Sharing is optional. When enabled, Orbit sends activity to your Discord desktop app, including the game name and elapsed time if you allow them. Discord controls who can see your activity. Orbit’s Discord integration does not read your messages or friends.
+**Rich Presence** is separate and optional. In **Settings → Privacy**, control game names, elapsed time, menu activity, and background sharing. Hidden game names appear as **Playing a game**. Guest mode and disabling sharing clear the activity. Discord controls who can see activity.
 
-## Experimental Steam controls
+## Steam controls
 
-Optional Steam controls communicate locally with your installed Steam client to read library folders and download status and send the actions you choose. Steam keeps responsibility for your login, ownership checks, and game downloads; Orbit does not save your Steam password. The experimental connection requires Steam’s local debugging channel, which other software on your computer could also access. Quit Steam and reopen it normally to close that channel.
+The optional experimental connection reads local Steam status and sends actions you choose. It opens a local debugging channel that other software on your computer could access. Quit Steam and reopen it normally to close that channel. Steam handles login, ownership checks, and game downloads; Orbit does not save your Steam password.
 
-## Optional game clips
+## Backups, exports, and capture
 
-The clipping prototype is off by default and starts only when you choose a window or display and start its replay buffer. If enabled, system audio includes all desktop sound; this prototype does not record the microphone. Encoded footage is temporarily buffered on disk, and saved MP4 clips stay in your selected folder. Capture and saving are local; Orbit does not upload clips. Stopping clipping releases the recorder and removes its current temporary buffer. Saved clips remain until you remove them.
+Backups and exports remain where you save them. Removing history does not remove exported copies.
+
+The developer-only clipping prototype is off by default. It records after you choose a source and start it. System audio includes desktop sound; it does not record the microphone. Temporary footage is buffered locally and saved clips are not uploaded. Stopping removes the current temporary buffer; saved clips remain until you remove them.
 
 ## Your choices
 
-You can manage recording and stored data in **Settings → Privacy**, manage Discord sharing in **Settings → Libraries**, and use Offline mode to stop new online checks. Disabling recording does not delete existing history. Exports and backups must be removed separately.
+Use **Settings → Privacy** for recording and data controls, account controls to disconnect, and **Settings → Manage** for backups and recovery. Disabling history does not delete existing records.
 
-## Contact and updates
-
-For privacy questions, contact kokero through [Orbit’s GitHub issues](https://github.com/tkokero/Orbit/issues). Issues are public—do not post passwords, tokens, or private files. This policy may change as Orbit develops.
+Ask questions through [GitHub issues](https://github.com/tkokero/Orbit/issues). Issues are public; never post passwords, tokens, or private files.

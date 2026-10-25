@@ -30,7 +30,7 @@ See supported Steam and Discord friends, search by name, and review suggested pr
 
 ![Friends with sample profiles](docs/screenshots/orbit-friends.png)
 
-Discord friends requests basic identity and read-only relationships access and needs the Discord desktop client. Epic is client-only. Optional **Discord Rich Presence** has separate sharing controls in **Settings → Privacy**.
+Discord friends requests basic identity and read-only relationships access and needs the Discord desktop client. Epic is client-only. Optional **Discord Rich Presence** has separate controls in **Settings → Privacy**. Hidden game names show **Playing a game**.
 
 ## Downloads and Steam
 

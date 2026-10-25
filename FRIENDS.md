@@ -1,34 +1,29 @@
-# Friends integration
+# Friends
 
-## Current capabilities
+Friends brings supported Steam and Discord profiles into Orbit. Connections are optional and separate from game libraries. Provider availability can differ between development and published builds.
 
-| Platform | Friends and activity in Orbit | Status changes |
-| --- | --- | --- |
-| Steam | Official GetFriendList + GetPlayerSummaries using a user-supplied Web API key | Official Steam Friends & Chat interface |
-| Epic Games | Requires a separately registered EOS social integration; not connected in this build | Opens the official launcher for available profile/social controls |
-| Discord | Requires a separately registered Social SDK integration; not connected in this build | Opens the official Discord web client |
+## Connect
 
-The UI accurately labels client-only platforms. No private client tokens, passwords, browser cookies from other applications, or undocumented write APIs are used. A library connection is distinct from a social connection. Display names are never used to merge identities across platforms.
+| Provider | What Orbit supports |
+| --- | --- |
+| Steam | Friends and available presence through Steam's Web API; requires your Steam ID and API key |
+| Discord | Accepted friends and presence through an optional read-only connection; Discord must be open on the same account |
+| Epic Games | Opens the official client; native friends access is not connected |
 
-## Steam behavior
+Orbit labels unavailable connections. Change your provider status in its official client.
 
-`src/social.cjs` normalizes identity, presence, and shared game names. Requests use batches of at most 100 Steam IDs, with at most two concurrent summary requests. The read cache has a 30-second minimum refresh interval. The renderer refreshes about every 60 seconds only when Friends is visible and the window is focused. It cancels scheduled refreshes when hidden or blurred; no provider background timer exists.
+## Browse and link profiles
 
-Offline and invisible are deliberately indistinguishable. No last-played data is substituted for current activity. Missing summaries become unavailable rather than inferred online. Errors preserve any cached rows as explicitly stale. Disconnect aborts work and rejects late results by generation.
+**Online** shows fresh playing friends first, then Do Not Disturb, then plain online. Away, offline, and stale entries stay in **All friends**. Search by name or game. Right-click for related profile actions.
 
-Credentials are memory-only unless Remember is selected. Persisted API keys use Electron safeStorage (Windows DPAPI) in `social-credentials.json`. API keys do not enter snapshots, exports, logs, or renderer storage. Friend lists are held in memory and never written to disk. Steam profile avatars and game icons are fetched lazily from Valve CDN URLs and cached as small local images. Initials and a neutral game placeholder remain when images are unavailable. Recent game details use GetRecentlyPlayedGames, are held in memory for five minutes, and load only for visible cards with two card workers. Total hours and hours from the past two weeks are distinct; a recent-game entry never implies current activity. Private or missing data stays unavailable. Disconnect clears the details cache; cached avatar/icon files remain on disk.
+Similar Steam/Discord names can suggest a match. Confirm **Link** or **Keep separate**; Orbit never merges people from names alone. Linked cards retain each provider's identity and status. Change links through **Profile links**.
 
-Status buttons use fixed, allowlisted destinations. They do not programmatically modify a persona or assert success. Users choose status in the official client. No code sends messages, friend requests, or game invites.
+## Privacy
 
-## Extending providers
+Discord friends requests basic identity and read-only relationships access. Orbit displays accepted friends and does not request messages, voice, invitations, activity updates, or friend management for this connection.
 
-The provider capabilities are explicit in `providers()` in `src/social.cjs`. A future Epic or Discord adapter must use an authorized, registered integration and the platform's permissions. Add an independent platform-scoped identity, read capability, and explicit status-write capability only after the provider confirms support. Do not mark an adapter connected because a game library was scanned. Keep the renderer bridge narrow and do not accept arbitrary URLs or executable commands.
+Remembered connections use protected local storage. Disconnect from account controls. Stale data stays marked stale; recent games never substitute for current activity. Offline and invisible can look the same.
 
-## Sources
+**Discord Rich Presence** is separate, under **Settings → Privacy**. Share a game name or show only **Playing a game**, and control elapsed time and background sharing. Guest mode and turning sharing off clear the activity.
 
-- [Steam IPlayerService](https://partner.steamgames.com/doc/webapi/IPlayerService)
-
-- [Steam Web API ISteamUser](https://partner.steamgames.com/doc/webapi/ISteamUser)
-- [Steam Friends & Chat](https://help.steampowered.com/en/faqs/view/595C-42F4-3B66-E02F)
-- [Epic Account Services setup](https://dev.epicgames.com/docs/epic-online-services/accounts-and-social/eos-epic-account-services/getting-started)
-- [Discord Social SDK client](https://discord.com/developers/docs/social-sdk/classdiscordpp_1_1Client.html)
+See [Privacy](PRIVACY.md) for data handling.
