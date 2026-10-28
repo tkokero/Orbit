@@ -1,0 +1,30 @@
+/* Original, finite SVG scene. All movement belongs to the startup player. */
+(()=>{
+ const head=`<path class="goat-horn" d="M274 142q-49-24-32-66 9 32 43 35m81 31q49-24 32-66-9 32-43 35"/><path class="goat-ear" d="M269 155q-63-20-55 14 21 27 59 12m98-26q63-20 55 14-21 27-59 12"/><path class="goat-face" d="M266 146q54-40 108 0l-4 63q-4 59-50 64-46-5-50-64Z"/><path class="goat-tuft" d="m289 133 16-22 12 15 20-19 11 28"/><ellipse class="goat-eye" cx="292" cy="180" rx="18" ry="23"/><ellipse class="goat-eye" cx="348" cy="180" rx="18" ry="23"/><g class="goat-pupils"><rect class="goat-pupil" x="283" y="180" width="19" height="9" rx="4"/><rect class="goat-pupil" x="339" y="174" width="19" height="9" rx="4"/></g><ellipse class="goat-muzzle" cx="320" cy="224" rx="35" ry="22"/><path class="goat-nose" d="m312 215 8 5 8-5m-8 5v12m-13 0q13 12 26 0"/><path class="goat-beard" d="m303 247 6 31 11-9 11 9 6-31"/><path class="goat-tongue" d="M320 235q0 24 13 15 7-7-3-17Z"/>`;
+ function markup(){return `<div class="goatkero-stage" aria-hidden="true"><svg class="goatkero-scene" viewBox="0 0 640 470" fill="none" stroke-linecap="round" stroke-linejoin="round"><g class="goatkero-stars">${[[90,100],[525,80],[548,301],[100,290],[203,54],[446,49],[185,373],[458,374]].map(([x,y],i)=>`<path d="M${x-6} ${y}h12m-6-6v12" style="--spark:${i}"/>`).join('')}</g><g class="goatkero-satellites">${[[125,120,-19],[536,73,23],[124,326,14],[521,333,-13]].map(([x,y,r],i)=>`<g transform="translate(${x} ${y}) rotate(${r}) scale(.31) translate(-320 -190)"><g class="goatkero-moon" style="--moon:${i}">${head}</g></g>`).join('')}</g><g class="goatkero-ring-back"><ellipse cx="320" cy="308" rx="163" ry="48" transform="rotate(-14 320 308)"/></g><g class="goatkero-hero"><ellipse class="goat-suit" cx="320" cy="294" rx="82" ry="61"/><path class="goat-leg" d="m275 327-20 30m110-30 20 30"/><path class="goat-hoof" d="m243 355 23 12m108 0 23-12"/><g class="goatkero-head"><circle class="goat-helmet" cx="320" cy="185" r="111"/>${head}<path class="goat-glass" d="M242 178q-3-41 30-62m101 28 10 20"/></g><path class="goat-arm" d="m251 280-27-17m165 17 27-17"/><path class="goat-hoof" d="m216 252 14 18m180 0 14-18"/><circle class="goat-suit-badge" cx="320" cy="294" r="17"/><ellipse class="goat-badge-ring" cx="320" cy="294" rx="23" ry="7" transform="rotate(-28 320 294)"/><g class="goatkero-crown"><path d="m285 80-5-37 25 17 15-28 15 28 25-17-5 37Z"/><path d="M287 89h66"/><circle cx="320" cy="64" r="4"/></g></g><g class="goatkero-ring-front"><path d="M162 316q124 78 316-31"/></g><g class="goatkero-baa"><path d="M427 182q-18-51 36-61h70q36 0 36 34t-36 34h-70l-30 17Z"/><text x="495" y="164" text-anchor="middle">baa.</text></g><g class="goatkero-confetti">${Array.from({length:16},(_,i)=>`<circle cx="320" cy="235" r="${i%3?4:7}" style="--piece:${i}"/>`).join('')}</g></svg><div class="goatkero-wordmark">Orbit</div></div>`;}
+ function play(root,{duration=5800,reduced=false}={}){
+  root.querySelector('.goatkero-stage')?.remove();root.insertAdjacentHTML('beforeend',markup());
+  const stage=root.querySelector('.goatkero-stage'),animations=[];
+  function animate(selector,frames,delay,length,easing='cubic-bezier(.22,.75,.28,1)'){
+   if(reduced)return;for(const el of stage.querySelectorAll(selector))animations.push(el.animate(frames,{duration:length,delay,easing,fill:'both',iterations:1}));
+  }
+  animate('.goatkero-hero',[{transform:'translate(-370px,-120px) rotate(-105deg) scale(.12)',opacity:0},{transform:'translate(35px,-16px) rotate(16deg) scale(1.08)',opacity:1,offset:.65},{transform:'translate(-13px,12px) rotate(-6deg) scale(.96,1.05)',offset:.83},{transform:'none',opacity:1}],0,1500);
+  animate('.goatkero-ring-back,.goatkero-ring-front',[{transform:'scale(.2)',opacity:0},{transform:'scale(1.15,.75)',opacity:1,offset:.65},{transform:'scale(.94,1.08)',offset:.84},{transform:'none',opacity:1}],250,1600);
+  animate('.goatkero-head',[{transform:'none'},{transform:'rotate(-9deg)',offset:.22},{transform:'rotate(11deg)',offset:.42},{transform:'rotate(-5deg)',offset:.65},{transform:'none'}],1550,1250);
+  animate('.goatkero-crown',[{transform:'translateY(-240px) rotate(-35deg)',opacity:0},{transform:'translateY(9px) rotate(12deg)',opacity:1,offset:.65},{transform:'translateY(-14px) rotate(-10deg)',offset:.82},{transform:'rotate(-6deg)',opacity:1}],1750,850);
+  animate('.goat-tongue',[{transform:'scaleY(0)'},{transform:'scaleY(1.4)',offset:.65},{transform:'scaleY(1)'}],2050,500);
+  animate('.goatkero-baa',[{transform:'translate(-16px,10px) scale(.1)',opacity:0},{transform:'translate(0,0) scale(1.13)',opacity:1,offset:.6},{transform:'none',opacity:1}],2280,550);
+  animate('.goatkero-wordmark',[{transform:'translateY(16px) scale(.8)',opacity:0},{transform:'translateY(-4px) scale(1.06)',opacity:1,offset:.72},{transform:'none',opacity:1}],3050,700);
+  for(const [i,moon]of [...stage.querySelectorAll('.goatkero-moon')].entries()){
+   if(!reduced)animations.push(moon.animate([{opacity:0,translate:(i%2?'-90px':'90px')+' 30px',scale:.1},{opacity:1,translate:'0px -12px',scale:1.16,offset:.72},{opacity:1,translate:'0px 0px',scale:1}],{duration:900,delay:2700+i*90,fill:'both',easing:'cubic-bezier(.2,.8,.25,1)',iterations:1}));
+  }
+  for(const [i,piece]of [...stage.querySelectorAll('.goatkero-confetti circle')].entries()){
+   const angle=i*Math.PI*2/16,x=Math.cos(angle)*(170+i%3*35),y=Math.sin(angle)*140;
+   if(!reduced)animations.push(piece.animate([{transform:'translate(0,0) scale(0)',opacity:0},{transform:`translate(${x*.7}px,${y*.7}px) scale(1)`,opacity:1,offset:.3},{transform:`translate(${x}px,${y+45}px) scale(.4)`,opacity:0}],{duration:1600,delay:3000,fill:'both',iterations:1}));
+  }
+  if(reduced)stage.classList.add('goatkero-still');
+  let released=false;
+  return {stop(){for(const animation of animations)animation.pause();},release(){if(released)return;released=true;for(const animation of animations)animation.cancel();stage.remove();},duration};
+ }
+ window.OrbitStartupGoatkero={play};
+})();

@@ -1,7 +1,8 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs/promises'),os=require('node:os'),path=require('node:path'),{spawn,execFile}=require('node:child_process'),{promisify}=require('node:util');
 const {RunningGames}=require('../src/running-games.cjs');
 
-test('Windows distinguishes a minimized Roblox window from its remaining tray process',{skip:process.platform!=='win32',timeout:40000},async t=>{
+// This fixture creates and minimizes native windows. Run only in an agreed playtest.
+test('Windows distinguishes a minimized Roblox window from its remaining tray process',{skip:process.platform!=='win32'||process.env.ORBIT_NATIVE_WINDOW_PLAYTEST!=='1',timeout:40000},async t=>{
  const compiler='C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\csc.exe';try{await fs.access(compiler);}catch{return t.skip('Windows Forms compiler unavailable');}
  const root=await fs.mkdtemp(path.join(os.tmpdir(),'orbit-tray-window-')),exe=path.join(root,'RobloxPlayerBeta.exe'),source=path.join(root,'fixture.cs');let child;
  try{

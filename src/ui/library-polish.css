@@ -1,0 +1,30 @@
+#library-feedback{display:flex;align-items:flex-start;flex-wrap:wrap;gap:10px 16px;margin:0 0 16px;padding-inline:4px}
+#library-result-count{font-size:14px;font-weight:700;white-space:nowrap;color:var(--muted);margin:0;line-height:36px}
+#library-filter-chips{display:flex;flex-wrap:wrap;gap:8px;align-items:center;min-width:0;flex:1}
+.library-filter-chip{display:inline-flex;align-items:center;gap:12px;max-width:100%;min-height:36px;padding:7px 12px;border:1px solid var(--line);border-radius:999px;background:var(--panel);color:var(--text);font-size:13px}
+.library-filter-chip>span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.library-filter-chip:hover{border-color:var(--accent);background:var(--raised)}
+.library-filter-chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#empty .subtle-button{margin:8px 5px}
+.collection-editor-list{display:grid;gap:10px;margin:18px 0}
+.collection-edit-row{display:flex;align-items:center;gap:13px;border:1px solid var(--line);border-radius:18px;padding:13px 15px;background:var(--panel);min-width:0}
+.collection-edit-row>.collection-symbol{width:38px;height:38px;flex:0 0 38px;display:grid;place-items:center;border-radius:12px;background:var(--raised)}
+.collection-symbol svg{width:26px;height:26px}
+[data-collection-color=accent]{--collection-color:var(--accent);color:var(--accent)}[data-collection-color=green]{--collection-color:var(--green);color:var(--green)}[data-collection-color=cool]{--collection-color:var(--cool);color:var(--cool)}[data-collection-color=warm]{--collection-color:var(--warm);color:var(--warm)}[data-collection-color=text]{--collection-color:var(--text);color:var(--text)}
+:root:not(.couch-mode) #pinned-collections .nav-item .collection-symbol[data-collection-color]{color:var(--collection-color);background:color-mix(in srgb,var(--collection-color),transparent 90%)}
+.collection-edit-copy{display:grid;gap:5px;flex:1;min-width:0;overflow-wrap:anywhere}
+.collection-edit-copy strong{font-size:15px}.collection-edit-copy small{font-size:12px;color:var(--muted)}
+.collection-edit-row .settings-actions{margin:0;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+#new-collection{display:flex;flex-wrap:wrap;gap:10px}#new-collection input{flex:1;min-width:160px}
+#collection-edit-form{display:grid;gap:20px}#collection-edit-form>label{display:grid;gap:8px}#collection-edit-form fieldset{border:0;padding:0;min-width:0;margin:0}#collection-edit-form legend{font-weight:750;margin-bottom:10px;font-size:14px}
+.collection-icon-options,.collection-color-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:9px}
+.collection-icon-options{grid-template-columns:repeat(4,minmax(0,1fr))}
+.collection-icon-options label,.collection-color-options label{position:relative;display:flex;align-items:center;gap:9px;padding:11px;border:1px solid var(--line);border-radius:15px;background:var(--panel);font-size:13px;cursor:pointer;min-width:0}
+.collection-icon-options label:has(:checked),.collection-color-options label:has(:checked){border-color:var(--accent);background:var(--raised)}
+.collection-icon-options label:has(:focus-visible),.collection-color-options label:has(:focus-visible){outline:2px solid var(--accent);outline-offset:2px}
+.collection-icon-options input,.collection-color-options input{position:absolute;opacity:0;width:1px;height:1px;padding:0;min-height:0;pointer-events:none}
+.collection-icon-options svg{width:25px;height:25px;flex:none}.collection-color-options i{width:20px;height:20px;flex:none;border-radius:50%;border:1px solid var(--line);background:currentColor}
+#collection-edit-form .settings-actions{display:flex;flex-wrap:wrap;gap:10px}
+:root.couch-mode #library-feedback{display:none!important}
+#library-feedback[hidden]{display:none!important}
+@media(max-width:700px){.collection-edit-row{align-items:flex-start;flex-wrap:wrap}.collection-edit-row .settings-actions{flex-basis:100%;justify-content:flex-start}.collection-icon-options,.collection-color-options{grid-template-columns:repeat(2,minmax(0,1fr))}}

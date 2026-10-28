@@ -1,7 +1,7 @@
 {
   "name": "orbit-game-launcher",
   "productName": "Orbit",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "A Windows app for organizing and launching games from connected libraries and local files.",
   "main": "src/main.cjs",
   "author": "Orbit",
@@ -40,7 +40,9 @@
     ],
     "asar": true,
     "asarUnpack": [
-      "node_modules/@img/**/*"
+      "node_modules/@img/**/*",
+      "src/native/discord/**/*",
+      "src/native/shell/*.exe"
     ],
     "npmRebuild": false,
     "generateUpdatesFilesForAllChannels": true,

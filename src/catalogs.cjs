@@ -69,7 +69,7 @@ async function steamCatalog(root) {
   const history = steam?.apps || {};
   const metadata = await readSteamMetadata(root);
   const records = [];
-  // History is useful offline, but isn't a current ownership assertion (refunds/shared games exist).
+  // History enriches confirmed entries, but cannot add a game on its own (refunds/shared games exist).
   for (const [id, activity] of Object.entries(history)) {
     const info = metadata.get(id); if (!info || !/^(game|application|demo|mod)$/i.test(info.type || '')) continue;
     if (!Number(activity.Playtime || activity.playtime || 0) && !Number(activity.LastPlayed || activity.lastplayed || 0)) continue;
@@ -89,7 +89,7 @@ async function steamCatalog(root) {
       cover: await exists(art) ? pathToFileURL(art).href : `https://cdn.akamai.steamstatic.com/steam/apps/${id}/library_600x900.jpg`,
       hero: `https://cdn.akamai.steamstatic.com/steam/apps/${id}/library_hero.jpg` });
   }
-  return { records, steamId: user[0], status: `${records.length} local history entries · account sign-in needed for complete ownership sync` };
+  return { records, steamId: user[0], status: 'Local play history available · sign in to verify uninstalled games' };
 }
 function steamDetails(rows) {
   const sections = Object.fromEntries(rows.filter(x => Array.isArray(x) && x.length === 2));

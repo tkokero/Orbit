@@ -3,11 +3,11 @@
  const enabled=()=>{try{return localStorage.getItem('orbit-startup-sound')==='on';}catch{return false;}};
  const volume=()=>{try{const n=localStorage.getItem('orbit-startup-volume');return n===null?12:Math.max(0,Math.min(30,Number(n)||0));}catch{return 12;}};
  let activeStop=()=>{};
- function play(style){
+ function play(style,{durationMs}={}){
   activeStop();
   if(!enabled()||!volume()||document.hidden||style==='custom')return()=>{};
   let context,timer,master,closed=false;
-  const duration=(window.OrbitStartup?.duration?.(style)||(style==='singularity'?5200:style==='supernova'?5400:1750))/1000;
+  const duration=(durationMs||window.OrbitStartup?.duration?.(style)||(style==='singularity'?5200:style==='supernova'?5400:1750))/1000;
   const hide=()=>{if(document.hidden)stop();};
   const close=()=>{const ending=context;context=null;try{master?.disconnect();master=null;ending?.close().catch(()=>{});}catch{}};
   function stop(){
@@ -53,6 +53,23 @@
     source.connect(band);band.connect(gain);gain.connect(bus);source.start(t);source.stop(t+length);
    }
    switch(style){
+    case 'magnetar':
+     pad([130.81,196,293.66],0,3.8,.045);air(.1,2.7,300,1600,.045);chimes([392,523.25,783.99],2.8,.16,1.1,.07);break;
+    case 'pulsar':
+     pad([146.83,220,293.66],0,3.8,.04);chimes([587.33,880,587.33,880],.35,.58,.9,.055);chimes([440,659.25,880],2.9,.12,1,.065);break;
+    case 'attractor':
+     voice(98,.05,3.9,{to:65.41,strength:.07,attack:.5});air(.2,3.2,1300,300,.04);pad([130.81,196,261.63],3.1,1.4,.05);break;
+    case 'void':
+     air(.1,2.8,600,180,.025);voice(261.63,2.85,1.1,{kind:'glass',strength:.035,attack:.2});break;
+    case 'goatkero':
+     pad([130.81,196,293.66],0,3.6,.035);
+     voice(392,.05,.75,{to:98,strength:.085,attack:.06,pan:-.35});
+     voice(98,1.1,.55,{to:293.66,strength:.12,attack:.04});
+     voice(174.61,1.95,.36,{to:130.81,strength:.1,kind:'glass'});
+     voice(196,2.3,.4,{to:146.83,strength:.09,kind:'glass'});
+     chimes([523.25,659.25,783.99,1046.5],3.05,.1,1.3,.085);
+     pad([130.81,196,261.63],3.2,2.1,.045);
+     voice(130.81,4.4,.65,{to:65.41,strength:.065,attack:.08});break;
     case 'startrail':
      pad([110,165,247],0,1.55);air(0,1.25,500,2200,.065);
      chimes([493.88,659.25,987.77],.27,.14,1.05,.095);voice(82.41,.48,.9,{to:73.42,strength:.11,attack:.1});break;

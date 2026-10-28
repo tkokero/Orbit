@@ -1,0 +1,66 @@
+/* Library changes stay scoped to Desktop. Artwork never inherits action-button decoration. */
+:root:not(.couch-mode) #game-grid:not(.list){grid-template-columns:repeat(auto-fill,minmax(min(100%,var(--library-card-size,190px)),1fr));gap:calc(var(--library-card-gap,20px) + 8px) var(--library-card-gap,20px);align-items:start}
+:root:not(.couch-mode) #game-grid[data-library-layout=banners]:not(.list) .cover-wrap{aspect-ratio:8/3;height:auto}
+:root:not(.couch-mode) #game-grid[data-library-layout=banners] .cover-wrap img{width:100%;height:100%;object-fit:contain}
+:root:not(.couch-mode) #game-grid[data-library-layout=banners] .cover-wrap img[data-shape=landscape]{object-fit:contain}
+:root:not(.couch-mode) #library-view{width:300px;max-width:calc(100vw - 24px)}
+:root:not(.couch-mode) #library-view .view-toggle{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;height:auto;padding:0;border:0;background:transparent;border-radius:0;margin:6px 0 0}
+:root:not(.couch-mode) #library-view .view-toggle button{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 5px;min-width:0;min-height:84px;gap:7px;border:1px solid var(--line);border-radius:16px;background:var(--bg);color:var(--text);font-size:14px;font-weight:800;line-height:1.25;box-shadow:none;transform:none;transition:background-color 120ms,border-color 120ms}
+:root:not(.couch-mode) #library-view .view-toggle button .desktop-action-icon{display:none}
+html:root:not(.couch-mode) #library-view .library-layout-picker button[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);border-radius:16px;box-shadow:none}
+:root:not(.couch-mode) #library-view .library-layout-picker button[aria-pressed=false]:hover{background:var(--raised);border-color:var(--accent)}
+:root:not(.couch-mode) #library-view .library-layout-picker button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+:root:not(.couch-mode) #library-view .library-layout-picker .layout-choice-icon{width:28px;height:28px;flex:none;pointer-events:none}
+:root:not(.couch-mode) #library-view .library-layout-picker button[aria-pressed=true]::after{content:'✓';position:absolute;right:7px;top:5px;font-size:11px;line-height:1;font-weight:900}
+:root:not(.couch-mode) .sidebar .platform .logo-space{display:none}
+:root:not(.couch-mode) .sidebar .platform>span:not(.desktop-action-icon,.count){flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+:root:not(.couch-mode) .sidebar .platform .count{flex:none;margin-left:auto}
+.library-size-controls{padding:14px 6px 5px;display:grid;gap:16px;border-top:1px solid var(--line);margin-top:12px}
+.library-size-controls label{display:grid;grid-template-columns:1fr auto;gap:8px;font-size:14px;color:var(--text)}
+.library-size-controls output{color:var(--muted);font-size:12px}
+.library-size-controls input{grid-column:1/-1;width:100%;margin:0;min-height:24px;padding:0}
+:root:not(.couch-mode) #pinned-collections .nav-item{max-width:100%;text-align:left}
+:root:not(.couch-mode) #pinned-collections .nav-item>span:not(.desktop-action-icon){overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.library-pin-choices{display:grid;gap:8px}
+.library-pin-choices label{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:16px;background:var(--panel);overflow-wrap:anywhere}
+html:root #modal.pin-collections-dialog[open]{--popup-base-width:640px;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+html:root #modal.pin-collections-dialog[open]:not(.popup-user-height){height:fit-content}
+html:root #modal.pin-collections-dialog #modal-body{display:flex;flex:0 1 auto;min-height:0;overflow:hidden}
+html:root #modal.pin-collections-dialog.popup-user-height #modal-body{flex:1}
+.library-pin-panel{display:flex;flex-direction:column;min-height:0;flex:1;margin:0}
+.library-pin-panel .library-pin-choices{min-height:0;overflow:auto;overscroll-behavior:contain;align-content:start;grid-auto-rows:max-content;flex:1;padding:2px 5px 2px 2px}
+#modal:not(.popup-user-height) .library-pin-panel .library-pin-choices{max-height:min(480px,60vh)}
+.library-pin-panel .library-pin-choices label{min-height:54px;padding:11px 14px;gap:12px;cursor:pointer;color:var(--text);box-sizing:border-box}
+.library-pin-choices label>strong{flex:1;min-width:0;font-size:15px;font-weight:750;line-height:1.4}
+.library-pin-choices label>svg,.library-pin-choices .collection-symbol{width:26px;height:26px;flex:none;color:var(--accent)}
+.library-pin-kind{font-size:11px;font-weight:750;line-height:1.4;padding:3px 7px;border-radius:99px;background:var(--bg);color:var(--muted);flex:none}
+html #modal .library-pin-choices input[type=checkbox]{appearance:none;width:21px;height:21px;min-width:21px;min-height:21px;flex:none;margin:0;padding:0;border:1.5px solid var(--muted);border-radius:7px;background:var(--bg);display:grid;place-items:center;cursor:pointer}
+html #modal .library-pin-choices input:checked{background:var(--accent);border-color:var(--accent)}
+html #modal .library-pin-choices input:checked::after{content:'';width:5px;height:10px;border:solid var(--accent-ink);border-width:0 2px 2px 0;transform:translateY(-1px) rotate(45deg)}
+.library-pin-choices label:has(input:checked){border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--panel))}
+.library-pin-choices label:hover{border-color:var(--accent)}
+.library-pin-choices label:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:-3px}
+.library-pin-footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;flex:none;gap:12px;border-top:1px solid var(--line);padding-top:16px;margin-top:16px}
+.library-pin-footer button{margin:0;min-height:42px}
+#library-bulk-form{display:grid;gap:18px}#library-bulk-form>label{display:grid;gap:10px}#library-bulk-form .settings-actions{flex-wrap:wrap;gap:10px}
+:root:not(.couch-mode) #library-bulk,:root:not(.couch-mode) #library-undo{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 16px;margin-bottom:16px;border:1px solid var(--line);border-radius:20px;background:var(--panel)}
+#library-selection-count{font-weight:800;white-space:nowrap;min-width:85px}
+.library-bulk-actions{display:flex;gap:8px;flex-wrap:wrap;flex:1;align-items:center}
+#library-undo>span{flex:1}
+:root:not(.couch-mode) #game-grid.library-selecting [data-game]{position:relative;user-select:none}
+:root:not(.couch-mode) #game-grid.library-selecting [data-game]::after{content:'';position:absolute;top:14px;left:14px;width:24px;height:24px;border-radius:50%;border:2px solid var(--muted);background:var(--bg);box-shadow:0 2px 8px #0004;display:grid;place-items:center;color:var(--accent-ink);font-weight:900;font-size:16px;z-index:3}
+:root:not(.couch-mode) #game-grid.library-selecting [data-game].library-selected::after{content:'✓';background:var(--accent);border-color:var(--accent)}
+:root:not(.couch-mode) #game-grid .game-card.library-selected,:root:not(.couch-mode) #game-grid .game-row.library-selected{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--panel));box-shadow:inset 0 0 0 1px var(--accent)}
+:root:not(.couch-mode) #game-grid.library-selecting .row-launch{visibility:hidden}
+:root:not(.couch-mode) #game-grid.library-selecting .card-peek{display:none}
+:root:not(.couch-mode) #game-grid.library-selecting .game-card:is(:hover,:focus-visible){transform:none}
+:root.couch-mode :is(#pinned-collections,#library-bulk,#library-undo,#library-select,.library-size-controls,#banner-view){display:none!important}
+[hidden].library-size-controls,#library-bulk[hidden],#library-undo[hidden],#pinned-collections[hidden]{display:none!important}
+@media(max-width:700px){:root:not(.couch-mode) #game-grid:not(.list){grid-template-columns:repeat(auto-fill,minmax(min(100%,min(var(--library-card-size),160px)),1fr))}:root:not(.couch-mode) #game-grid[data-library-layout=banners]:not(.list){grid-template-columns:repeat(auto-fill,minmax(min(100%,240px),1fr))}:root:not(.couch-mode) #library-bulk{padding:12px}.library-bulk-actions button{padding:9px 12px}}
+
+/* Library organization actions stay beside collections; result controls stay by search. */
+:root:not(.couch-mode) .library-collections #library-select{margin-left:4px}
+:root:not(.couch-mode) .library-collections{column-gap:12px;row-gap:12px}
+@media(max-width:700px){:root:not(.couch-mode) .library-collections #library-select{margin-left:0}}
+
+.bulk-collection-empty{display:grid;justify-items:center;gap:16px;padding:24px 16px;text-align:center}.bulk-collection-icon{display:grid;place-items:center;width:60px;height:60px;border-radius:20px;background:var(--raised);color:var(--accent)}.bulk-collection-icon svg{width:34px;height:34px}.bulk-collection-empty :is(h3,p){margin:0}.bulk-collection-empty p{max-width:40ch;color:var(--muted);line-height:1.6}.bulk-collection-empty .settings-actions{justify-content:center;margin-top:8px}

@@ -1,0 +1,170 @@
+/* News, secondary actions, and Steam use Orbit's existing theme tokens. */
+.orbit-context-menu{position:fixed;inset:auto;margin:0;padding:7px;width:286px;max-width:calc(100vw - 20px);max-height:calc(100vh - 20px);overflow:auto;overscroll-behavior:contain;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:21px;box-shadow:0 14px 44px #0004;font:inherit;animation:context-appear 130ms cubic-bezier(.2,.8,.2,1)}
+.orbit-context-heading{padding:9px 11px 12px;color:var(--muted);font-size:12px;font-weight:700;overflow-wrap:anywhere}
+.orbit-context-menu hr{border:0;border-top:1px solid var(--line);margin:6px 10px}
+.orbit-context-menu .orbit-context-item{display:flex;align-items:center;gap:11px;width:100%;min-height:41px;padding:8px 11px;border:0;border-radius:13px;background:transparent;color:var(--text);text-align:left;font-size:13px;line-height:1.4;font-weight:650;box-shadow:none;transform:none;white-space:normal}
+.orbit-context-menu .orbit-context-item:is(:hover,:focus-visible){background:var(--raised);color:var(--accent)}
+.orbit-context-menu .orbit-context-item[aria-expanded=true]{background:color-mix(in srgb,var(--accent),var(--panel) 86%);color:var(--accent)}
+.orbit-context-menu .orbit-context-item:disabled{opacity:.45}
+.orbit-context-symbol{display:grid;place-items:center;flex:0 0 29px;width:29px;height:29px;background:var(--raised);border-radius:10px;color:var(--accent)}
+.orbit-context-symbol svg{width:18px;height:18px;stroke:currentColor;fill:none}
+.orbit-context-label{flex:1;min-width:0;overflow-wrap:anywhere}.orbit-context-arrow{font-size:21px;color:var(--muted);margin-left:4px}
+@keyframes context-appear{from{opacity:0;translate:0 4px}to{opacity:1;translate:0}}
+.news-article-content a{color:var(--accent);text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere;border-radius:3px}
+.news-article-content a:hover{color:var(--text)}
+.news-article-content figure{min-height:64px}
+.news-article-content img:not([src]):not([hidden]){width:100%;height:100px;background:var(--raised);border-radius:16px}
+.news-article-content img[hidden],.news-article-content figcaption[hidden]{display:none}
+.news-article-content figcaption{color:var(--muted);font-size:13px;padding:15px 18px;background:var(--panel);border-radius:14px}
+.news-article-content pre{white-space:pre-wrap;overflow-wrap:anywhere}
+/* Articles use a readable column; publisher lists remain distinct, aligned items. */
+.orbit-news-reader>article{padding:14px clamp(8px,3vw,40px) 40px}
+.news-article-heading,.news-article-content{width:100%;max-width:760px;margin-inline:auto;box-sizing:border-box}
+.news-article-heading{padding:4px 0 22px;margin-bottom:24px;border-bottom:1px solid var(--line)}
+.news-article-heading small{display:block;font-size:14px;line-height:1.6;color:var(--muted)}
+.news-article-heading h1{font-size:clamp(26px,2.5vw,38px);font-weight:850;line-height:1.2;letter-spacing:-.5px;margin:12px 0 0;overflow-wrap:anywhere}
+.news-article-content{font-size:16px;line-height:1.75;color:var(--text)}
+.news-article-content :is(ul,ol){padding-left:1.6em;margin:18px 0 24px}
+.news-article-content li{padding-left:.35em;margin:0 0 10px}
+.news-article-content li:last-child{margin-bottom:0}
+.news-article-content li::marker{color:var(--accent);font-weight:800}
+.news-article-content li :is(ul,ol){margin:10px 0 0}
+.news-article-content h2{font-size:24px;font-weight:850;margin:26px 0 14px;line-height:1.35}
+.news-article-content :is(p,blockquote,pre,figure){margin-block:18px}
+.news-article-content a:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+.news-reader-state{width:100%;max-width:760px;min-height:260px;margin:12px auto;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:28px 20px;text-align:center;border:1px solid var(--line);border-radius:24px;background:var(--panel)}
+.news-reader-state-icon{width:60px;height:60px;display:grid;place-items:center;flex:none;border-radius:20px;color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--panel))}.news-reader-state-icon svg{width:34px;height:34px}
+.news-reader-state h1{font-size:clamp(22px,3vw,28px);line-height:1.3;margin:0;overflow-wrap:anywhere}.news-reader-state p{max-width:45ch;margin:0;color:var(--muted);font-size:16px;line-height:1.6;overflow-wrap:anywhere}.news-reader-state button{margin:4px 0 0;min-width:104px}
+.orbit-news-reader>header{gap:12px;padding-bottom:16px}
+@media(max-width:600px){html dialog.orbit-news-reader[open]{padding:16px;gap:12px}.orbit-news-reader>header{gap:8px}.orbit-news-reader>header button{padding-inline:12px}.news-article-heading{padding-bottom:18px;margin-bottom:18px}}
+:root:not(.couch-mode) #hero.hero>#hero-image[src]{aspect-ratio:8/3;width:100%;height:auto;object-fit:cover}
+:root:not(.couch-mode) #hero.hero[data-art-shape=portrait]>#hero-image[src]{aspect-ratio:2/3;width:auto;max-width:230px;max-height:280px;object-fit:contain}
+:root:not(.couch-mode) #hero.hero[data-art-shape=square]>#hero-image[src]{aspect-ratio:1;width:auto;max-width:280px;max-height:280px;object-fit:contain}
+.art-preview.banner{display:block;aspect-ratio:3.1;padding:0;border:0;background:var(--raised);border-radius:14px;min-height:0;height:auto;max-height:none;box-shadow:none}
+.art-preview.banner>img{width:100%;height:100%;aspect-ratio:3.1;object-fit:cover;border-radius:inherit}
+#artwork-editor .artwork-editors{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;align-items:start}
+#artwork-editor .artwork-editors>.setting-card{min-width:0;margin:0;padding:18px;background:var(--panel);border:1px solid var(--line);border-radius:20px}
+#artwork-editor .artwork-editors h3{display:flex;align-items:center;margin:0 0 18px;font-size:17px}
+#artwork-editor .artwork-editors .art-preview.cover{margin-inline:auto;width:min(100%,200px)}
+#artwork-editor [data-crop-form]{display:grid;gap:14px;margin:20px 0}
+#artwork-editor [data-crop-form] label{display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px 12px;margin:0;font-size:13px}
+#artwork-editor [data-crop-form] label :is(select,input,.desktop-select-trigger,.console-select-trigger){grid-column:1/-1;width:100%;margin:0}
+#artwork-editor [data-crop-form] input[type=range]{height:24px;accent-color:var(--accent)}
+#artwork-editor [data-crop-form] output{color:var(--text);font-variant-numeric:tabular-nums}
+#artwork-editor [data-crop-form]>button{justify-self:start}
+#artwork-editor .settings-actions{gap:9px;flex-wrap:wrap;margin:15px 0 0}
+@container orbit-popup (max-width:620px){#artwork-editor .artwork-editors{grid-template-columns:1fr}}
+html:root dialog.steam-controls-dialog[open]{--popup-base-width:1040px}
+.steam-connection-badge{display:inline-flex;align-items:center;gap:7px;padding:7px 11px;border-radius:999px;background:var(--raised);font-size:12px;color:var(--muted)}.steam-connection-badge[data-connected=true]{color:var(--green)}.steam-connection-badge:before{content:'';width:7px;height:7px;background:currentColor;border-radius:50%}
+.steam-tabs{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding-bottom:17px;border-bottom:1px solid var(--line);margin-bottom:21px}.steam-tabs button{padding:9px 15px;border-radius:999px;border:1px solid transparent;background:transparent;color:var(--muted);min-height:39px;font-weight:700}.steam-tabs button[aria-pressed=true]{background:var(--raised);border-color:var(--line);color:var(--text)}.steam-tabs [data-steam-refresh]{margin-left:auto}
+.steam-pane[hidden]{display:none}.steam-download-heading{display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap;margin-bottom:14px}.steam-download-heading h3{margin:0;font-size:17px}.steam-download-heading p{margin:3px 0 0;color:var(--muted);font-size:13px}
+.steam-queue .steam-transfer{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:14px;padding:16px 0;border-bottom:1px solid var(--line)}.steam-transfer-main{min-width:0}.steam-transfer-main strong{display:block;font-size:14px}.steam-transfer-main small{display:block;color:var(--muted);margin:5px 0 9px;font-size:12px}.steam-transfer-main progress{display:block;height:5px;width:100%;accent-color:var(--accent);border:0;border-radius:6px;overflow:hidden}.steam-transfer-main progress::-webkit-progress-bar{background:var(--raised)}.steam-transfer-main progress::-webkit-progress-value{background:var(--accent)}.steam-transfer-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.steam-transfer-actions button{min-height:37px}
+.steam-empty{padding:28px 22px;background:var(--raised);border-radius:20px;display:grid;gap:10px;justify-items:start}.steam-empty>span{display:grid;place-items:center;color:var(--accent);width:44px;height:44px;border-radius:15px;background:var(--panel)}.steam-empty svg{width:26px;height:26px}.steam-empty h3{margin:0;font-size:18px}.steam-empty p{font-size:13px;line-height:1.65;color:var(--muted);margin:0;max-width:52ch}.steam-empty .settings-actions{margin:7px 0 0}
+.steam-storage-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.steam-storage-grid .setting-card{margin:0;padding:20px;border-radius:20px;background:var(--raised)}.steam-storage-grid .setting-card h3{margin:0 0 16px}.steam-storage-grid label{display:grid;gap:8px;margin-bottom:15px;font-size:13px}.steam-storage-grid select,.steam-storage-grid input{width:100%;min-width:0}.steam-storage-grid .desktop-select-trigger{width:100%;justify-content:space-between}
+.steam-library-folders{display:grid;gap:10px;margin:0 0 20px}.steam-library-folder{display:flex;align-items:center;gap:12px;padding:14px 16px;border:1px solid var(--line);border-radius:16px;min-width:0}.steam-library-folder>span{color:var(--accent);flex:none}.steam-library-folder svg{width:24px;height:24px}.steam-library-folder strong{font-size:13px;overflow-wrap:anywhere}.steam-library-folder small{display:block;color:var(--muted);font-size:12px}
+.steam-connection-panel{padding:22px;border:1px solid var(--line);border-radius:20px}.steam-connection-panel h3{margin:0 0 10px;font-size:18px}.steam-connection-panel p{color:var(--muted);font-size:13px;line-height:1.7;margin:0 0 13px}.steam-connection-panel details{margin-top:17px;padding-top:15px;border-top:1px solid var(--line)}.steam-connection-panel summary{font-size:13px;font-weight:700;margin-bottom:12px}.steam-connection-panel .settings-actions{margin-bottom:0}
+.steam-controls-dialog .download-banner{margin:0 0 15px}.steam-controls-dialog .download-banner-content h2{font-size:24px}
+.steam-panel-error{color:var(--muted);font-size:13px;line-height:1.6}
+@container orbit-popup (max-width:640px){.steam-storage-grid{grid-template-columns:1fr}.steam-queue .steam-transfer{grid-template-columns:1fr}.steam-transfer-actions{justify-content:flex-start}.steam-tabs{gap:4px}.steam-tabs button{padding-inline:12px}}
+@media(prefers-reduced-motion:reduce){.orbit-context-menu{animation:none}}.motion-off .orbit-context-menu{animation:none}
+/* Account connections and friends use the same controls in both input modes. */
+.social-platform-heading .platform-logo{width:25px;height:25px;object-fit:contain;flex:0 0 25px}
+.social-platform-actions{gap:10px;row-gap:10px}
+.social-platform-actions>button{min-height:38px;margin:0}
+.social-platform-heading strong{font-size:15px;font-weight:800}
+.social-platform p{font-size:13px;line-height:1.6;min-height:42px}
+.social-connection{font-size:11px;padding:5px 9px}
+.friend-scope{margin:10px 0;line-height:1.5}
+.friend-card .friend-source{gap:10px;flex-wrap:wrap}
+.friend-card .friend-state{font-size:11px}
+.social-account-picker{grid-template-columns:1fr;margin:0}
+.social-account-picker .social-platform p{min-height:0}
+@media(max-width:900px){.social-platforms{grid-template-columns:1fr}.social-platform-heading .social-connection{margin-left:auto}.friends-controls{align-items:stretch;flex-wrap:wrap}.friends-controls .search-box{max-width:none;width:auto;flex-basis:100%}.friends-controls .filters{flex-wrap:wrap;gap:10px}.friend-source .friend-state{margin-left:0}}
+
+.social-platform-heading img[src$="discord.svg"]{filter:none!important}
+/* Optional classic banner: keep controls readable over landscape artwork. */
+:root:not(.couch-mode)[data-desktop-banner=overlay] #hero.hero:not([data-art-shape=portrait]):not([data-art-shape=square]):has(>#hero-image[src]:not([hidden])){display:grid;grid-template-columns:minmax(0,1fr);padding:0;gap:0;min-height:clamp(280px,34vh,340px);background:var(--panel)}
+:root:not(.couch-mode)[data-desktop-banner=overlay] #hero.hero:not([data-art-shape=portrait]):not([data-art-shape=square]):has(>#hero-image[src]:not([hidden]))>#hero-image{grid-area:1/1;position:absolute;inset:0;width:100%;height:100%;max-width:none;aspect-ratio:auto;object-fit:cover;border-radius:inherit}
+:root:not(.couch-mode)[data-desktop-banner=overlay] #hero.hero:not([data-art-shape=portrait]):not([data-art-shape=square]):has(>#hero-image[src]:not([hidden]))>.hero-shade{display:block;position:absolute;inset:0;z-index:1;background:linear-gradient(90deg,rgba(12,12,23,.92),rgba(12,12,23,.72) 35%,rgba(12,12,23,.12) 80%);pointer-events:none}
+:root:not(.couch-mode)[data-desktop-banner=overlay] #hero.hero:not([data-art-shape=portrait]):not([data-art-shape=square]):has(>#hero-image[src]:not([hidden]))>.hero-content{grid-area:1/1;position:relative;z-index:2;box-sizing:border-box;width:100%;max-width:700px;align-self:center;padding:34px 38px;color:#fff}
+:root:not(.couch-mode)[data-desktop-banner=overlay] #hero.hero .hero-content h2{color:inherit}
+:root:not(.couch-mode)[data-desktop-banner=overlay] #hero.hero:not([data-art-shape=portrait]):not([data-art-shape=square]):has(>#hero-image[src]:not([hidden])) .hero-content p{color:inherit;opacity:.85}
+:root:not(.couch-mode)[data-desktop-banner=overlay] #hero.hero:not([data-art-shape=portrait]):not([data-art-shape=square]):has(>#hero-image[src]:not([hidden])) .eyebrow{color:#fff;display:inline-flex;width:max-content;border:1px solid #ffffff38;border-radius:999px;padding:5px 10px;background:#14131c75;letter-spacing:0;font-weight:700}
+:root:not(.couch-mode)[data-desktop-banner=overlay] #hero.hero:not([data-art-shape=portrait]):not([data-art-shape=square]):has(>#hero-image[src]:not([hidden])) .hero-secondary{color:#fff;border-color:#ffffff52;background:#14131c9e}
+.banner-layout-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}
+.banner-layout-options>button{display:flex;align-items:center;gap:14px;min-width:0;padding:14px;border:1px solid var(--line);border-radius:18px;background:var(--panel);color:var(--text);font:inherit;font-weight:800;text-align:left}
+.banner-layout-options>button[aria-pressed=true]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,var(--panel));box-shadow:inset 0 0 0 1px var(--accent)}
+.banner-layout-options>button:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.banner-layout-preview{display:block;position:relative;flex:0 0 86px;height:48px;overflow:hidden;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.banner-layout-preview i{position:absolute;inset:0;background:linear-gradient(125deg,var(--accent),var(--secondary));opacity:.6}
+.banner-layout-preview b{position:absolute;left:9px;bottom:10px;width:28px;height:5px;background:var(--text);border-radius:4px;box-shadow:0 -9px 0 var(--text)}
+.preview-split i{right:36px}.preview-split b{left:auto;right:5px;width:24px;bottom:15px}
+@media(max-width:600px){.banner-layout-options>button{flex-direction:column;align-items:flex-start}:root:not(.couch-mode)[data-desktop-banner=overlay] #hero.hero:not([data-art-shape=portrait]):not([data-art-shape=square]):has(>#hero-image[src]:not([hidden]))>.hero-content{padding:24px 20px}}
+/* Friends links reuse Orbit's theme colors and compact rounded controls. */
+.friend-link-suggestions[hidden]{display:none}.friend-link-suggestions{margin:0 0 24px;padding:18px;border:1px solid var(--line);border-radius:24px;background:var(--panel)}
+.friend-links-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:12px}.friend-links-heading h3{margin:0 0 4px;font-size:18px}.friend-links-heading p{margin:0;color:var(--muted);font-size:14px}.friend-links-heading>span{color:var(--muted);font-size:13px;white-space:nowrap}
+.friend-link-suggestion{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:14px 0;border-top:1px solid var(--line)}
+.friend-match-people{display:flex;align-items:center;gap:14px;min-width:0;flex:1}.link-person{display:flex;align-items:center;gap:10px;min-width:0;flex:1}.link-person>span:last-child{min-width:0}.link-person strong,.link-person small{display:block;overflow-wrap:anywhere}.link-person strong{font-size:15px;line-height:1.4}.link-person small{color:var(--muted);font-size:13px;line-height:1.5}.link-person-initial{display:grid;place-items:center;flex:0 0 38px;width:38px;height:38px;border-radius:14px;background:var(--raised);color:var(--accent);font-weight:800}.friend-match-connector{color:var(--accent);flex:none}
+.friend-match-decision{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}.friend-match-decision>span{color:var(--muted);font-size:13px}.friend-match-decision button{white-space:nowrap}
+#friends-panel .friends-controls .filters{flex-wrap:wrap;gap:10px}#profile-links-button{white-space:nowrap}
+.linked-friend-card{grid-template-columns:46px minmax(0,1fr);position:relative}.linked-friend-card .friend-info{grid-column:2}.friend-linked-label{display:block;color:var(--accent);font-size:13px;margin:3px 0 10px}.linked-profile-actions{display:grid;gap:8px}.linked-profile-actions>button{display:flex;align-items:center;gap:10px;width:100%;min-width:0;min-height:48px;padding:10px;border:1px solid var(--line);border-radius:14px;text-align:left;background:var(--bg);color:var(--text);font:inherit}.linked-profile-actions>button>img{width:20px;height:20px;flex:none}.linked-profile-actions>button>span:nth-child(2){flex:1;min-width:0}.linked-profile-actions strong,.linked-profile-actions small{display:block;overflow-wrap:anywhere}.linked-profile-actions strong{font-size:14px}.linked-profile-actions small{font-size:12px;color:var(--muted)}.linked-profile-actions>button:is(:hover,:focus-visible){border-color:var(--accent);background:var(--raised)}
+.linked-friend-unlink{grid-column:2;justify-self:start;padding:7px 12px;min-height:36px;border:1px solid var(--line);border-radius:999px;background:var(--panel);color:var(--muted);font:inherit;font-size:13px}.linked-friend-unlink:hover{color:var(--text);border-color:var(--accent)}
+.friend-links-manager{display:grid;gap:22px;min-width:0}.friend-links-manager h3{font-size:18px;margin:0 0 12px}.friend-links-manager>section{padding-top:16px;border-top:1px solid var(--line)}.friend-links-manager details>summary{cursor:pointer;font-weight:800;padding:12px 0}.saved-friend-link{display:flex;align-items:center;gap:16px;padding:14px 0;border-top:1px solid var(--line)}.saved-friend-link>button{flex:none}
+#manual-friend-link{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:end}#manual-friend-link>label{display:grid;gap:8px;min-width:0;font-size:14px}#manual-friend-link .desktop-select-trigger{min-width:0;width:100%}#manual-friend-link .desktop-select-trigger>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#manual-friend-link>button{justify-self:start}#manual-friend-link>p{grid-column:1/-1;margin:0;color:var(--warm)}
+@media(max-width:1100px){.friend-link-suggestion{flex-direction:column;align-items:stretch}.friend-match-decision{justify-content:flex-start}.friend-match-decision>span{margin-right:auto}.friend-links-heading{align-items:flex-start}.friends-controls{flex-wrap:wrap}}
+@media(max-width:600px){.friend-match-people{gap:8px}.link-person{gap:6px}.link-person-initial{display:none}.friend-links-heading>span{white-space:normal}#manual-friend-link{grid-template-columns:1fr}.saved-friend-link{align-items:stretch;flex-direction:column}.saved-friend-link>button{align-self:flex-start}}
+.friend-recent-detail{display:grid;gap:10px}.friend-recent-row{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:16px;border:1px solid var(--line);border-radius:18px;background:var(--panel)}.friend-recent-row>strong{font-size:16px}.friend-recent-row>span{font-size:14px;color:var(--muted)}
+.orbit-context-menu .orbit-context-item[role=menuitemcheckbox][aria-checked=true],.orbit-context-menu .orbit-context-item[role=menuitemradio][aria-checked=true]{color:var(--accent)}
+.orbit-context-menu .orbit-context-item:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}.orbit-context-menu .orbit-context-item:active{background:var(--raised);transform:scale(.985)}
+.orbit-context-menu{width:292px;border-radius:23px;padding:8px}.orbit-context-heading{font-size:13px;font-weight:800;line-height:1.4;padding:10px 12px 12px}.orbit-context-menu .orbit-context-item{min-height:44px;font-size:14px;gap:12px;border-radius:14px}.orbit-context-symbol{width:31px;height:31px;flex-basis:31px;border-radius:11px}
+
+/* Steam queues use stable, compact cards rather than full-width button rows. */
+.steam-controls-dialog #installation-title{display:flex;align-items:center;gap:12px;min-width:0}
+.steam-controls-dialog .steam-header-brand{width:35px;height:35px;display:grid;place-items:center;flex:none;color:var(--accent)}
+.steam-controls-dialog .steam-header-brand svg{width:32px;height:32px}
+.steam-controls-dialog .modal-header>.steam-connection-badge{margin-left:auto;margin-right:16px;flex:none}
+.steam-controls-dialog .modal-header>[data-install-close]{flex:none}
+.steam-controls-dialog .steam-tabs{gap:7px;margin-bottom:20px;padding-bottom:16px}
+.steam-controls-dialog .steam-tabs button{font-size:14px;line-height:1.3}
+.steam-controls-dialog .steam-tabs button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.steam-controls-dialog .steam-download-heading{gap:12px;margin-bottom:12px}
+.steam-controls-dialog .steam-download-heading p{font-size:14px}
+.steam-controls-dialog .steam-queue-status{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:16px;min-width:0}
+.steam-controls-dialog .steam-queue-status:empty{display:none}
+.steam-controls-dialog .steam-queue-status>span{font-size:12px;line-height:1.4;padding:5px 10px;border:1px solid var(--line);border-radius:999px;color:var(--muted);background:var(--panel)}
+.steam-controls-dialog .steam-queue-status>[data-state=active]{color:var(--green);border-color:color-mix(in srgb,var(--green),transparent 65%)}
+.steam-controls-dialog .steam-queue-status>strong{margin-left:auto;font-size:14px;font-variant-numeric:tabular-nums;color:var(--accent)}
+.steam-controls-dialog .steam-queue{display:grid;gap:11px;margin:0}
+.steam-controls-dialog .steam-queue .steam-transfer{display:grid;grid-template-columns:104px minmax(0,1fr) auto;align-items:center;gap:16px;padding:16px;border:1px solid var(--line);border-radius:22px;background:var(--panel);min-width:0}
+.steam-controls-dialog .steam-queue .steam-transfer[data-state=active]{border-color:color-mix(in srgb,var(--accent),transparent 35%);background:color-mix(in srgb,var(--accent) 7%,var(--panel))}
+.steam-controls-dialog .steam-transfer-art{width:104px;height:68px;display:grid;place-items:center;overflow:hidden;border-radius:12px}
+html #installation-dialog .steam-transfer-art>.console-artwork{width:100%;height:68px!important;max-width:none;max-height:68px!important;min-height:0!important;margin:0;aspect-ratio:auto!important;align-self:center;background:none;border:0;border-radius:12px}
+html #installation-dialog .steam-transfer-art img{width:100%!important;height:68px!important;object-fit:contain!important;border-radius:inherit}
+.steam-controls-dialog .steam-transfer-main{min-width:0}
+.steam-controls-dialog .steam-transfer-title{display:flex;align-items:center;flex-wrap:wrap;gap:7px 10px;margin-bottom:9px}
+.steam-controls-dialog .steam-transfer-title>strong{font-size:15px;line-height:1.4;overflow-wrap:anywhere}
+.steam-controls-dialog .steam-transfer-state{display:inline-flex;align-items:center;gap:5px;color:var(--muted);font-size:11px;line-height:1.4;font-weight:750}
+.steam-controls-dialog .steam-transfer-state::before{content:'';width:5px;height:5px;flex:none;border-radius:50%;background:currentColor}
+.steam-controls-dialog [data-state=active] .steam-transfer-state{color:var(--green)}
+.steam-controls-dialog .steam-transfer-detail{display:flex;align-items:baseline;justify-content:space-between;gap:10px;min-width:0;margin-bottom:9px}
+.steam-controls-dialog .steam-transfer-detail small{margin:0;font-size:12px;line-height:1.4}
+.steam-controls-dialog .steam-transfer-detail>strong{font-size:12px;font-variant-numeric:tabular-nums;color:var(--text);white-space:nowrap}
+.steam-controls-dialog .steam-transfer-main progress{height:6px;background:var(--raised);border-radius:999px}
+.steam-controls-dialog .steam-transfer-main progress::-webkit-progress-value{border-radius:999px}
+.steam-controls-dialog .steam-transfer-main [data-queue-timing]{margin:7px 0 0;font-size:12px;color:var(--muted)}
+.steam-controls-dialog .steam-transfer-actions{display:flex;flex-wrap:nowrap;gap:10px;justify-content:flex-end}
+.steam-controls-dialog .steam-transfer-actions>.subtle-button{white-space:nowrap;margin:0}
+.steam-controls-dialog :is([data-queue-app],[data-global])>svg{width:19px;height:19px;flex:none;color:var(--accent)}
+.steam-controls-dialog .steam-more-button{display:grid;place-items:center;width:38px;height:38px;min-width:38px;min-height:38px;flex:none;margin:0;padding:7px;border:1px solid var(--line);border-radius:50%;background:var(--bg);color:var(--muted);box-shadow:none}
+.steam-controls-dialog .steam-more-button:is(:hover,:focus-visible,[aria-expanded=true]){background:var(--raised);border-color:var(--accent);color:var(--accent);outline-offset:3px}
+.steam-controls-dialog .steam-storage-grid{gap:14px}
+.steam-controls-dialog .steam-library-folder{background:var(--panel);padding:16px;border-radius:18px}
+.steam-controls-dialog .steam-library-folder strong{font-size:14px}
+.steam-controls-dialog .steam-storage-grid .setting-card{border:1px solid var(--line);background:var(--panel)}
+html #installation-dialog.steam-controls-dialog .steam-storage-grid .setting-card{border-radius:20px;padding:20px}
+html #installation-dialog.steam-controls-dialog .steam-storage-grid .setting-card h3{font-size:17px;font-weight:800;margin:0 0 16px}
+@container orbit-popup (max-width:440px){:root:not(.couch-mode) .steam-controls-dialog .steam-tabs [data-steam-refresh]{font-size:0;width:38px;min-height:38px;padding:6px}:root:not(.couch-mode) .steam-controls-dialog .steam-tabs [data-steam-refresh] .desktop-action-icon{background:none;width:24px;height:24px;flex-basis:24px}}
+@container orbit-popup (max-width:720px){.steam-controls-dialog .steam-queue .steam-transfer{grid-template-columns:88px minmax(0,1fr);gap:12px 14px}.steam-controls-dialog .steam-transfer-art{width:88px;grid-column:1;grid-row:1/3}.steam-controls-dialog .steam-transfer-main{grid-column:2;grid-row:1}.steam-controls-dialog .steam-transfer-actions{grid-column:2;grid-row:2;justify-content:flex-start}}
+@container orbit-popup (max-width:440px){.steam-controls-dialog .steam-queue .steam-transfer{grid-template-columns:64px minmax(0,1fr);padding:13px;gap:12px}.steam-controls-dialog .steam-transfer-art{width:64px;grid-row:1}.steam-controls-dialog .steam-transfer-actions{grid-column:1/-1;grid-row:2;justify-content:flex-end}.steam-controls-dialog .steam-tabs{gap:5px}.steam-controls-dialog .steam-tabs button{padding-inline:10px;font-size:13px}.steam-controls-dialog .steam-connection-badge{font-size:11px;padding:5px 8px}}
+
+@container orbit-popup (max-width:440px){:root:not(.couch-mode) .steam-controls-dialog .steam-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) 38px;gap:5px}:root:not(.couch-mode) .steam-controls-dialog .steam-tabs button{min-width:0;padding-inline:7px}:root:not(.couch-mode) .steam-controls-dialog .steam-tabs [data-steam-refresh]{min-width:38px;gap:0;justify-content:center;padding:6px}:root:not(.couch-mode) .steam-controls-dialog .steam-tabs .steam-refresh-label{display:none}}

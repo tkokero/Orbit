@@ -216,7 +216,7 @@ html .download-banner:has(.download-banner-art:empty){grid-template-columns:1fr}
 
 :root:not(.couch-mode) #downloads-workspace .download-center-row{min-height:0;padding:18px 0}
 :root:not(.couch-mode) #downloads-workspace .download-name{grid-row:auto}
-:root:not(.couch-mode) #main-scroll:has(#downloads-workspace)>.toolbar{display:none}
+:root:not(.couch-mode) #main-scroll:has(#downloads-workspace:not([hidden]))>.toolbar{display:none}
 :root:not(.couch-mode) .download-orbit-badge svg{width:31px;height:31px}
 :root:not(.couch-mode) .hero[data-art-shape=portrait]>img{max-width:230px;justify-self:center}
 :root:not(.couch-mode) .hero[data-art-shape=square]>img{max-width:360px;justify-self:center}
@@ -241,8 +241,8 @@ html .download-banner:has(.download-banner-art:empty){grid-template-columns:1fr}
 :root:not(.couch-mode) .release-days button[aria-pressed=true]:not(.has-preview){background:var(--accent);color:var(--accent-ink)}
 :root:not(.couch-mode) .release-days button[aria-pressed=true]:not(.has-preview) :is(.release-tile-empty,.release-tile-count){color:inherit}
 :root:not(.couch-mode) .release-agenda{border-left:1px solid var(--line);padding-left:24px}
-:root:not(.couch-mode) .release-list:not(:has(button)):before{content:'✦';width:65px;height:65px;margin:35px auto 16px;display:grid;place-items:center;border-radius:50%;border:1px solid var(--line);background:var(--panel);font-size:32px;color:var(--accent)}
-:root:not(.couch-mode) .release-list:not(:has(button))>.small-note{text-align:center}
+:root:not(.couch-mode) .release-agenda .release-list:not(:has(button)):before{content:'✦';width:65px;height:65px;margin:35px auto 16px;display:grid;place-items:center;border-radius:50%;border:1px solid var(--line);background:var(--panel);font-size:32px;color:var(--accent)}
+:root:not(.couch-mode) .release-agenda .release-list:not(:has(button))>.small-note{text-align:center}
 @media(max-width:900px){:root:not(.couch-mode) .release-agenda{border-left:0;padding-left:0}}
 
 /* Details expand inside a stable window, with one scrolling content area. */
@@ -259,7 +259,9 @@ html .download-banner:has(.download-banner-art:empty){grid-template-columns:1fr}
 :root:not(.couch-mode) #theme-editor{padding:0}
 :root:not(.couch-mode) #theme-editor>summary{justify-content:flex-start;gap:13px;min-height:72px;padding:17px 20px}
 :root:not(.couch-mode) .appearance-summary-copy{flex:1}
-:root:not(.couch-mode) .appearance-summary-action{border-radius:999px;padding:9px 16px}
+#theme-editor>summary::after{content:'';width:8px;height:8px;flex:none;margin-left:auto;border-right:1.5px solid var(--accent);border-bottom:1.5px solid var(--accent);transform:rotate(45deg)}
+#theme-editor[open]>summary::after{transform:rotate(225deg)}
+
 :root:not(.couch-mode) #theme-editor>summary~:is(form,.appearance-font-row){margin-inline:20px}
 :root:not(.couch-mode) #theme-form{padding-bottom:20px}
 :root:not(.couch-mode) #add-form{display:grid;gap:20px}
@@ -299,3 +301,13 @@ html .download-banner:has(.download-banner-art:empty){grid-template-columns:1fr}
 @container(max-width:1050px){:root:not(.couch-mode) [data-download-items]{grid-template-columns:1fr}:root:not(.couch-mode) #downloads-workspace .download-center-row{grid-template-columns:minmax(140px,.65fr) minmax(0,1fr)}}
 @container(max-width:480px){:root:not(.couch-mode) #downloads-workspace .download-center-row{grid-template-columns:1fr;gap:18px;padding:16px}:root:not(.couch-mode) .download-row-art>.console-artwork{max-width:100%}}
 @media(max-width:900px){:root:not(.couch-mode) .download-metrics>div{padding:14px}:root:not(.couch-mode) .download-metrics strong{font-size:23px}}
+
+/* Disclosure columns keep decorative icons out of subtitle layout rules. */
+:root:not(.couch-mode) #setup-wizard .setup-optional>summary{display:grid;grid-template-columns:27px minmax(0,1fr) auto 8px;gap:8px 11px;align-items:center;padding:15px 18px;min-height:58px}
+:root:not(.couch-mode) #setup-wizard .setup-optional>summary>.desktop-summary-symbol{grid-column:1;grid-row:1}
+:root:not(.couch-mode) #setup-wizard .setup-optional>summary>strong{grid-column:2;grid-row:1;min-width:0;overflow-wrap:anywhere}
+:root:not(.couch-mode) #setup-wizard .setup-optional>summary>.setup-summary-meta{grid-column:3;grid-row:1;margin:0;max-width:100%}
+:root:not(.couch-mode) #setup-wizard .setup-optional>summary::after{position:static;grid-column:4;grid-row:1;margin:0;justify-self:center}
+@media(max-width:600px){:root:not(.couch-mode) #setup-wizard .setup-optional>summary{grid-template-columns:27px minmax(0,1fr) 8px}:root:not(.couch-mode) #setup-wizard .setup-optional>summary>.setup-summary-meta{grid-column:2;grid-row:2;justify-self:start}:root:not(.couch-mode) #setup-wizard .setup-optional>summary::after{grid-column:3}}
+
+@media(max-width:600px){:root:not(.couch-mode) #setup-wizard .setup-quick-footer{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px}:root:not(.couch-mode) #setup-wizard #setup-later{justify-self:start;margin:0}:root:not(.couch-mode) #setup-wizard #setup-tour-only{justify-self:end}:root:not(.couch-mode) #setup-wizard #setup-use-now{grid-column:1/-1;width:100%;min-width:0}}

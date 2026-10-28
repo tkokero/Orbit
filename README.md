@@ -44,7 +44,7 @@ The optional experimental Steam connection restarts Steam and opens a local debu
 
 ## Make it yours
 
-Choose themes, custom colors, backgrounds, fonts, and startup scenes. Switch between Overlay and Split banners. Resize Desktop popups from their corners and remember shared or separate sizes. Accessibility includes text scaling, stronger focus, contrast, and reduced motion.
+Choose themes, custom colors, backgrounds, fonts, and startup scenes. Match the app icon to your theme or pick a separate style for the next restart. Switch between Overlay and Split banners. Resize Desktop popups from their corners and remember shared or separate sizes. Accessibility includes text scaling, stronger focus, contrast, and reduced motion.
 
 ![Orbit appearance settings](docs/screenshots/orbit-appearance.png)
 

@@ -1,0 +1,21 @@
+/* Plain-language tour cards keep their actions readable at small widths. */
+.tour-card{width:min(400px,calc(100vw - 24px));min-height:0;max-height:calc(100vh - 24px);padding:22px;border-radius:24px;box-sizing:border-box;overscroll-behavior:contain}
+.tour-card small{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:0}
+.tour-card h2{font-size:23px;font-weight:850;margin:10px 0 12px;line-height:1.25}
+.tour-card p{font-size:15px;line-height:1.6;margin:0;color:var(--text)}
+.tour-card .settings-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.tour-card .settings-actions button{min-height:42px;font-size:14px}
+.tour-card .tour-progress{margin-top:20px;height:5px}
+@media(max-width:420px){.tour-card{padding:18px}.tour-card .settings-actions{display:grid;grid-template-columns:1fr 1fr}.tour-card #tour-stop{grid-column:1/-1;margin:0;justify-self:center}.tour-card h2{font-size:21px}}
+
+/* Keep the guide controls in one place; only the highlighted feature changes. */
+html .tour-card{height:min(300px,calc(100vh - 24px));display:flex;flex-direction:column;overflow:hidden;transition:opacity 120ms ease}
+html .tour-card[hidden]{display:none}
+.tour-copy{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding-right:4px}
+html .tour-card .settings-actions{display:grid;grid-template-columns:74px 88px minmax(0,1fr);flex:none;margin-top:16px;align-items:stretch}
+html .tour-card .settings-actions button{margin:0;min-width:0;padding-inline:10px}
+html .tour-orb{transition:none;width:38px;height:38px}
+html.tour-active #main-scroll>.content{padding-bottom:calc(40px + var(--tour-reserve,364px))}
+html.tour-active #main-scroll{scroll-padding-bottom:var(--tour-reserve,364px)}
+@media(max-width:420px){html .tour-card .settings-actions{grid-template-columns:1fr 1fr}html .tour-card #tour-stop{grid-column:1/-1;justify-self:center}html .tour-card{height:min(320px,calc(100vh - 24px))}}
+@media(prefers-reduced-motion:reduce){html .tour-card,html .tour-orb{transition:none}}

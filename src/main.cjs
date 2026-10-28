@@ -5,8 +5,11 @@ const {BackupScheduler}=require('./backup-scheduler.cjs'),{DownloadCenter}=requi
 let backupScheduler,downloadCenter;
 const collectionState=require('./collection-state.cjs'),collectionRules=require('./ui/smart-collections.js');
 const {StorageManager}=require('./storage-manager.cjs');
+const {BulkLibrary}=require('./library-bulk.cjs');
+const bulkLibrary=new BulkLibrary({store:()=>store,games:()=>library(),save:()=>save(),invalidate:()=>{mergedCache=null;}});
 const {GameNews,steamId:newsSteamId}=require('./game-news.cjs');
 const gameNews=new GameNews();let gameStorage,releaseCalendar;
+const newsArticle=post=>require('./news-content.cjs').article(post.content||post.summary,{baseUrl:post.url});
 const {ReleaseCalendar}=require('./release-calendar.cjs');
 const { app, BrowserWindow, ipcMain, dialog, shell, Menu, clipboard, powerMonitor, safeStorage, Notification, net, session, desktopCapturer, globalShortcut } = require('electron');
 const fs = require('node:fs/promises');
@@ -19,13 +22,16 @@ const {retainedRecords}=require('./mod-tools.cjs');
 const {OrbitUpdater,installerDestination}=require('./updater.cjs');
 const {UpdateRestart,readyForUpdate,backgroundRestart}=require('./update-restart.cjs');
 let updates,exitPreparation,updatingRestart=false,updateRestart,updateLaunch={resume:false,background:false};
-const { mergeLibrary, importRecords, actionFor, STORES, parseVdf } = require('./library.cjs');
+const { mergeLibrary, compactRecords, importRecords, actionFor, STORES, parseVdf } = require('./library.cjs');
 const { cacheCovers, cacheHero, downloadImage } = require('./artwork.cjs');
 const { connectSteam } = require('./accounts.cjs');
 const { PlaytimeTracker, nativePlaytime } = require('./playtime.cjs');
 const { entryMenu, backgroundMenu, templateFor } = require('./context-menu.cjs');
 const { LibraryMonitor, watchFolders, installationProgress } = require('./library-monitor.cjs');
 const {SteamFriends,SocialCredentials,providers,socialClientUrl,friendProfileUrl}=require('./social.cjs');
+const {developmentFriendsEnabled,DiscordSdkBridge,DiscordFriends,combinedFriends}=require('./social-discord.cjs');
+const {DiscordReadOnlyBridge}=require('./discord-friends-ipc.cjs');
+let discordFriends;
 const {libraryEntries:robloxLibraryEntries,experienceEntry,launchExperience,RobloxImages}=require('./roblox.cjs');
 const robloxImages=new RobloxImages();
 const {storeDestination}=require('./installers.cjs');
@@ -51,15 +57,22 @@ let saveBackups,cachedLibrary=false,initialLibrary=true;
 const offline=()=>Boolean(store?.settings?.offlineMode)||!net.isOnline();
 const libraryTools=require('./library-tools.cjs');
 const {RunningGames}=require('./running-games.cjs');
-let discordPresence,discordSleeping=false,startupMedia,uiPreferences;const profilePreferences=require('./profile-preferences.cjs');
+let themeIcon;let discordPresence,discordSleeping=false,startupMedia,uiPreferences;const profilePreferences=require('./profile-preferences.cjs');
 let runningGames,runningTimer,handoffProbe,handoffProbeBusy=false,stagedBackup,cleanupPreview=[],controllerHandoff=null,scheduleRunningPoll=null,couchFullscreenBefore=null;
-const activeNotifications=new Set();
+let installationNotifications;
+function installationNotices(){
+ return installationNotifications||=new (require('./installation-notifications.cjs').InstallationNotifications)({Notification,folder:path.join(app.getPath('userData'),'notification-artwork'),enabled:()=>!smoke&&store.settings.downloadNotifications===true,getGame:id=>library().find(g=>g.id===id||g.versions?.some(v=>v.id===id)),getIcon:()=>{const icon=themeIcon?.startupIcon;return icon?{image:icon.image,file:icon.ico.replace(/\.ico$/,'.png')}:null;},getArtwork:g=>[g.hero,heroCache.get(g.id),...(g.versions||[]).flatMap(v=>v.heroCandidates||[])],openGame:async({id})=>{const w=await openMainWindow();if(w.isDestroyed())return;if(w.isMinimized())w.restore();w.show();w.focus();await w.webContents.executeJavaScript('window.orbitTrayActions.run('+JSON.stringify({type:'details',id})+')');},log:error=>console.error('Installation notification:',String(error?.message||error||'Unavailable'))});
+}
 const settingsDefaults={confirmGameClose:true,confirmForceClose:true,lowMemoryRendering:false,offlineMode:false,downloadNotifications:true,autoDiscover:true,startMinimized:false,minimizeOnPlay:false,closeToTray:true,autoLoadFriends:true,refreshFriends:true,autoUpdates:true,restartForUpdates:true,sessionRecaps:true,recordHistory:true,localPlaytime:true,rememberAccounts:true,autoConnectAccounts:true};
 const {attachTray}=require('./tray.cjs');
 let tray,windowCreating,windowLayout,windowSleeping=false,windowBootstrapCached=false;
+let manualRestart;
 const {idleRenderer}=require('./renderer-idle.cjs');
 const shortcuts=require('./desktop-shortcuts.cjs');
 const smoke = process.argv.includes('--smoke-test');
+const {LoginStartup,STARTUP_NAME,backgroundInstance,startupWindowAction,desktopLaunch,migrateDesktopStartup,startupQuery}=require('./login-startup.cjs');
+let desktopStartupMigrated=false;
+const loginStartup=new LoginStartup({app,smoke});
 const backgroundChecks=smoke&&!process.argv.includes('--interactive-checks');
 const checkWindows=[];
 if(backgroundChecks)app.on('browser-window-created',(_event,w)=>checkWindows.push({window:w,state:require('./background-checks.cjs').protectWindow(w)}));
@@ -74,7 +87,7 @@ let launchReadyResolve;const launchReady=new Promise(resolve=>launchReadyResolve
 let lastShortcutResult;
 const primaryInstance=smoke||app.requestSingleInstanceLock();
 if(!primaryInstance)app.quit();
-app.on('second-instance',(_event,args)=>{if(args.includes('--background'))return;let request;try{request=shortcuts.parseRequest(args);}catch(error){dialog.showErrorBox('Invalid game shortcut',error.message);return;}if(request.requested){dispatchShortcut(request.id).catch(error=>dialog.showErrorBox('Could not launch game',error.message+'\nOpen Orbit to repair this entry.'));return;}openMainWindow().then(w=>{if(w.isMinimized())w.restore();w.show();w.focus();}).catch(console.error);});
+app.on('second-instance',(_event,args)=>{if(backgroundInstance(args))return;let request;try{request=shortcuts.parseRequest(args);}catch(error){dialog.showErrorBox('Invalid game shortcut',error.message);return;}if(request.requested){dispatchShortcut(request.id).catch(error=>dialog.showErrorBox('Could not launch game',error.message+'\nOpen Orbit to repair this entry.'));return;}openMainWindow().then(async w=>{if(desktopLaunch(args)){await uiPreferences?.set('orbit-couch','off');await w.webContents.executeJavaScript("localStorage.setItem('orbit-couch','off');window.orbitFeatures?.setCouch(false)");}if(w.isMinimized())w.restore();w.show();w.focus();}).catch(console.error);});
 if (smoke) app.setPath('userData',process.argv.includes('--fresh-profile-smoke')?path.join(process.env.ORBIT_SMOKE_DIR||app.getPath('temp'),'fresh-profile'):path.join(app.getPath('temp'),'orbit-smoke-test'));
 let window, store, records = [], scanWarnings = [], scannedAt = 0, scanning, connections = [], coverStatus = {}, steamRoot, accountSynced = false;
 let mergedCache = null;
@@ -142,7 +155,7 @@ async function refresh(forceImages = false) {
     connections = result.statuses;
     if (store.steamConnected) {
       const steam = connections.find(c => c.source === 'Steam');
-      if (steam) steam.status = `Steam web account connected${store.steamUnresolved ? ` · ${store.steamUnresolved} titles need metadata` : ''}; local history also included`;
+      if (steam) steam.status = `Steam web account connected${store.steamUnresolved ? ` · ${store.steamUnresolved} titles need metadata` : ''}; local play stats retained for confirmed games`;
     }
     for (const source of ['EA', 'Battle.net', 'GOG', 'Xbox']) {
       const found = records.filter(g => g.source === source);
@@ -175,7 +188,7 @@ function handle(name, fn) {
     const debugStarted=debugEnabled?performance.now():0;let debugFailed=false;
     try {
       if(name.startsWith('clips:'))devDebug.requireAccess(debugEnabled||smoke);
-      if(offline()&&['steam:connect','steam:sync','epic:sync','social:connect-steam','store:deals','system:check','library:repair-images','game:repair-image','updates:check'].includes(name))throw Error('This feature needs a connection. Turn off Offline mode in Settings when you are ready.');
+      if(offline()&&['steam:connect','steam:sync','epic:sync','social:connect-steam','social:connect-discord','store:deals','system:check','library:repair-images','game:repair-image','updates:check'].includes(name))throw Error('This feature needs a connection. Turn off Offline mode in Settings when you are ready.');
       if(offline()&&['social:refresh'].includes(name))return {ok:true,data:socialSnapshot()};
       if(offline()&&['store:icon','roblox:icon','social:image','game:achievement-image'].includes(name))return {ok:true,data:null};
       return { ok: true, data: await fn(...args) };
@@ -244,7 +257,7 @@ function popup(items, point = {}) {
     menu.popup({ window, x: Math.max(0, Math.round(Number(point.x) || 0)), y: Math.max(0, Math.round(Number(point.y) || 0)), callback: () => resolve(selected) });
   });
 }
-function settingsSnapshot(){return {...settingsDefaults,...store.settings,renderingRestartRequired:store.settings.lowMemoryRendering!==lowMemoryApplied,launchAtLogin:!smoke&&app.isPackaged?app.getLoginItemSettings({path:process.execPath,args:['--startup']}).openAtLogin:false,startupAvailable:!smoke&&app.isPackaged};}
+function settingsSnapshot(){return {...settingsDefaults,...store.settings,renderingRestartRequired:store.settings.lowMemoryRendering!==lowMemoryApplied,interfaceRecovery:uiPreferences?.recovery?.message||'',...loginStartup.snapshot(store.settings)};}
 async function configureMonitor(){
   monitor?.close();if(smoke||!store.settings.autoDiscover){clearTimeout(rescanTimer);rescanTimer=null;return;}
   monitor ||= new LibraryMonitor(async events=>{
@@ -257,10 +270,7 @@ async function configureMonitor(){
         const progress=downloadEstimator.observe(id,installationProgress(appState));
         const installed=Boolean(Number(appState.StateFlags)&4)&&Boolean(appState.installdir)&&await exists(path.join(event.folder,'common',appState.installdir));
         const completed=matches.some(r=>libraryTools.completedDownload(r.installationProgress,progress,appState,installed));if(completed&&downloadCenter?.confirm(id)){store.downloadHistory=downloadCenter.history;save().catch(()=>{});}
-        if(completed&&store.settings.downloadNotifications&&!smoke&&Notification.isSupported()){
-          const title=matches[0].title,n=new Notification({title:'Ready to play',body:title+' has finished installing. Click to open Orbit.'});activeNotifications.add(n);
-          n.on('click',()=>{if(window&&!window.isDestroyed()){window.show();window.focus();window.webContents.send('download:complete',{id,title});}});n.on('close',()=>activeNotifications.delete(n));n.show();
-        }
+        if(completed&&store.settings.downloadNotifications&&!smoke)void installationNotices().show({id,title:matches[0].title,source:'Steam',updated:matches.some(r=>r.installed)}).catch(error=>console.error('Installation notification:',error.message));
         for(const r of matches){if(r.origin==='scan'){if(r.installed!==installed)rescan=true;r.installed=installed;}r.installationProgress=progress;}changed=true;
       }catch{rescan=true;}
     }
@@ -269,7 +279,7 @@ async function configureMonitor(){
   });
   monitor.start(await watchFolders(steamRoot,parseVdf));
 }
-function socialSnapshot(){const steam=social.snapshot();return {...steam,providers:providers(steam),steamIdHint:steam.steamId||store.steamId||steamFriendHint||'',secureStorageAvailable:safeStorage.isEncryptionAvailable()};}
+function socialSnapshot(){const steam=social.snapshot(),discord=discordFriends?.snapshot();return {...combinedFriends(steam,discord),providers:providers(steam,discord),steamIdHint:steam.steamId||store.steamId||steamFriendHint||'',secureStorageAvailable:safeStorage.isEncryptionAvailable()};}
 function publishRoblox(){mergedCache=null;if(window&&!window.isDestroyed())window.webContents.send('library:update',snapshot());}
 async function openRobloxExperience({id,browser=false}={}){
  const entry=store.roblox?.games.find(g=>g.id===String(id));if(!entry)throw new Error('Save this experience first.');const mode=browser?'browser':store.roblox.mode,url=launchExperience(entry,mode);
@@ -278,8 +288,13 @@ async function openRobloxExperience({id,browser=false}={}){
  return {action:smoke?{type:'url',value:url}:undefined,message:mode==='app'?'Opening '+entry.title+' in Roblox. If it does not start, use Open page.':'Opening '+entry.title+' on Roblox. Choose Play on its page to join.'};
 }
 async function prepareExit(){
- if(!exitPreparation)exitPreparation=(async()=>{if(backgroundChecks){const states=checkWindows.map(({window:w,state})=>({...state,visible:!w.isDestroyed()&&w.isVisible(),focusedNow:!w.isDestroyed()&&w.isFocused()})),passed=states.every(s=>!s.shown&&!s.focused&&!s.visible&&!s.focusedNow),target=process.env.ORBIT_SMOKE_DIR||app.getPath('temp');await fs.mkdir(target,{recursive:true});await fs.writeFile(path.join(target,'background-checks.json'),JSON.stringify({passed,offscreen:true,windows:states},null,2));if(!passed)throw Error('Background validation activated a native window.');}backupScheduler?.stop();releaseCalendar?.stop();await clips?.stop();await installations?.stop();gameStorage?.cancel();await discordPresence?.stop();await customArtwork?.operation?.catch(()=>{});await startupMedia?.close();await saveBackups?.operation?.catch(()=>{});monitor?.close();clearTimeout(rescanTimer);social?.disconnect();await tracker?.shutdown({restart:updatingRestart});await history?.finish({restart:true});await saving;await uiPreferences?.queue;})();
+ if(!exitPreparation)exitPreparation=(async()=>{if(backgroundChecks){const states=checkWindows.map(({window:w,state})=>({...state,visible:!w.isDestroyed()&&w.isVisible(),focusedNow:!w.isDestroyed()&&w.isFocused()})),passed=states.every(s=>!s.shown&&!s.focused&&!s.visible&&!s.focusedNow),target=process.env.ORBIT_SMOKE_DIR||app.getPath('temp');await fs.mkdir(target,{recursive:true});await fs.writeFile(path.join(target,'background-checks.json'),JSON.stringify({passed,offscreen:true,windows:states},null,2));if(!passed)throw Error('Background validation activated a native window.');}backupScheduler?.stop();releaseCalendar?.stop();await clips?.stop();await installations?.stop();gameStorage?.cancel();await discordPresence?.stop();await customArtwork?.operation?.catch(()=>{});await startupMedia?.close();await saveBackups?.operation?.catch(()=>{});monitor?.close();clearTimeout(rescanTimer);social?.disconnect();discordFriends?.stop();await tracker?.shutdown({restart:updatingRestart});await history?.finish({restart:true});await saving;await uiPreferences?.queue;})();
  return exitPreparation;
+}
+async function restartOrbit(){
+ const {AppRestart,restartArguments}=require('./app-restart.cjs');
+ manualRestart||=new AppRestart({app,args:restartArguments({packaged:app.isPackaged,appPath:app.getAppPath(),debug:debugEnabled}),canRestart:async()=>!quitting&&!updatingRestart&&!clips?.child&&!clips?.saving&&![...(installations?.jobs?.values()||[])].some(job=>job.phase==='Downloading')&&await readyForUpdate({window,customArtwork,startupMedia,saveBackups,backupScheduler}),prepare:async()=>{await saving;await uiPreferences?.queue;await save();await tracker.checkpoint();await updateRestart.save(false);},setRestarting:value=>{if(value&&(quitting||updatingRestart))throw Error('Orbit is already restarting.');updatingRestart=value;},clear:()=>updateRestart.clear()});
+ try{await manualRestart.restart();}catch(error){dialog.showErrorBox('Could not restart Orbit',error.message);}
 }
   const steamModes=new (require('./steam-modes.cjs').SteamModes)();
   async function launchEntry(id,withTools=true,modeId,controller=false) {
@@ -344,8 +359,14 @@ async function createDesktopShortcut(id){
 }
 function debugSnapshot(){devDebug.requireAccess(debugEnabled);return {build:app.getVersion(),profile:smoke?'Isolated test profile':'Orbit-Dev',platform:process.platform,versions:{electron:process.versions.electron,node:process.versions.node,chrome:process.versions.chrome},uptimeSeconds:Math.floor(process.uptime()),mainMemory:process.memoryUsage(),processes:app.getAppMetrics().map(p=>({type:p.type,pid:p.pid,cpu:p.cpu?.percentCPUUsage||0,workingSetKB:p.memory?.workingSetSize,privateKB:p.memory?.privateBytes})),runtime:{offline:offline(),rendererSleeping:windowSleeping,softwareRendering:lowMemoryApplied,scanning:Boolean(scanning),cachedLibrary,entries:library().length,runningGames:runningGames?.sessions.size||0,trackingTimers:tracker?.ledger.sessions.size||0,updater:updates?.snapshot().phase||'starting',discord:discordPresence?.snapshot().status.phase||'disabled',calendarEntries:releaseCalendar?.snapshot().games.length||0},logs:debugLog.snapshot()};}
 function setupHandlers() {
-  ipcMain.on('ui:bootstrap',(event,legacy)=>{if(window&&!window.isDestroyed()&&event.sender===window.webContents&&event.senderFrame===window.webContents.mainFrame){try{event.returnValue=uiPreferences.bootstrap(legacy);}catch{event.returnValue=null;}}else event.returnValue=null;});
-  handle('ui:save',({key,value})=>uiPreferences.set(key,value).then(()=>true));
+  ipcMain.on('ui:bootstrap',(event,legacy)=>{if(window&&!window.isDestroyed()&&event.sender===window.webContents&&event.senderFrame===window.webContents.mainFrame){try{event.returnValue=uiPreferences.bootstrap(legacy);themeIcon?.update(uiPreferences.state.values).catch(error=>console.error('Theme icon:',error.message));}catch(error){uiPreferences.recovery={message:error.message};event.returnValue=null;}}else event.returnValue=null;});
+  handle('ui:save',async({key,value})=>{const persisted=uiPreferences.set(key,value);if(['orbit-themes-v1','orbit-super-dark','orbit-app-icon-v1'].includes(key))themeIcon?.update(uiPreferences.state.values).catch(error=>console.error('Theme icon:',error.message));await persisted;return true;});
+  const editing=require('./ui-editing.cjs');
+  handle('ui:edit',action=>editing.edit(window.webContents,action));
+  handle('ui:copy-text',value=>editing.copyText(clipboard,value));
+  handle('ui:copy-image',point=>editing.copyImage(window.webContents,point,window.getContentBounds()));
+  handle('ui:open-link',async value=>{const url=editing.webLink(value);if(!smoke)await shell.openExternal(url);return true;});
+
   ipcMain.on('clips:capability',event=>{event.returnValue=Boolean((debugEnabled||smoke)&&window&&!window.isDestroyed()&&event.sender===window.webContents&&event.senderFrame===window.webContents.mainFrame);});
   ipcMain.on('debug:capability',event=>{event.returnValue=Boolean(debugEnabled&&window&&!window.isDestroyed()&&event.sender===window.webContents&&event.senderFrame===window.webContents.mainFrame);});
   handle('debug:snapshot',()=>debugSnapshot());
@@ -395,6 +416,7 @@ function setupHandlers() {
   handle('clips:reveal',async name=>{if(name){const file=await clips.file(name);if(!smoke)shell.showItemInFolder(file);}else if(!smoke){const error=await shell.openPath(clips.folder);if(error)throw Error(error);}return true;});
   handle('steam:folder-space',async()=>smoke?[{index:0,available:true,free:120*1024**3,total:1000*1024**3},{index:1,available:true,free:450*1024**3,total:2000*1024**3},{index:2,available:true,free:70*1024**3,total:500*1024**3}]:require('./folder-space.cjs').folderSpace(await steamBridge.request('folders')));
   handle('steam:queue',()=>smoke?{items:[],overview:{}}:steamBridge.request('snapshot'));
+  handle('steam:settings',()=>{if(!smoke)return shell.openExternal('steam://open/settings');return true;});
   handle('steam:bridge',async input=>{if(smoke)return {connected:false,message:'Experimental controls are isolated in smoke tests.',apps:[]};try{const [folders,downloads]=await Promise.all([input?.folders===false?Promise.resolve([]):steamBridge.request('folders'),steamBridge.request('snapshot')]);return {connected:true,folders,downloads,apps:baseLibrary().flatMap(g=>g.versions.filter(v=>v.source==='Steam'&&/^\d+$/.test(String(v.appId))).map(v=>({gameId:g.id,versionId:v.id,appId:Number(v.appId),title:g.title,installed:v.installed}))) };}catch(e){return {connected:false,message:e.message,apps:[]};}});
   handle('steam:bridge-start',async()=>{if(smoke)return false;await runningGames.scan();if(runningGames.scanFailed||runningGames.sessions.size)throw Error('Close running games before restarting Steam.');const exe=steamRoot&&path.join(steamRoot,'steam.exe');if(!exe||!await exists(exe))throw Error('Steam could not be located.');await promisify(execFile)(exe,['-shutdown'],{windowsHide:true,timeout:10000}).catch(e=>{if(e.code!=='ETIMEDOUT')throw e;});let ended=false;for(let i=0;i<20;i++){const {stdout}=await promisify(execFile)('tasklist.exe',['/FI','IMAGENAME eq steam.exe','/FO','CSV','/NH'],{windowsHide:true});if(!/"steam.exe"/i.test(stdout)){ended=true;break;}await new Promise(r=>setTimeout(r,500));}if(!ended)throw Error('Steam did not exit gracefully. It was not force-closed.');const child=spawn(exe,['-silent','-cef-enable-debugging','-cef-remote-debugging-address=127.0.0.1'],{detached:true,stdio:'ignore',windowsHide:true});await new Promise((resolve,reject)=>{child.once('spawn',resolve);child.once('error',reject);});child.unref();for(let i=0;i<25;i++){try{await steamBridge.trusted();return true;}catch{}await new Promise(r=>setTimeout(r,500));}throw Error('Steam started, but its experimental bridge is not ready. Try Refresh.');});
   handle('steam:folder-add',async()=>{if(smoke)return false;const selected=await dialog.showOpenDialog(window,{title:'Choose Steam library folder',properties:['openDirectory','createDirectory']});if(selected.canceled)return false;const location=selected.filePaths[0],stat=await fs.lstat(location);if(!stat.isDirectory()||stat.isSymbolicLink()||path.parse(location).root===location)throw Error('Choose a dedicated Steam library folder, not a drive root or link.');await steamBridge.request('addFolder',{path:location});return true;});
@@ -408,19 +430,20 @@ function setupHandlers() {
   handle('downloads:cancel',id=>installations.cancel(id));
   handle('downloads:installer',id=>installations.downloadedFile(id));
   handle('installer:store',async source=>{const url=storeDestination(source);if(!smoke)await shell.openExternal(url);});
-  handle('social:get',async()=>{if(store.settings.autoConnectAccounts&&!steamFriendHint&&steamRoot)try{const users=parseVdf(await fs.readFile(path.join(steamRoot,'config/loginusers.vdf'),'utf8')).users||{};steamFriendHint=Object.entries(users).filter(([id])=>/^\d{17}$/.test(id)).sort((a,b)=>Number(b[1].MostRecent||0)-Number(a[1].MostRecent||0)||Number(b[1].Timestamp||0)-Number(a[1].Timestamp||0))[0]?.[0]||'';}catch{}return socialSnapshot();});
-  handle('social:refresh',async()=>{await social.refresh();return socialSnapshot();});
+  handle('social:get',async()=>{if(!smoke&&store.settings.rememberAccounts&&!offline())await discordFriends?.resume();if(store.settings.autoConnectAccounts&&!steamFriendHint&&steamRoot)try{const users=parseVdf(await fs.readFile(path.join(steamRoot,'config/loginusers.vdf'),'utf8')).users||{};steamFriendHint=Object.entries(users).filter(([id])=>/^\d{17}$/.test(id)).sort((a,b)=>Number(b[1].MostRecent||0)-Number(a[1].MostRecent||0)||Number(b[1].Timestamp||0)-Number(a[1].Timestamp||0))[0]?.[0]||'';}catch{}return socialSnapshot();});
+  handle('social:refresh',async()=>{await Promise.all([social.refresh(),discordFriends?.refresh()]);return socialSnapshot();});
+  handle('social:connect-discord',async input=>{if(smoke)throw Error('Interactive account linking is disabled during background checks.');await discordFriends.connect({remember:input?.remember===true&&store.settings.rememberAccounts});return socialSnapshot();});
   handle('social:connect-steam',async input=>{
     const revision=accountRevision,candidate=new SteamFriends();candidate.configure(String(input?.steamId||''),String(input?.apiKey||''));
     const tested=await candidate.refresh();if(revision!==accountRevision){candidate.disconnect();throw Error('Account connection was cancelled.');}if(tested.error)throw new Error(tested.error);
     if(input?.remember===true&&store.settings.rememberAccounts)await socialVault.save(candidate.steamId,candidate.key);else await socialVault.clear();
     social.disconnect();social=candidate;social.saved=input?.remember===true&&store.settings.rememberAccounts;store.steamId=candidate.steamId;await save();return socialSnapshot();
   });
-  handle('social:disconnect',async()=>{await socialVault.clear();social.disconnect();return socialSnapshot();});
+  handle('social:disconnect',async(provider='steam')=>{if(provider==='discord')await discordFriends.disconnect();else if(provider==='steam'){await socialVault.clear();social.disconnect();}else throw Error('Unknown social platform.');return socialSnapshot();});
   handle('social:open-client',async provider=>{const url=socialClientUrl(provider);if(!smoke)await shell.openExternal(url);return {message:provider==='steam'?'Steam Friends & Chat opened. Use the menu next to your name to change status.':provider==='epic'?'Epic Games opened. Use your profile menu to manage status.':'Discord opened. Use your profile menu to change status.',route:smoke?url:undefined};});
-  handle('social:activity',id=>social.activity(id));
-  handle('social:image',async ({id,gameId}={})=>{const friend=social.people.find(p=>p.id===id);if(!friend)return null;const url=gameId?(await social.activity(id)).games.find(g=>g.id===gameId)?.icon:friend.avatar;return url?downloadImage(url,path.join(app.getPath('userData'),'friend-avatars'),{kind:'icon'}):null;});
-  handle('social:profile',async id=>{const friend=social.people.find(p=>p.id===id);if(!friend)throw new Error('Friend is not in the connected list.');if(!smoke)await shell.openExternal(friendProfileUrl(friend));});
+  handle('social:activity',id=>String(id).startsWith('discord:')?{games:[],unavailable:true}:social.activity(id));
+  handle('social:image',async ({id,gameId}={})=>{const friend=[...social.people,...(discordFriends?.people||[])].find(p=>p.id===id);if(!friend)return null;if(gameId&&friend.platform!=='Steam')return null;const url=gameId?(await social.activity(id)).games.find(g=>g.id===gameId)?.icon:friend.avatar;return url?downloadImage(url,path.join(app.getPath('userData'),'friend-avatars'),{kind:'icon'}):null;});
+  handle('social:profile',async id=>{const friend=[...social.people,...(discordFriends?.people||[])].find(p=>p.id===id);if(!friend)throw new Error('Friend is not in the connected list.');if(!smoke)await shell.openExternal(friendProfileUrl(friend));});
   startupMedia=new (require('./startup-media.cjs').StartupMedia)(path.join(app.getPath('userData'),'startup-videos'));
   handle('intro:get',()=>startupMedia.get());
   handle('intro:choose',async()=>{const selected=await dialog.showOpenDialog(window,{title:'Choose startup video',properties:['openFile'],filters:[{name:'Startup video',extensions:['mp4','webm']}]});return selected.canceled?null:startupMedia.stage(selected.filePaths[0]);});
@@ -441,14 +464,16 @@ function setupHandlers() {
   handle('settings:get',()=>settingsSnapshot());
   handle('settings:update',async change=>{
     if(typeof change?.launchAtLogin==='boolean'){
-      if(smoke||!app.isPackaged)throw new Error('Startup is available in the packaged Windows app.');
-      app.setLoginItemSettings({openAtLogin:change.launchAtLogin,path:process.execPath,args:['--startup']});
+      loginStartup.set(change.launchAtLogin);
+      store.settings.launchAtLogin=change.launchAtLogin;
     }
     if(typeof change?.lowMemoryRendering==='boolean')await fs.writeFile(renderingFile(),JSON.stringify({lowMemoryRendering:change.lowMemoryRendering}));
     for(const key of Object.keys(settingsDefaults))if(typeof change?.[key]==='boolean')store.settings[key]=change[key];
     if(change?.recordHistory===false){await history.finish();recaps.clear();}
     if(change?.localPlaytime===false){for(const id of new Set([...tracker.ledger.sessions.keys(),...tracker.pending.keys()]))await tracker.stop(id);}
-    if(change?.rememberAccounts===false){accountRevision++;await socialVault.clear();social.saved=false;store.steamConnected=false;const partition=session.fromPartition('persist:orbit-steam-account');await partition.clearStorageData();await partition.clearCache();}
+    if(change?.offlineMode===true)discordFriends?.pause();
+    if(change?.offlineMode===false&&store.settings.rememberAccounts)discordFriends?.resume().catch(()=>{});
+    if(change?.rememberAccounts===false){accountRevision++;await socialVault.clear();social.saved=false;await discordFriends?.forget();store.steamConnected=false;const partition=session.fromPartition('persist:orbit-steam-account');await partition.clearStorageData();await partition.clearCache();}
     if(change?.autoConnectAccounts===true)accountSynced=false;
     await save();if('offlineMode' in change)await discordPresence?.configure(store.discord,smoke||offline()||discordSleeping);if(typeof change?.autoDiscover==='boolean')await configureMonitor();if('autoUpdates' in change||'restartForUpdates' in change||'offlineMode' in change){if(offline())updates.stop();else updates.settingsChanged();}return settingsSnapshot();
   });
@@ -488,7 +513,7 @@ function setupHandlers() {
     viewer.on('closed',()=>fs.unlink(file).then(()=>fs.rmdir(folder)).catch(()=>{}));viewer.once('ready-to-show',()=>viewer.show());
     try{await viewer.loadFile(file);}catch(error){viewer.destroy();throw error;}return {available:true};
   });
-  handle('privacy:summary',()=>({history:history.rows.length,notes:Object.values(store.preferences).filter(p=>p.notes).length,localHours:Object.keys(tracker.ledger.totals).length,savedFriends:social.saved,webLibrary:Boolean(store.steamConnected),rememberAccounts:store.settings.rememberAccounts}));
+  handle('privacy:summary',()=>({history:history.rows.length,notes:Object.values(store.preferences).filter(p=>p.notes).length,localHours:Object.keys(tracker.ledger.totals).length,savedFriends:social.saved||Boolean(discordFriends?.saved),webLibrary:Boolean(store.steamConnected),rememberAccounts:store.settings.rememberAccounts}));
   handle('privacy:clear',async({kind,confirmed}={})=>{
     if(confirmed!==true||!['history','notes','hours','accounts'].includes(kind))throw Error('Choose and confirm what to clear.');
     if(kind==='history'){await history.clear();recaps.clear();}
@@ -497,7 +522,7 @@ function setupHandlers() {
     if(kind==='accounts'){
       accountRevision++;
       store.settings.autoConnectAccounts=false;store.settings.rememberAccounts=false;accountSynced=true;
-      social.disconnect();await socialVault.clear();store.steamId='';steamFriendHint='';store.steamConnected=false;
+      social.disconnect();await socialVault.clear();await discordFriends?.disconnect();store.steamId='';steamFriendHint='';store.steamConnected=false;
       for(const partition of ['persist:orbit-steam-account','orbit-steam-account-ephemeral']){const accountSession=session.fromPartition(partition);await accountSession.clearStorageData();await accountSession.clearCache();}
       const avatars=path.resolve(app.getPath('userData'),'friend-avatars');if(path.dirname(avatars)!==path.resolve(app.getPath('userData')))throw Error('Invalid cache path.');await fs.rm(avatars,{recursive:true,force:true});
     }
@@ -537,14 +562,30 @@ function setupHandlers() {
   });
   handle('news:image',async({id,postId})=>{const appId=newsSteamId(gameById(id)),post=gameNews.post(appId,postId);if(!post)return null;const image=post.banner||'https://cdn.akamai.steamstatic.com/steam/apps/'+appId+'/header.jpg';if(offline())return null;return downloadImage(image,path.join(app.getPath('userData'),'artwork'),{kind:'news'});});
   handle('news:get',async({id,refresh})=>{const appId=newsSteamId(gameById(id));if(!appId)return {supported:false,posts:[]};const data=await gameNews.get(appId,{offline:offline(),refresh:refresh===true});return {supported:true,...data,posts:data.posts.map(({content,...post})=>post)};});
-  handle('news:open',async({id,postId})=>{const game=gameById(id),post=gameNews.post(newsSteamId(game),postId);if(!post)throw Error('Refresh game news first.');const article=require('./news-content.cjs').article(post.content||post.summary);return {...post,content:undefined,gameTitle:game.title,article:{html:article.html}};});
+  handle('news:open',async({id,postId})=>{const game=gameById(id),post=gameNews.post(newsSteamId(game),postId);if(!post)throw Error('Refresh game news first.');const article=newsArticle(post);return {...post,content:undefined,gameTitle:game.title,article:{html:article.html}};});
   handle('news:external',async({id,postId})=>{const post=gameNews.post(newsSteamId(gameById(id)),postId);if(!post)throw Error('Refresh game news first.');if(!smoke)await shell.openExternal(post.url);return true;});
-  handle('news:article-image',async({id,postId,index})=>{const post=gameNews.post(newsSteamId(gameById(id)),postId);if(!post||!Number.isInteger(index)||index<0||offline())return null;const image=require('./news-content.cjs').article(post.content||post.summary).images[index];return image?downloadImage(image,path.join(app.getPath('userData'),'artwork'),{kind:'article'}):null;});
+  handle('news:link',async({id,postId,index})=>{const post=gameNews.post(newsSteamId(gameById(id)),postId);if(!post||!Number.isInteger(index)||index<0)throw Error('This article link is no longer available.');const url=newsArticle(post).links[index];if(!url)throw Error('This article link is not supported.');if(!smoke)await shell.openExternal(url);return true;});
+  handle('news:article-image',async({id,postId,index})=>{const post=gameNews.post(newsSteamId(gameById(id)),postId);if(!post||!Number.isInteger(index)||index<0)return null;const image=newsArticle(post).images[index];return image?downloadImage(image,path.join(app.getPath('userData'),'artwork'),{kind:'article',offline:offline()}):null;});
+  handle('library:bulk',async input=>({...await bulkLibrary.update(input),library:snapshot()}));
+  handle('library:undo',async token=>({...await bulkLibrary.restore(token),library:snapshot()}));
+  handle('collections:details',()=>({collections:store.collections||[],styles:require('./ui/collection-design.js').styles(store.collectionStyles)}));
+  let collectionEdits=Promise.resolve();
+  handle('collections:edit',input=>{const result=collectionEdits.then(async()=>{
+    const before={collections:store.collections,preferences:store.preferences,collectionStyles:store.collectionStyles},prepared=collectionState.edit(store,input);
+    Object.assign(store,{collections:prepared.collections,preferences:prepared.preferences,collectionStyles:prepared.collectionStyles});mergedCache=null;
+    try{await save();}catch(error){
+      if(store.collections===prepared.collections)store.collections=before.collections;
+      if(store.collectionStyles===prepared.collectionStyles)store.collectionStyles=before.collectionStyles;
+      for(const [id,pref]of Object.entries(prepared.preferences))if(store.preferences[id]===pref){if(Object.hasOwn(before.preferences,id))store.preferences[id]=before.preferences[id];else delete store.preferences[id];}
+      mergedCache=null;throw error;
+    }
+    return {collections:store.collections,styles:store.collectionStyles,renamed:prepared.renamed,library:snapshot()};
+  });collectionEdits=result.catch(()=>{});return result;});
   handle('collections:get',()=>store.collections||[]);
   handle('collections:save',async input=>{
     const name=String(input?.name||'').trim();if(!name||name.length>40)throw Error('Use a collection name under 40 characters.');
     store.collections||=['Playing','Backlog','Finished'];
-    if(input.remove){store.collections=store.collections.filter(x=>x!==name);for(const p of Object.values(store.preferences))if(p.collections)p.collections=p.collections.filter(x=>x!==name);}
+    if(input.remove){if(store.collectionStyles)delete store.collectionStyles[require('./ui/collection-design.js').key(name)];store.collections=store.collections.filter(x=>x!==name);for(const p of Object.values(store.preferences))if(p.collections)p.collections=p.collections.filter(x=>x!==name);}
     else if(!store.collections.includes(name)){if(store.collections.length>=50)throw Error('You can create up to 50 collections.');store.collections.push(name);}
     mergedCache=null;await save();return store.collections;
   });
@@ -559,7 +600,7 @@ function setupHandlers() {
     const data=stagedBackup;stagedBackup=null;
     await fs.writeFile(path.join(app.getPath('userData'),'before-restore-'+Date.now()+'.json'),JSON.stringify(libraryTools.backup(store,tracker.ledger,ui,tracker.configs),null,2));
     for(const r of data.imports)if(r.executable)r.installed=await exists(r.executable);
-    store.preferences=data.preferences;store.imports=data.imports;store.collections=data.collections;store.wishlist=data.wishlist;store.accessibility=data.accessibility;window.webContents.setZoomFactor(data.accessibility.scale);store.wishlistPrices={};store.smartCollections=data.smartCollections;store.addedAt=data.addedAt;store.addedTrackingInitialized=data.addedTrackingInitialized;store.roblox=data.roblox;store.settings={...settingsDefaults,...data.settings};
+    store.preferences=data.preferences;store.imports=data.imports;store.collections=data.collections;store.collectionStyles=data.collectionStyles;store.wishlist=data.wishlist;store.accessibility=data.accessibility;window.webContents.setZoomFactor(data.accessibility.scale);store.wishlistPrices={};store.smartCollections=data.smartCollections;store.addedAt=data.addedAt;store.addedTrackingInitialized=data.addedTrackingInitialized;store.roblox=data.roblox;store.settings={...settingsDefaults,...data.settings};
     tracker.ledger.totals=data.playtime.totals;tracker.configs=data.playtime.configs;await tracker.save();await save();mergedCache=null;updates?.settingsChanged();
     return {ui:data.ui,library:await refresh()};
   });
@@ -569,6 +610,7 @@ function setupHandlers() {
   handle('downloads:open',source=>{const urls={'Steam':'steam://nav/downloads','Epic Games':'com.epicgames.launcher://library'};if(!urls[source])throw new Error('Open this game’s launcher to see installation progress.');return shell.openExternal(urls[source]);});
   handle('menu:entry', (id, point) => popup(entryMenu(gameById(id),library().filter(g=>g.kind==='tool'&&/r2modman|CurseForge/i.test(g.title)),{running:runningGames.sessions.has(id),collections:store.collections||[],selectedCollections:store.preferences[id]?.collections||[]}), point));
   handle('menu:background', (input, point) => popup(backgroundMenu(input?.section, Boolean(input?.list)), point));
+  handle('menu:items', input=>input?.id?entryMenu(gameById(input.id),library().filter(g=>g.kind==='tool'&&/r2modman|CurseForge/i.test(g.title)),{running:runningGames.sessions.has(input.id),collections:store.collections||[],selectedCollections:store.preferences[input.id]?.collections||[]}):backgroundMenu(input?.section,Boolean(input?.list)));
   handle('game:shortcut',createDesktopShortcut);
   handle('game:copy-title', id => clipboard.writeText(gameById(id).title));
   handle('playtime:start', async id => {if(!store.settings.localPlaytime)throw Error('Enable local playtime in Privacy settings first.'); await tracker.manual(gameById(id)); return snapshot(); });
@@ -718,7 +760,7 @@ async function openMainWindow(){
 async function buildMainWindow(){
  const restored=windowSleeping;windowSleeping=false;if(restored)windowBootstrapCached=true;
   window = new BrowserWindow({ width: 1440, height: 960, ...(windowLayout?.bounds||{}), minWidth: 940, minHeight: 680, show: false,
-    icon:path.join(__dirname,'assets/orbit.png'),title: 'Orbit • Your games, together', backgroundColor: '#10151e', frame: false,
+    icon:themeIcon?.startupIcon?.image||path.join(__dirname,'assets/orbit.png'),title: 'Orbit • Your games, together', backgroundColor: '#10151e', frame: false,
     webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true,...(backgroundChecks?{offscreen:true,backgroundThrottling:false}:{}),devTools:debugEnabled,additionalArguments:debugEnabled?['--orbit-dev-debug']:[] } });
   const current=window;
   for(const event of ['show','hide','minimize','restore'])current.on(event,()=>discordPresence?.setContext({visible:current.isVisible()&&!current.isMinimized()}));
@@ -726,23 +768,27 @@ async function buildMainWindow(){
   if(debugEnabled){debugLog.record('lifecycle','renderer-created');current.webContents.on('console-message',()=>debugLog.record('renderer','console-event'));current.webContents.on('render-process-gone',()=>debugLog.record('lifecycle','renderer-exited'));}
   current.on('closed',()=>{if(window===current)window=null;});
   current.webContents.on('did-finish-load',()=>{current.webContents.setZoomFactor(store.accessibility.scale);if(clips?.child)current.webContents.send('clips:status',clips.snapshot());});
-  if(!smoke){try{if(!tray)tray=attachTray({app,window,ensureWindow:()=>openMainWindow(),icon:path.join(__dirname,'assets/tray.png'),keepRunning:()=>store.settings.closeToTray!==false,isQuitting:()=>quitting||updatingRestart});else tray.bindWindow(current);}catch(error){console.error('System tray unavailable:',error.message);}}
-  if((!smoke&&tray)||memorySmoke)idleRenderer(current,{delay:memorySmoke?300:30000,canSleep:async()=>{if(quitting||updatingRestart||controllerHandoff?.current||customArtwork?.busy||startupMedia?.busy||saveBackups?.busy)return false;return current.webContents.executeJavaScript(`(()=>{if(!window.orbitReady||document.querySelector('#orbit-boot')||document.querySelector('dialog[open]'))return false;localStorage.setItem('orbit-resume-workspace',window.orbitShell?.current()||'library');localStorage.setItem('orbit-resume-scroll',String(document.querySelector('main')?.scrollTop||0));return true;})()`);},beforeSleep:()=>{windowLayout={bounds:current.getNormalBounds(),maximized:current.isMaximized()};windowSleeping=true;}});
-  window.once('ready-to-show',()=>{if(smoke)return;if(restored){if(windowLayout?.maximized)current.maximize();current.show();return;}if(process.argv.includes('--background'))return;if(updateLaunch.background){if(!tray){current.minimize();current.showInactive();}return;}if(process.argv.includes('--startup')&&store.settings.startMinimized){if(!tray){window.minimize();window.showInactive();}}else window.show();});
+  if(!smoke){try{if(!tray)tray=attachTray({app,window,restart:restartOrbit,ensureWindow:()=>openMainWindow(),games:()=>library(),navigate:async command=>{const w=await openMainWindow();if(w.isMinimized())w.restore();w.show();w.focus();await w.webContents.executeJavaScript('window.orbitTrayActions.run('+JSON.stringify(command)+')');},icon:path.join(__dirname,'assets/tray.png'),keepRunning:()=>store.settings.closeToTray!==false,isQuitting:()=>quitting||updatingRestart});else tray.bindWindow(current);}catch(error){console.error('System tray unavailable:',error.message);}}
+  themeIcon?.apply(current,tray);
+  if((!smoke&&tray)||memorySmoke)idleRenderer(current,{delay:memorySmoke?300:2000,canSleep:async()=>{if(quitting||updatingRestart||controllerHandoff?.current||customArtwork?.busy||startupMedia?.busy||saveBackups?.busy)return false;return current.webContents.executeJavaScript(`(()=>{if(!window.orbitReady||document.querySelector('#orbit-boot')||document.querySelector('dialog[open]'))return false;localStorage.setItem('orbit-resume-workspace',window.orbitShell?.current()||'library');localStorage.setItem('orbit-resume-scroll',String(document.querySelector('main')?.scrollTop||0));return true;})()`);},beforeSleep:()=>{windowLayout={bounds:current.getNormalBounds(),maximized:current.isMaximized()};windowSleeping=true;}});
+  window.once('ready-to-show',()=>{if(smoke)return;if(restored){if(windowLayout?.maximized)current.maximize();current.show();return;}if(process.argv.includes('--background'))return;if(updateLaunch.background){current.showInactive();return;}const action=startupWindowAction({args:process.argv,startMinimized:store.settings.startMinimized,trayAvailable:Boolean(tray)});if(action==='minimized'){current.minimize();current.showInactive();}else if(action==='show')current.show();});
   window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   window.webContents.on('will-navigate', event => event.preventDefault());
   window.webContents.session.setPermissionRequestHandler((_wc, _permission, callback) => callback(false));
   const visualReady=smoke?new Promise(resolve=>backgroundChecks?window.webContents.once('did-finish-load',resolve):window.once('ready-to-show',resolve)):null;
-  await current.loadFile(path.join(__dirname, 'ui/index.html'),restored||updateLaunch.resume||process.argv.includes('--background')?{query:{resume:'1'}}:{});
+  const query=startupQuery({args:process.argv,restored,updateResume:updateLaunch.resume,migrated:desktopStartupMigrated});
+  await current.loadFile(path.join(__dirname, 'ui/index.html'),{query});
   return {current,visualReady};
 
 }
 
 app.whenReady().then(async () => {
   if(!primaryInstance)return;
-  if(process.platform==='win32')app.setAppUserModelId('io.github.tkokero.orbit');
+  const loginLaunch=process.argv.includes('--startup');
+  const startupCache=smoke?Promise.resolve(null):readCache(path.join(app.getPath('userData'),'library-cache.json')).catch(()=>null);
+  if(process.platform==='win32')app.setAppUserModelId(STARTUP_NAME);
   updateRestart=new UpdateRestart(path.join(app.getPath('userData'),'update-restart.json'));
-  updateLaunch=await updateRestart.consume(!smoke&&process.argv.includes('--updated'));
+  updateLaunch=await updateRestart.consume(!smoke&&(process.argv.includes('--updated')||process.argv.includes('--restart-orbit')));
   store = defaults();
   try {
     const recovered = smoke?{data:defaults()}:await profilePreferences.readJson(dataPath(),d=>Array.isArray(d.imports)&&Array.isArray(d.remembered)&&d.preferences&&typeof d.preferences==='object');const loaded=recovered.data;if(recovered.recovered)scanWarnings.push('Settings recovered from the previous saved copy.');
@@ -751,36 +797,45 @@ app.whenReady().then(async () => {
   } catch (e) {
     if (e.code !== 'ENOENT') { await fs.copyFile(dataPath(), dataPath() + '.backup-' + Date.now()).catch(() => {}); scanWarnings.push('The library file could not be read; a backup was kept.'); }
   }
-  uiPreferences=await new profilePreferences.UiPreferences(path.join(app.getPath('userData'),'ui-preferences.json')).load().catch(error=>{scanWarnings.push('Interface settings need recovery; existing files were kept.');const p=new profilePreferences.UiPreferences(path.join(app.getPath('userData'),'ui-preferences-recovered.json'));return p;});
+  if(!smoke&&app.isPackaged&&migrateDesktopStartup(store,app.getVersion())){desktopStartupMigrated=true;await save();}
+  if(loginStartup.available)try{const startup=loginStartup.reconcile(store.settings.launchAtLogin);if(typeof store.settings.launchAtLogin!=='boolean')store.settings.launchAtLogin=startup.launchAtLogin;}catch{scanWarnings.push('Windows startup needs attention. Check Launch at login in Settings.');}
+  uiPreferences=await new profilePreferences.UiPreferences(path.join(app.getPath('userData'),'ui-preferences.json')).load().catch(error=>{scanWarnings.push('Interface settings need recovery; existing files were kept.');const p=new profilePreferences.UiPreferences(path.join(app.getPath('userData'),'ui-preferences-recovered.json'));p.recovery={message:'Saved interface settings need recovery. Original files are kept in your data folder.'};return p;});
+  themeIcon=new (require('./theme-icon.cjs').ThemeIcon)({folder:path.join(app.getPath('userData'),'theme-icons'),nativeImage:require('electron').nativeImage,appId:STARTUP_NAME,window:()=>window,tray:()=>tray,taskbar:process.platform==='win32'&&app.isPackaged&&!smoke&&!debugEnabled?new (require('./windows-taskbar-icon.cjs').TaskbarIcon)({folder:path.join(app.getPath('appData'),'Microsoft/Internet Explorer/Quick Launch/User Pinned/TaskBar'),folders:[app.getPath('desktop'),path.join(app.getPath('appData'),'Microsoft/Windows/Start Menu/Programs')],backupFolder:path.join(app.getPath('userData'),'taskbar-shortcut-backups'),iconFolder:path.join(app.getPath('userData'),'theme-icons'),executable:process.execPath,appId:STARTUP_NAME,read:file=>shell.readShortcutLink(file),write:(file,operation,options)=>shell.writeShortcutLink(file,operation,options)}):null});await themeIcon.update(uiPreferences.state.values).catch(error=>console.error('Theme icon:',error.message));
   store.settings.lowMemoryRendering=lowMemoryApplied;
   try{store.discord=require('./discord-presence.cjs').config(store.discord||{});}catch{store.discord={...require('./discord-presence.cjs').DEFAULTS};}
   discordPresence=new (require('./discord-presence.cjs').DiscordPresence)({notify:data=>{if(window&&!window.isDestroyed())window.webContents.send('discord:update',data);}});
   await discordPresence.configure(store.discord,smoke||shortcutRequest.requested||offline());
 
+  store.collectionStyles=require('./ui/collection-design.js').styles(store.collectionStyles);
   try{store.smartCollections=collectionState.smartDefinitions(store.smartCollections||[]);}catch{store.smartCollections=[];scanWarnings.push('Saved smart collections could not be read.');}store.addedAt=collectionState.addedDates(store.addedAt);
   try{store.wishlist=wishlist.validate(store.wishlist||[]);}catch{store.wishlist=[];scanWarnings.push('Saved wishlist could not be read.');}
   try{store.accessibility=accessibility.validate(store.accessibility||{});}catch{store.accessibility=accessibility.validate({});}
-  releaseCalendar=new ReleaseCalendar({file:path.join(app.getPath('userData'),'upcoming-calendar.json'),offline,notify:data=>{if(window&&!window.isDestroyed())window.webContents.send('calendar:update',data);}});await releaseCalendar.load();if(!smoke)releaseCalendar.start();
-  customArtwork=new CustomArtwork(path.join(app.getPath('userData'),'custom-artwork'));await customArtwork.load().catch(()=>scanWarnings.push('Custom artwork index could not be read. Images were kept.'));
-  installations=new InstallationManager({smoke,stateFile:path.join(app.getPath('userData'),'installer-downloads.json'),fetchImpl:(url,options)=>net.fetch(url,options),openFile:file=>shell.openPath(file),openExternal:url=>shell.openExternal(url),emit:()=>{if(window&&!window.isDestroyed())window.webContents.send('downloads:changed');}});await installations.load().catch(()=>scanWarnings.push('Installer download history could not be read. Downloaded files were kept.'));
+  const startupReads=[],startupRead=promise=>startupReads.push(Promise.resolve(promise).then(()=>({status:'fulfilled'}),reason=>({status:'rejected',reason})));
+  releaseCalendar=new ReleaseCalendar({file:path.join(app.getPath('userData'),'upcoming-calendar.json'),offline,notify:data=>{if(window&&!window.isDestroyed())window.webContents.send('calendar:update',data);}});startupRead(releaseCalendar.load().then(()=>{if(!smoke)releaseCalendar.start();}));
+  customArtwork=new CustomArtwork(path.join(app.getPath('userData'),'custom-artwork'));startupRead(customArtwork.load().catch(()=>scanWarnings.push('Custom artwork index could not be read. Images were kept.')));
+  installations=new InstallationManager({smoke,stateFile:path.join(app.getPath('userData'),'installer-downloads.json'),fetchImpl:(url,options)=>net.fetch(url,options),openFile:file=>shell.openPath(file),openExternal:url=>shell.openExternal(url),emit:()=>{if(window&&!window.isDestroyed())window.webContents.send('downloads:changed');}});startupRead(installations.load().catch(()=>scanWarnings.push('Installer download history could not be read. Downloaded files were kept.')));
   if(debugEnabled||smoke)clips=new (require('./clips.cjs').Clips)({app,desktopCapturer,globalShortcut,folder:smoke?path.join(app.getPath('userData'),'test-clips'):path.resolve(typeof store.clipsFolder==='string'&&path.isAbsolute(store.clipsFolder)?store.clipsFolder:path.join(app.getPath('videos'),'Orbit Clips')),root:path.join(app.getPath('userData'),'clips-buffer'),notify:data=>{if(window&&!window.isDestroyed())window.webContents.send('clips:status',data);tray?.updateClips?.(data,()=>clips.save().catch(()=>{}),()=>clips.stop().catch(()=>{}));}});
   gameStorage=new StorageManager({games:()=>baseLibrary(),preferences:()=>store.preferences});
+  discordFriends=new DiscordFriends(new DiscordReadOnlyBridge(new DiscordSdkBridge({directory:app.isPackaged?path.join(process.resourcesPath,'app.asar.unpacked/src/native/discord'):path.join(__dirname,'native/discord'),userData:app.getPath('userData'),allowUnverified:developmentFriendsEnabled(app.getVersion())})));
+  if(!smoke&&store.settings.rememberAccounts&&store.settings.autoLoadFriends&&!offline()){const resume=()=>{if(!quitting&&store.settings.rememberAccounts&&store.settings.autoLoadFriends&&!offline()&&!discordFriends.snapshot().connected)discordFriends.resume().catch(()=>{});};if(loginLaunch)setTimeout(resume,5000).unref();else resume();}
+  if(!store.settings.rememberAccounts)await discordFriends.forget();
   social=new SteamFriends();socialVault=new SocialCredentials(path.join(app.getPath('userData'),'social-credentials.json'),safeStorage);
-  if(!smoke&&store.settings.rememberAccounts){const credential=await socialVault.load();if(credential)social.configure(credential.steamId,credential.key,true);}
+  if(!smoke&&store.settings.rememberAccounts)startupRead(socialVault.load().then(credential=>{if(credential)social.configure(credential.steamId,credential.key,true);}));
   tracker = new PlaytimeTracker(path.join(app.getPath('userData'), 'playtime.json'), updates => { if (window && !window.isDestroyed()) window.webContents.send('playtime:update', updates); },{enabled:()=>store.settings.localPlaytime!==false});
   store.collections||=['Playing','Backlog','Finished'];
-  history=new ActivityHistory(path.join(app.getPath('userData'),'activity-history.json'));await history.load().catch(async()=>{try{await fs.copyFile(history.file,history.file+'.backup-'+Date.now());scanWarnings.push('Session history could not be read. A recovery copy was kept.');}catch{store.settings.recordHistory=false;scanWarnings.push('History could not be read or backed up. Recording is paused.');}});
+  history=new ActivityHistory(path.join(app.getPath('userData'),'activity-history.json'));startupRead(history.load().catch(async()=>{try{await fs.copyFile(history.file,history.file+'.backup-'+Date.now());scanWarnings.push('Session history could not be read. A recovery copy was kept.');}catch{store.settings.recordHistory=false;scanWarnings.push('History could not be read or backed up. Recording is paused.');}}));
+  const startupResults=await Promise.all(startupReads);for(const result of startupResults)if(result.status==='rejected')throw result.reason;
   runningGames=new RunningGames({configs:()=>tracker.configs,games:()=>library().map(g=>{const p=store.preferences[g.id]?.profile;return p?.executable?{...g,installed:true,versions:[{executable:p.executable}]}:g;}),emit:data=>{controllerHandoff?.observe(data);discordPresence?.setSessions(data.map(row=>({...row,hidden:store.preferences[row.id]?.hidden===true})));discordPresence?.configure(store.discord,smoke||offline()||discordSleeping).catch(()=>{});if(store.settings.localPlaytime)tracker.observeRunning(library(),[...runningGames.sessions.values()]).catch(()=>{});backupScheduler?.observe(data);history.observe(data,store.settings.recordHistory).catch(()=>{});const ended=recaps.observe(history,library(),store.settings.recordHistory);if(store.settings.sessionRecaps&&window&&!window.isDestroyed())for(const item of ended)window.webContents.send('recaps:ready',item);if(window&&!window.isDestroyed())window.webContents.send('sessions:update',data);}});
   downloadCenter=new DownloadCenter({history:store.downloadHistory});
   controllerHandoff=new (require('./controller-handoff.cjs').ControllerHandoff)({focus:id=>{if(smoke)return Promise.resolve();window?.focus();return runningGames.focus(id);},notify:data=>{if(window&&!window.isDestroyed())window.webContents.send('couch:handoff',data);},hold:()=>{if(smoke||!window||window.isDestroyed())return;window.setAlwaysOnTop(true,'screen-saver');window.setFullScreen(true);window.restore();window.show();window.focus();},release:()=>{if(!smoke&&window&&!window.isDestroyed())window.setAlwaysOnTop(false);},transition:async()=>{if(!smoke&&window&&!window.isDestroyed())await window.webContents.executeJavaScript('window.OrbitGameHandoff?.depart()');},hide:()=>{if(!smoke)window?.minimize();},restore:id=>{if(smoke)return;openMainWindow().then(w=>{w.setAlwaysOnTop(false);w.restore();w.setFullScreen(true);w.show();w.focus();w.webContents.send('couch:return',id);}).catch(()=>{});}});
-  if(!smoke){const poll=async()=>{if(quitting)return;try{await runningGames.scan();}catch{}if(!quitting)scheduleRunningPoll(controllerHandoff.current?(controllerHandoff.current.handed?5000:750):(window?.isVisible()&&!window.isMinimized())||runningGames.sessions.size?15000:30000);};scheduleRunningPoll=ms=>{clearTimeout(runningTimer);runningTimer=setTimeout(poll,ms);runningTimer.unref();};scheduleRunningPoll(1000);
+  if(!smoke){const poll=async()=>{if(quitting)return;try{await runningGames.scan();}catch{}if(!quitting)scheduleRunningPoll(controllerHandoff.current?(controllerHandoff.current.handed?5000:750):(window?.isVisible()&&!window.isMinimized())||runningGames.sessions.size?15000:30000);};scheduleRunningPoll=ms=>{clearTimeout(runningTimer);runningTimer=setTimeout(poll,ms);runningTimer.unref();};scheduleRunningPoll(loginLaunch?5000:1000);
    // Signal 0 only probes existence. A native scan confirms exit and identity before returning.
    handoffProbe=setInterval(async()=>{const s=controllerHandoff.current;if(quitting||handoffProbeBusy||!s?.handed||!Number.isSafeInteger(s.pid))return;try{process.kill(s.pid,0);return;}catch(error){if(error.code!=='ESRCH')return;}handoffProbeBusy=true;try{await runningGames.scan();}catch{}finally{handoffProbeBusy=false;}},250);handoffProbe.unref();
   }
   await tracker.load({updated:updateLaunch.resume});
   saveBackups=new SaveBackups(path.join(app.getPath('userData'),'save-backups'));await saveBackups.load().catch(()=>scanWarnings.push('Save backup index could not be read. Existing backup files were kept.'));
   backupScheduler=new BackupScheduler({backups:saveBackups,checkClosed:async id=>{await runningGames.scan();return !runningGames.sessions.has(id)&&!tracker.ledger.sessions.has(id)&&!tracker.pending.has(id);},notify:data=>{if(window&&!window.isDestroyed())window.webContents.send('saves:status',data);}});
-  if(!smoke)try{const data=await readCache(path.join(app.getPath('userData'),'library-cache.json'));records=data.records;scannedAt=data.scannedAt||0;steamRoot=data.steamRoot;for(const [id,hero]of data.hero)heroCache.set(id,hero);cachedLibrary=records.length>0;}catch{}
+  if(!smoke)try{const data=await startupCache;if(data){records=compactRecords(data.records);mergedCache=null;scannedAt=data.scannedAt||0;steamRoot=data.steamRoot;for(const [id,hero]of data.hero)heroCache.set(id,hero);cachedLibrary=records.length>0;}}catch{}
   await tracker.resumeAfterUpdate(library());
 
   downloadCenter.observe(library());
@@ -791,7 +846,7 @@ app.whenReady().then(async () => {
     try{if(shortcutRequest.error)throw Error(shortcutRequest.error);const result=await dispatchShortcut(shortcutRequest.id);if(smoke){const out=process.env.ORBIT_SMOKE_DIR||app.getPath('temp');await fs.mkdir(out,{recursive:true});await fs.writeFile(path.join(out,'shortcut-launch.json'),JSON.stringify({passed:true,windowCreated:Boolean(window),result},null,2));}await tracker.shutdown();await saving;app.exit(0);}catch(error){if(smoke)console.error(error.message);else dialog.showErrorBox('Could not launch game',error.message+'\nOpen Orbit to repair or recreate this shortcut.');await tracker.shutdown();app.exit(1);}return;
   }
   const updateSupport=!smoke&&app.isPackaged&&process.platform==='win32'&&await exists(path.join(process.resourcesPath,'app-update.yml'));
-  updates=new OrbitUpdater({driver:updateSupport?require('electron-updater').autoUpdater:null,version:app.getVersion(),settings:()=>({...store.settings,autoUpdates:store.settings.autoUpdates&&!offline()}),canRestart:async()=>{if(!smoke)await runningGames.scan().catch(()=>{});if(clips?.child)return false;return readyForUpdate({window,customArtwork,startupMedia,saveBackups,backupScheduler});},beforeRestart:async({automatic})=>{updatingRestart=true;await tracker.checkpoint();await history.finish({restart:true});await saving;await updateRestart.save(backgroundRestart({automatic,window,playing:runningGames.sessions.size>0||tracker.ledger.sessions.size>0}));},restartFailed:()=>{updatingRestart=false;updateRestart.clear().catch(console.error);},notify:data=>{if(window&&!window.isDestroyed())window.webContents.send('updates:status',data);}});
+  updates=new OrbitUpdater({driver:updateSupport?require('electron-updater').autoUpdater:null,version:app.getVersion(),settings:()=>({...store.settings,autoUpdates:store.settings.autoUpdates&&!offline()}),canRestart:async()=>{if(quitting||updatingRestart||manualRestart?.pending)return false;if(!smoke)await runningGames.scan().catch(()=>{});if(clips?.child)return false;return readyForUpdate({window,customArtwork,startupMedia,saveBackups,backupScheduler});},beforeRestart:async({automatic})=>{if(quitting||updatingRestart||manualRestart?.pending)throw Error('Orbit is already restarting.');updatingRestart=true;await tracker.checkpoint();await history.finish({restart:true});await saving;await updateRestart.save(backgroundRestart({automatic,window,playing:runningGames.sessions.size>0||tracker.ledger.sessions.size>0}));},restartFailed:()=>{if(quitting||manualRestart?.pending)return;updatingRestart=false;updateRestart.clear().catch(console.error);},notify:data=>{if(window&&!window.isDestroyed())window.webContents.send('updates:status',data);}});
   setupHandlers();
   const {visualReady}=await buildMainWindow();
   if(!smoke&&!offline())updates.start();
@@ -860,7 +915,7 @@ app.whenReady().then(async () => {
           const custom=await window.orbit.saveSmartCollection({name:'Smoke smart',rule:OrbitCollections.rule({status:'installed'})});check('custom smart rules persist through IPC',custom.some(d=>d.name==='Smoke smart'));
           const installationStorage=await window.orbit.gameStorage();check('storage lists detected drives and trusted installation folders',Array.isArray(installationStorage.drives)&&Array.isArray(installationStorage.installations)&&installationStorage.installations.every(r=>typeof r.id==='string'&&r.bytes!==undefined));
           await window.orbitExtras.storage();check('storage view opens in actual app',Boolean(document.querySelector('#game-storage [data-storage-rows]')));check('storage bounds rendered installations to forty rows',document.querySelectorAll('.storage-entry').length<=40);check('storage exposes search, ordering and known-size summary',Boolean(document.querySelector('#game-storage [name=query]'))&&Boolean(document.querySelector('#game-storage [name=sort]'))&&Boolean(document.querySelector('[data-storage-known]')));const storageSearch=document.querySelector('#game-storage [name=query]');storageSearch.value='this game does not exist xyz';storageSearch.dispatchEvent(new Event('input'));check('storage search filters installations without a new folder scan',!document.querySelector('.storage-entry')&&Boolean(document.querySelector('#game-storage .management-empty')));closeModal();
-          await OrbitSteam.panel();check('experimental Steam access stays opt-in and has an explicit supported fallback',Boolean(document.querySelector('[data-enable-bridge]'))&&Boolean(document.querySelector('[data-supported]')));OrbitInstall.close();await new Promise(r=>setTimeout(r,300));
+          await OrbitSteam.panel();check('experimental Steam access stays opt-in and has an explicit supported fallback',Boolean(document.querySelector('[data-enable-bridge]'))&&Boolean(document.querySelector('[data-open-steam-downloads]')));OrbitInstall.close();await new Promise(r=>setTimeout(r,300));
           await OrbitInstall.install();check('hybrid install menu offers local files and native downloads',Boolean(document.querySelector('#installation-dialog[open] [data-local-install]'))&&Boolean(document.querySelector('[data-url-install]')));document.querySelector('[data-url-install]').click();check('installer download form stays inside Orbit',Boolean(document.querySelector('#installer-url'))&&Boolean(document.querySelector('#installation-dialog [data-orbit-help]')));OrbitInstall.close();await new Promise(r=>setTimeout(r,300));
           await OrbitInstall.fromFile();check('local installer confirmation uses Orbit rather than a system message box',document.querySelector('#installation-dialog [data-run-file]')&&document.querySelector('.installation-summary').textContent.includes('test-installer.msi'));OrbitInstall.close();await new Promise(r=>setTimeout(r,300));const stagedFile=await window.orbit.runInstaller();check('the approved installer crosses real IPC without executing in smoke mode',(await window.orbit.confirmInstaller({token:stagedFile.token,confirmed:true})).message.includes('Setup opened'));let staleFile=false;try{await window.orbit.confirmInstaller({token:stagedFile.token,confirmed:true});}catch{staleFile=true;}check('installer approval tokens cannot be replayed',staleFile);
           showAdd();await document.querySelector('#add-installer').onclick();check('Add game uses the same installer confirmation as Settings and Downloads',Boolean(document.querySelector('#installation-dialog[open] [data-run-file]')));OrbitInstall.close();await new Promise(r=>setTimeout(r,300));closeModal();
@@ -934,7 +989,7 @@ app.whenReady().then(async () => {
           OrbitHelp.close();check('info dismisses without changing settings',startupHelp.getAttribute('aria-expanded')==='false'&&document.querySelector('#modal').open);
           startupHelp.dispatchEvent(new PointerEvent('pointerover',{bubbles:true,pointerType:'mouse'}));await new Promise(r=>setTimeout(r,220));check('hover reveals help without clicking',document.querySelector('#orbit-help').matches(':popover-open')&&startupHelp.getAttribute('aria-describedby')==='orbit-help');OrbitHelp.close();
           OrbitStartup.unlock('bigbang');check('the new secret can be unlocked and selected',Boolean(document.querySelector('[data-startup-choice=bigbang]'))&&OrbitStartup.duration('bigbang')===7600&&OrbitStartup.duration('nebula')===3200);closeModal();
-          await window.orbitTour.start();check('walkthrough highlights real controls',document.querySelector('#workspace-library').getAttribute('aria-describedby')==='tour-description');const guideOrb=document.querySelector('.tour-orb');check('walkthrough has a visible atom guide',!guideOrb.hidden&&Boolean(guideOrb.querySelector('ellipse')));await window.orbitTour.next();check('walkthrough moves its existing atom to the next control',guideOrb===document.querySelector('.tour-orb')&&document.querySelector('#navigation [data-view=installed]').getAttribute('aria-describedby')==='tour-description');window.orbitTour.finish();check('walkthrough releases its motion when closed',guideOrb.hidden&&guideOrb.getAnimations({subtree:true}).length===0);
+          await window.orbitTour.start();check('walkthrough highlights real controls',document.querySelector('#workspace-library').getAttribute('aria-describedby')==='tour-description');const guideOrb=document.querySelector('.tour-orb'),guideNext=document.querySelector('#tour-next').getBoundingClientRect();check('walkthrough has a visible atom guide',!guideOrb.hidden&&Boolean(guideOrb.querySelector('ellipse')));await window.orbitTour.next();const nextGuidePosition=document.querySelector('#tour-next').getBoundingClientRect();check('walkthrough keeps Next in place while highlighting the next control',guideOrb===document.querySelector('.tour-orb')&&document.querySelector('#hero').getAttribute('aria-describedby')==='tour-description'&&Math.abs(guideNext.x-nextGuidePosition.x)<1&&Math.abs(guideNext.y-nextGuidePosition.y)<1);await window.orbitTour.finish();check('walkthrough releases its motion when closed',guideOrb.hidden&&guideOrb.getAnimations({subtree:true}).length===0);
           const privacy=await window.orbit.privacySummary();check('privacy exposes counts without secrets',Number.isInteger(privacy.notes)&&!('apiKey' in privacy));
           let rejected=false;try{await window.orbit.clearPrivateData({kind:'notes'});}catch{rejected=true;}check('clearing data requires explicit confirmation',rejected);
           const notes=await window.orbit.releaseNotes();check('release notes identify the current build',notes.current.version===notes.available.version);
@@ -997,7 +1052,8 @@ app.whenReady().then(async () => {
       await window.webContents.executeJavaScript('closeModal();OrbitInstall.install()');await new Promise(r=>setTimeout(r,400));await fs.writeFile(path.join(target,'orbit-install-menu.png'),(await window.webContents.capturePage()).toPNG());
       await window.webContents.executeJavaScript('OrbitInstall.close()');await new Promise(r=>setTimeout(r,300));
       await window.webContents.executeJavaScript("OrbitSteam.panel({connected:true,folders:[{nFolderIndex:0,strFolderPath:'C:\\\\SteamLibrary',bIsDefaultFolder:true},{nFolderIndex:1,strFolderPath:'D:\\\\SteamLibrary'}],apps:[{gameId:'fixture',versionId:'steam:123',appId:1091500,title:'Cyberpunk 2077',installed:true}],downloads:{items:[{appid:1091500,active:true,paused:false,queue_index:0,downloaded_bytes:1024**3,total_bytes:4*1024**3,percent:25,rate:6*1024**2,etaSeconds:400}]}})");await new Promise(r=>setTimeout(r,320));await fs.writeFile(path.join(target,'orbit-steam-controls.png'),(await window.webContents.capturePage()).toPNG());
-      const bridgeMenus=await window.webContents.executeJavaScript("Boolean(document.querySelector('[data-add-library]'))&&Boolean(document.querySelector('[data-steam-banner]:not([hidden])'))&&document.querySelectorAll('[data-queue-action]').length>=1&&document.querySelectorAll('[data-move-folder] option').length===2&&Boolean(document.querySelector('[data-bandwidth]'))");report.checks.push({name:'Steam panel includes folders, moves, queue controls and bandwidth controls',passed:bridgeMenus});report.passed&&=bridgeMenus;await window.webContents.executeJavaScript('OrbitInstall.close()');await new Promise(r=>setTimeout(r,300));
+      const bridgeMenus=await window.webContents.executeJavaScript("Boolean(document.querySelector('[data-add-library]'))&&Boolean(document.querySelector('.steam-transfer[data-state=active] .steam-transfer-art'))&&document.querySelectorAll('[data-queue-action]').length>=1&&document.querySelectorAll('[data-move-folder] option').length===2&&Boolean(document.querySelector('[data-bandwidth]'))");report.checks.push({name:'Steam panel includes folders, moves, queue controls and bandwidth controls',passed:bridgeMenus});report.passed&&=bridgeMenus;
+      const steamCardChecks=await window.webContents.executeJavaScript(`(()=>{const d=document.querySelector('#installation-dialog'),row=d.querySelector('.steam-transfer');return [{name:'Steam has one branded header with connection status',passed:d.querySelector('#installation-title').textContent==='Steam'&&Boolean(d.querySelector('.steam-header-brand'))&&!d.querySelector('.steam-overview')},{name:'Steam download cards show real state and percentage',passed:row.dataset.state==='active'&&row.querySelector('[data-queue-percent]').textContent==='25%'&&row.querySelector('[data-queue-app]').dataset.queueAction==='pause'},{name:'Steam queue overflow is a compact accessible menu control',passed:row.querySelector('[data-steam-more]').getAttribute('aria-haspopup')==='menu'&&row.querySelector('[data-steam-more]').getBoundingClientRect().width<=40}];})()`);report.checks.push(...steamCardChecks);report.passed&&=steamCardChecks.every(c=>c.passed);await window.webContents.executeJavaScript('OrbitInstall.close()');await new Promise(r=>setTimeout(r,300));
       await window.webContents.executeJavaScript(`OrbitSteam.game({title:'Cyberpunk 2077',appId:1091500,versionId:'steam:1091500',progress:{phase:'Paused · Download',active:false}},{connected:true,downloads:{items:[{appid:620,active:true,paused:false,queue_index:0},{appid:1091500,active:false,paused:true,queue_index:1,downloaded_bytes:1024**3,total_bytes:4*1024**3,percent:25}]}})`);await new Promise(r=>setTimeout(r,350));
       const gameDownloadChecks=await window.webContents.executeJavaScript(`(()=>{const d=document.querySelector('#installation-dialog');return [{name:'game download controls retain the selected title and progress',passed:d.querySelector('#installation-title').textContent==='Cyberpunk 2077 · Download'&&d.querySelector('[data-game-banner] h2').textContent==='Cyberpunk 2077'&&d.querySelector('progress').value===25},{name:'paused game exposes its own start and queue actions',passed:Boolean(d.querySelector('[data-game-action=resume]'))&&Boolean(d.querySelector('[data-game-action=priority]'))&&Boolean(d.querySelector('[data-game-action=unschedule]'))},{name:'game download controls exclude other games and global Steam settings',passed:!d.querySelector('.steam-queue,[data-move-app],[data-global],[data-bandwidth],[data-add-library]')&&!d.textContent.includes('Portal 2')}];})()`);report.checks.push(...gameDownloadChecks);report.passed&&=gameDownloadChecks.every(c=>c.passed);
       const liveBannerChecks=await window.webContents.executeJavaScript(`(()=>{const h=document.querySelector('[data-game-banner]'),controls=h.querySelector('[data-banner-actions]').innerHTML+' ',item={key:'game-1091500',appId:1091500,title:'Cyberpunk 2077',active:false,paused:true,done:1024**3,total:4*1024**3,percent:25.1};OrbitDownloadHero.render(h,item,controls);const p=h.querySelector('progress'),image=h.querySelector('img'),button=h.querySelector('[data-game-action=resume]');button.focus();OrbitDownloadHero.render(h,{...item,done:1.1*1024**3,percent:25.2},controls);return [{name:'visible banner advances real fractional progress without replacing its bar',passed:h.querySelector('progress')===p&&p.value===25.2&&h.querySelector('[data-banner-percent]').textContent==='25.2%'},{name:'live progress preserves artwork, action buttons and keyboard focus',passed:h.querySelector('img')===image&&h.querySelector('[data-game-action=resume]')===button&&document.activeElement===button}];})()`);report.checks.push(...liveBannerChecks);report.passed&&=liveBannerChecks.every(c=>c.passed);
@@ -1043,11 +1099,12 @@ app.whenReady().then(async () => {
       await fs.writeFile(path.join(target,'orbit-force-close-warning.png'),(await window.webContents.capturePage(closeRect)).toPNG());
       await window.webContents.executeJavaScript("document.querySelector('#game-close-cancel').click();window._closeWarningPreview.then(()=>{delete window._closeWarningPreview;});true");
       window.setSize(540,720);await window.webContents.executeJavaScript('showSettings()');await new Promise(r=>setTimeout(r,400));const settingsNarrow=await window.webContents.executeJavaScript(`(()=>{const d=document.querySelector('#modal'),p=document.querySelector('#panel-general'),input=document.querySelector('.settings-search input');const checks=[{name:'settings fits narrow windows without horizontal overflow',passed:d.scrollWidth<=d.clientWidth&&p.scrollWidth<=p.clientWidth}];input.value='force';input.dispatchEvent(new Event('input'));checks.push({name:'settings search remains usable in a narrow window',passed:document.querySelector('#settings-search-results button').getBoundingClientRect().width>100});input.value='';input.dispatchEvent(new Event('input'));return checks;})()`);report.checks.push(...settingsNarrow);report.passed&&=settingsNarrow.every(c=>c.passed);await window.webContents.capturePage();await new Promise(r=>setTimeout(r,400));await fs.writeFile(path.join(target,'orbit-settings-narrow.png'),(await window.webContents.capturePage()).toPNG());
+      const libraryBatchChecks=await require('./desktop-library-validation.cjs')({window});report.checks.push(...libraryBatchChecks);report.passed&&=libraryBatchChecks.every(c=>c.passed);
       await fs.writeFile(path.join(target, 'smoke-report.json'), JSON.stringify({ ...report, entries: library().length, games: library().filter(g => g.kind === 'game').length, tools: library().filter(g => g.kind === 'tool').length,
         summaryPayloadBytes: Buffer.byteLength(JSON.stringify(snapshot())), installed: library().filter(g => g.installed).length,
         launcherReady: library().filter(g => g.launcherAvailable).length, playtimeAvailable: library().filter(g => g.playtimeKnown).length,
         achievementsAvailable: library().filter(g => g.achievements !== null).length, coverStatus, connections, warnings: scanWarnings }, null, 2));
-      app.exit(report.passed ? 0 : 1);
+      await prepareExit();app.exit(report.passed ? 0 : 1);
     } catch (e) { console.error(e); app.exit(1); }
   }
 });

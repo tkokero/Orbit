@@ -6,7 +6,8 @@ async function readyForUpdate({window,customArtwork,startupMedia,saveBackups,bac
  return true;
 }
 function backgroundRestart({automatic,window,playing}){
- return !window||window.isDestroyed()||!window.isVisible()||window.isMinimized()||Boolean(automatic&&playing);
+ // Reopen visibly after updates; an automatic restart during play must not activate.
+ return Boolean(automatic&&playing);
 }
 class UpdateRestart{
  constructor(file,{clock=Date.now}={}){this.file=file;this.clock=clock;}

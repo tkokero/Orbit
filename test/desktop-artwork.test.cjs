@@ -1,0 +1,13 @@
+const test=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs');
+const settle=()=>new Promise(resolve=>setImmediate(resolve));
+function fixture(){
+ const source=fs.readFileSync(require.resolve('../src/ui/desktop-library.js'),'utf8'),begin=source.indexOf('const requested=new Set()'),end=source.indexOf("  grid.addEventListener('load'",begin);
+ assert(begin>=0&&end>begin,'Desktop artwork loader must be present');
+ const requests=[],jobs=[],games=['a','b','c'].map(id=>({id}));let observe,time=0,enabled=true;
+ const context={state:{games,list:false},document:{hidden:false,addEventListener(){}},settings:{layout:'banners'},active:()=>enabled,grid:{querySelectorAll:()=>[]},Date:{now:()=>time},IntersectionObserver:class{constructor(callback){observe=callback;}unobserve(){}},orbit:{hero:id=>new Promise((resolve,reject)=>{requests.push(id);jobs.push({id,resolve,reject});})}};
+ vm.runInNewContext(source.slice(begin,end),context);
+ return {games,requests,jobs,notify(...ids){observe(ids.map(id=>({isIntersecting:true,target:{dataset:{libraryBanner:id}}})));},advance:ms=>time+=ms,enable:value=>enabled=value,hidden:value=>context.document.hidden=value};
+}
+test('landscape requests remain limited to two concurrent jobs and cache successful artwork',async()=>{const f=fixture();f.notify('a','b','c');assert.deepEqual(f.requests,['a','b']);f.jobs[0].resolve('hero-a');await settle();assert.deepEqual(f.requests,['a','b','c']);assert.equal(f.games[0].hero,'hero-a');f.notify('a');assert.equal(f.requests.length,3);f.jobs[1].resolve('hero-b');f.jobs[2].resolve('hero-c');await settle();});
+test('transient errors back off, then retry instead of permanently losing the banner',async()=>{const f=fixture();f.notify('a');f.jobs[0].reject(Error('Network timeout'));await settle();for(let i=0;i<5;i++)f.notify('a');assert.deepEqual(f.requests,['a']);f.advance(30001);f.notify('a');assert.deepEqual(f.requests,['a','a']);f.jobs[1].resolve('recovered-hero');await settle();assert.equal(f.games[0].hero,'recovered-hero');});
+test('missing artwork backs off too, and inactive or hidden pages do not start requests',async()=>{const f=fixture();f.enable(false);f.notify('a');assert.equal(f.requests.length,0);f.enable(true);f.hidden(true);f.notify('b');assert.equal(f.requests.length,0);f.hidden(false);f.notify('a');assert.deepEqual(f.requests,['a','b']);f.jobs[0].resolve(null);f.jobs[1].resolve('hero-b');await settle();f.notify('a');assert.equal(f.requests.length,2);f.advance(30001);f.notify('a');assert.equal(f.requests.length,3);f.jobs[2].resolve('hero-a');await settle();});

@@ -13,5 +13,5 @@ test('saved Roblox places create a platform library without merging identical na
 });
 
 test('experience context actions omit shared-process tracking and desktop executable controls',()=>{
- const {entryMenu}=require('../src/context-menu.cjs');const menu=entryMenu({robloxPlaceId:'1234',favorite:false});assert.equal(menu[0].label,'Open game');assert.ok(menu.some(i=>i.id==='details'));assert.ok(!JSON.stringify(menu).includes('timer'));assert.ok(!menu.some(i=>i.id==='locate'));
+ const {entryMenu}=require('../src/context-menu.cjs');const menu=entryMenu({robloxPlaceId:'1234',favorite:false});assert.ok(menu.some(i=>i.id==='shortcut'));assert.ok(!menu.some(i=>['play','details','favorite'].includes(i.id)));assert.ok(!JSON.stringify(menu).includes('timer'));assert.ok(!menu.some(i=>i.id==='locate'));
 });

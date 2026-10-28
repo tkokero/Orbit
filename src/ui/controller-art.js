@@ -1,6 +1,10 @@
 /* Small, theme-colored illustrations stay sharp at television and desktop sizes. */
 (()=>{
  const drawings={
+  magnetar:'<circle cx="25" cy="25" r="6"/><ellipse cx="25" cy="25" rx="21" ry="9"/><ellipse cx="25" cy="25" rx="21" ry="9" transform="rotate(60 25 25)"/><ellipse cx="25" cy="25" rx="21" ry="9" transform="rotate(120 25 25)"/>',
+  pulsar:'<circle cx="25" cy="25" r="7"/><path d="m20 20-9-17-8 8 17 9m10 10 9 17 8-8-17-9M16 27a10 10 0 0 0 9 8m0-20a10 10 0 0 1 9 8"/>',
+  attractor:'<circle cx="25" cy="25" r="6"/><path d="M25 2C2 2 2 25 19 25M48 25c0-23-23-23-23-6M25 48c23 0 23-23 6-23M2 25c0 23 23 23 23 6"/>',
+  void:'<circle cx="25" cy="25" r="16"/><path d="M16 10a17 17 0 0 1 23 23M8 40h2m31-32h2"/>',
   bubbles:'<circle cx="25" cy="26" r="13"/><circle cx="9" cy="11" r="6"/><circle cx="40" cy="12" r="5"/><circle cx="40" cy="40" r="7"/><path d="M20 20a7 7 0 0 1 6-2"/>',
   startrail:'<path d="m8 6 22 12M4 16l19 9M8 31l13-2"/><circle cx="32" cy="29" r="12"/><path d="m31 19 2 6 6 3-6 2-2 7-2-7-6-2 6-3Z"/>',
   constellation:'<path d="m8 34 9-23 23 7-8 24-24-8 32-16M17 11l15 31"/><circle cx="8" cy="34" r="3"/><circle cx="17" cy="11" r="3"/><circle cx="40" cy="18" r="3"/><circle cx="32" cy="42" r="3"/>',
@@ -9,6 +13,7 @@
   nebula:'<path d="M5 31C0 18 14 5 26 10S48 17 45 30 30 46 21 39 8 44 5 31Z"/><path d="M10 30c2-13 18-18 25-8s-7 20-14 12"/><path d="m27 19 2 5 5 2-5 2-2 5-2-5-5-2 5-2Z"/>',
   singularity:'<circle cx="25" cy="25" r="9"/><ellipse cx="25" cy="25" rx="23" ry="7" transform="rotate(-25 25 25)"/><path d="M9 20C14 2 38 3 42 22M8 31c5 16 29 18 35-5"/>',
   supernova:'<path d="m25 3 4 13 12-8-7 13 14 4-14 4 7 13-12-8-4 14-4-14-13 8 8-13-14-4 14-4L8 8l13 8Z"/><circle cx="25" cy="25" r="6"/>',
+  goatkero:'<circle cx="25" cy="26" r="20"/><path d="M17 16q-10-3-8-12 4 7 12 7m12 5q10-3 8-12-4 7-12 7M14 20l-7 4 8 4m21-8 7 4-8 4M17 15q8-7 16 0l-1 17q-7 10-14 0Z"/><path d="M18 23h4m6 0h4m-10 9h6m-7 5 4 6 4-6"/>',
   bigbang:'<circle cx="25" cy="25" r="6"/><circle cx="25" cy="25" r="14" stroke-dasharray="14 5"/><path d="M25 2v6m0 34v6M2 25h6m34 0h6M8 8l5 5m24 24 5 5M8 42l5-5m24-24 5-5"/>',
 
   play:'<circle cx="25" cy="25" r="20"/><path d="m21 15 14 10-14 10Z"/>',
@@ -17,6 +22,7 @@
   check:'<circle cx="25" cy="25" r="20"/><path d="m14 25 8 8 15-17"/>',
   add:'<circle cx="25" cy="25" r="18"/><path d="M25 15v20M15 25h20"/>',
   remove:'<path d="M8 13h34M19 13V7h12v6M13 13l2 30h20l2-30M21 21v14m8-14v14"/>',
+  keyboard:'<rect x="5" y="13" width="40" height="26" rx="6"/><path d="M12 20h2m5 0h2m5 0h2m5 0h2m-23 7h2m5 0h2m5 0h2m5 0h2m-19 6h15" stroke-width="2.5"/>',
   gamepad:'<path d="M14 15h22c6 0 10 18 9 25-1 5-9-3-12-6H17C5 47 2 45 5 30c2-9 4-15 9-15Z"/><path d="M11 24h12m-6-6v12"/><circle cx="33" cy="22" r="2"/><circle cx="39" cy="28" r="2"/>',
   sound:'<path d="m7 19 9 0 11-9v30L16 31H7Z"/><path d="M33 17c6 4 6 12 0 16m6-22c12 8 12 20 0 28"/>',
   tune:'<path d="M7 12h36M7 25h36M7 38h36"/><circle cx="17" cy="12" r="5"/><circle cx="33" cy="25" r="5"/><circle cx="21" cy="38" r="5"/>',
@@ -31,6 +37,7 @@
   file:'<path d="M12 5h18l9 10v30H12Z"/><path d="M30 5v11h9M19 25h13m-13 8h10"/>',
   news:'<rect x="6" y="10" width="38" height="31" rx="5"/><path d="M13 17h11v10H13ZM30 17h7m-7 7h7M13 33h24"/>',
   repair:'<path d="m11 41 19-19a12 12 0 0 1 14-14l-8 8 3 6 7-7a12 12 0 0 1-15 14L16 44Z"/><circle cx="13" cy="39" r="2"/>',
+  show:'<path d="M5 25c12-18 28-18 40 0-12 18-28 18-40 0Z"/><circle cx="25" cy="25" r="7"/>',
   hide:'<path d="M5 25c12-18 28-18 40 0-12 18-28 18-40 0Z"/><circle cx="25" cy="25" r="7"/><path d="m7 7 36 36"/>',
   measure:'<path d="m6 31 25-25 13 13-25 25Z"/><path d="m25 12 5 5m-11 1 5 5m-11 1 5 5m-11 1 5 5"/>',
   help:'<circle cx="25" cy="25" r="20"/><path d="M18 19a7 7 0 1 1 11 6c-4 2-4 3-4 6m0 5v1"/>',
@@ -49,6 +56,9 @@
   shuffle:'<path d="M6 13h6c9 0 16 24 24 24h8m-8-7 8 7-8 7M6 37h6c9 0 16-24 24-24h8m-8-7 8 7-8 7"/><circle cx="8" cy="25" r="2"/>',
   'download-play':'<path d="M14 24h22c5 0 8 13 8 17-1 5-8 0-12-3H18C9 45 4 45 7 34c1-6 3-10 7-10Z"/><path d="M25 4v15m-5-5 5 5 5-5m-18 18h9m-5-4v8"/><circle cx="34" cy="30" r="1"/><circle cx="38" cy="34" r="1"/>',
   shelves:'<path d="M7 8v35m36-35v35M7 25h36M7 41h36"/><rect x="12" y="9" width="8" height="12" rx="2"/><path d="m25 10 8-2 3 12-8 2Z"/><rect x="13" y="29" width="23" height="8" rx="2"/>',
+  pause:'<rect x="12" y="9" width="9" height="32" rx="4"/><rect x="29" y="9" width="9" height="32" rx="4"/>',
+  external:'<path d="M28 8h14v14M42 8 23 27M21 12H11a4 4 0 0 0-4 4v23a4 4 0 0 0 4 4h23a4 4 0 0 0 4-4V29"/>',
+  refresh:'<path d="M40 19A16 16 0 0 0 12 12l-5 6m0-10v10h10M10 31a16 16 0 0 0 28 7l5-6m0 10V32H33"/>',
   guest:'<path d="M10 29v-8a15 15 0 0 1 30 0v8m-30-2H6v9h7m27-9h4v9h-7M14 42h22"/><rect x="13" y="15" width="24" height="19" rx="9"/><path d="m19 23 4-3m8 8h-7m-9 9v5m20-5v5"/>'
  };
  window.OrbitControllerArt={icon(name){return `<svg viewBox="0 0 50 50" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${drawings[name]||drawings.library}</svg>`;}};

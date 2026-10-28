@@ -35,13 +35,14 @@ function parseVdf(text) {
   return object();
 }
 function mergeLibrary(records, preferences = {}) {
+  const supported=new Set(records.filter(record=>ownership.allowed(record)).map(record=>record.source+'|'+record.id));
   const steamTitles = new Map();
   for (const record of [...records].sort((a, b) => Number(a.installed) - Number(b.installed))) {
-    if (record.source === 'Steam' && record.appId) steamTitles.set(record.appId, record.title);
+    if (ownership.allowed(record)&&record.source === 'Steam' && record.appId) steamTitles.set(record.appId, record.title);
   }
   const groups = new Map();
   for (const original of records) {
-    if(!ownership.allowed(original))continue;
+    if(!ownership.allowed(original)&&!(original.origin==='local-history'&&supported.has(original.source+'|'+original.id)))continue;
     const referenceId = original.equivalentSteamId || (original.source === 'Steam' && original.appId);
     let record = referenceId && steamTitles.has(referenceId) ? { ...original, title: steamTitles.get(referenceId) } : original;
     if (!record.title || !record.id) continue;
@@ -54,7 +55,7 @@ function mergeLibrary(records, preferences = {}) {
     if (same < 0) versions.push({ ...record,ownershipVerified:record.ownershipVerified===true||record.origin==='steam-account' });
     else {
       const previous = versions[same];
-      const winner = record.installed && !previous.installed ? record : previous;
+      const winner = record.installed && !previous.installed ? record : previous.origin==='local-history'&&record.origin!=='local-history'?record:previous;
       const newestStats = (record.statsUpdatedAt || 0) > (previous.statsUpdatedAt || 0) ? record
         : (record.statsUpdatedAt || 0) < (previous.statsUpdatedAt || 0) ? previous
         : (record.achievements?.items?.length || 0) > (previous.achievements?.items?.length || 0) ? record : previous;
@@ -91,6 +92,9 @@ function safeUrl(value) {
   if (url.protocol === 'steam:' && !/^(rungameid|install|nav|store)$/.test(url.hostname)) throw new Error('Unsupported Steam command.');
   return value;
 }
+// Preserve the same versions and evidence while dropping repeated scan/cache rows.
+// Distinct installed locations remain distinct copies through mergeLibrary's IDs.
+function compactRecords(records) { return mergeLibrary(records).flatMap(game=>game.versions); }
 function actionFor(version) {
   const windowsApp=windowsGameAction(version);if(windowsApp)return windowsApp;
   const direct=checkedDirectLaunch(version);if(direct)return direct;
@@ -124,4 +128,4 @@ function importRecords(data) {
       hero: source === 'Steam' ? `https://cdn.akamai.steamstatic.com/steam/apps/${appId}/library_hero.jpg` : undefined };
   });
 }
-module.exports = { STORES, classify, normalizeTitle, parseVdf, mergeLibrary, safeUrl, actionFor, importRecords };
+module.exports = { STORES, classify, normalizeTitle, parseVdf, mergeLibrary, compactRecords, safeUrl, actionFor, importRecords };

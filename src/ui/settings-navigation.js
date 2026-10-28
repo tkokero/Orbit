@@ -1,10 +1,13 @@
 (()=>{
  function mount(){
   const root=document.querySelector('#modal-body'),general=root.querySelector('#panel-general');if(!general)return;
+  const startupNote=general.querySelector('#startup-status'),startupCard=general.querySelector('[data-setting="launchAtLogin"]')?.closest('.setting-card');if(startupNote&&startupCard)startupCard.querySelector('div')?.append(startupNote);
   const groups=[['Startup & window',['launchAtLogin','startMinimized','closeToTray','intro-toggle','remember-toggle','reopen-setup']],['Library & playing',['autoDiscover','minimizeOnPlay','confirmGameClose','confirmForceClose','downloadNotifications']],['Updates',['autoUpdates','restartForUpdates','check-updates']],['Connections & friends',['offlineMode','autoLoadFriends','refreshFriends']],['Performance & system',['lowMemoryRendering','scan-computer']]];
-  const cards=[...general.children];
+  const recovery=general.querySelector('#recovery-open-data')?.closest('.setting-card');
+  const cards=[...general.children].filter(card=>card!==recovery);
   for(const [title,keys]of groups){const selected=cards.filter(card=>keys.some(key=>card.querySelector('[data-setting="'+key+'"],#'+key)));if(!selected.length)continue;const section=document.createElement('section');section.className='settings-group';const heading=document.createElement('h2');heading.textContent=title;section.append(heading);const grid=document.createElement('div');grid.className='settings-group-grid';section.append(grid);selected.forEach(card=>grid.append(card));general.append(section);}
   const remaining=cards.filter(card=>card.parentElement===general);if(remaining.length){const section=document.createElement('section');section.className='settings-group';const heading=document.createElement('h2');heading.textContent='Preferences';section.append(heading,...remaining);general.append(section);}
+  if(recovery)general.prepend(recovery);
   const bar=document.createElement('div');bar.className='settings-search';const input=document.createElement('input');input.type='search';input.placeholder='Search all settings…';input.setAttribute('aria-label','Search all settings');input.setAttribute('aria-controls','settings-search-results');bar.append(input);root.prepend(bar);
   const results=document.createElement('div');results.id='settings-search-results';results.className='settings-search-results';results.hidden=true;root.append(results);
   const count=document.createElement('p');count.className='small-note';count.setAttribute('role','status');

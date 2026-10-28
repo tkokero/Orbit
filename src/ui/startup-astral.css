@@ -1,0 +1,14 @@
+/* Secret artwork occupies only its intro surface. Saved theme colors stay untouched. */
+.startup-astral{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3;background:#030408}
+[data-startup-style="void"] .boot-scene,[data-startup-style="void"] .boot-bubbles{visibility:hidden}
+[data-startup-style="void"] .startup-skip{z-index:5}
+.controller-arrival.entry-secret .controller-entry-atom{display:none}
+.controller-arrival.entry-secret .arrival-title{animation:astral-title 900ms 2900ms both}
+.controller-arrival.entry-still .arrival-title,.controller-arrival.entry-still .controller-entry-atom{animation:none!important}
+.controller-arrival.entry-secret{background:#030408;color:var(--text)}
+.controller-arrival.entry-secret .arrival-title h1{font-size:clamp(25px,3vw,38px)}
+.entry-preview-magnetar{background:radial-gradient(ellipse at center,var(--accent-soft),transparent 70%)}
+.entry-preview-pulsar{background:linear-gradient(135deg,transparent 30%,var(--accent-soft),transparent 70%)}
+.entry-preview-attractor{background:radial-gradient(ellipse at center,transparent 12%,var(--accent-soft) 35%,transparent 70%)}
+@keyframes astral-title{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.controller-arrival.entry-secret .arrival-title{animation:none}}

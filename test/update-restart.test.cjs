@@ -19,13 +19,13 @@ test('updates only wait for Orbit startup and file operations, allowing backgrou
  assert.equal(await readyForUpdate({...context,window:null}),true);
 });
 
-test('automatic restarts during play stay in the background and a visible manual restart stays visible',()=>{
+test('update restarts reopen visibly, without activation during an automatic restart in play',()=>{
  assert.equal(backgroundRestart({automatic:true,window:visibleWindow,playing:true}),true);
  assert.equal(backgroundRestart({automatic:false,window:visibleWindow,playing:true}),false);
  assert.equal(backgroundRestart({automatic:true,window:visibleWindow,playing:false}),false);
- assert.equal(backgroundRestart({automatic:false,window:{...visibleWindow,isMinimized:()=>true}}),true);
- assert.equal(backgroundRestart({automatic:false,window:{...visibleWindow,isVisible:()=>false}}),true);
- assert.equal(backgroundRestart({automatic:false,window:null}),true);
+ assert.equal(backgroundRestart({automatic:false,window:{...visibleWindow,isMinimized:()=>true}}),false);
+ assert.equal(backgroundRestart({automatic:false,window:{...visibleWindow,isVisible:()=>false}}),false);
+ assert.equal(backgroundRestart({automatic:false,window:null}),false);
 });
 
 test('update restart state is short-lived, one-use, and ignored during ordinary launches',async t=>{

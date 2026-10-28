@@ -1,12 +1,22 @@
 {
-  "version": "0.2.5",
+  "version": "0.2.6",
   "notes": [
-    "New Controller Mode with customizable bindings, artwork-focused game pages, and optional interface sounds.",
-    "Refreshed Desktop UI with clearer text, consistent buttons, improved spacing, and better artwork sizing.",
-    "Resize popups and choose between shared sizing or separate saved sizes for each menu.",
-    "Read Steam announcements inside Orbit.",
-    "Improved downloads, easier access to collections, and clearer game menus.",
-    "Expanded Discord Rich Presence privacy controls for shared games and activity.",
-    "Better settings and theme preservation, navigation, game launch handling, and background checkups."
+    "Make the Desktop library your own with cover or landscape-banner layouts, adjustable card sizes and spacing, and collections pinned in the sidebar.",
+    "Select multiple entries to manage favorites, tags, collections, and hiding together, with Undo for bulk changes.",
+    "Remove active filters individually, clear them together, and see result counts. Rename collections, choose their icons and theme colors, and keep your place when closing details.",
+    "A simpler Friends page with optional Steam and Discord connections, confirmed profile links, and compact account controls.",
+    "Online friends sort by playing, Do Not Disturb, then simply online. Away and outdated presence stay out of Online.",
+    "Orbit right-click menus offer relevant actions throughout the app, with keyboard access and familiar text editing.",
+    "Read game news in Orbit with working links, inline photos, and a Retry action when an article cannot load.",
+    "Clearer installation notifications show game artwork when cached, your Orbit icon, and a View game action. Notifications can reopen Orbit after its window has unloaded to the tray.",
+    "Restore hidden games in bulk, recover missing banner artwork, and reach collection creation directly from bulk editing. Text shortcuts and right-click menu navigation work more consistently.",
+    "Choose overlay or split Desktop banners, with consistent artwork proportions and clearer crop controls.",
+    "Manage Steam downloads, library folders, and optional client controls in one place.",
+    "Orbit reopens in Desktop mode after updates and opens visibly at Windows sign-in when Launch at login is enabled. Update controls are in Settings > Manage.",
+    "More hidden Desktop and Controller startup scenes, with theme-aware artwork, optional sound, and reduced-motion support.",
+    "Cleaner themed setup and menus, balanced Radar panels, and clearer Steam storage and completed-download cards. Settings, themes, artwork, and profile links stay saved.",
+    "A simpler Desktop guide covers more of Orbit and returns you to your place. Downloads keeps its queue and filters when Steam controls open.",
+    "Restart Orbit from the tray for a full startup. Damaged interface settings recover from a valid saved copy, with original files kept separately.",
+    "Match the app icon to your theme or choose a separate style in Appearance, with a preview and a saved choice for the next full restart."
   ]
 }

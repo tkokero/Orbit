@@ -1,0 +1,10 @@
+{
+  "friendsReadOnlyVerified": true,
+  "requestedScopes": [
+    "identify",
+    "relationships.read"
+  ],
+  "reason": "Read-only identity and friends sign-in, refresh, encrypted storage, account match, and reconnect validated on the registered application.",
+  "transport": "authenticated-desktop-ipc",
+  "verifiedAt": "2026-10-25T04:48:00.281Z"
+}

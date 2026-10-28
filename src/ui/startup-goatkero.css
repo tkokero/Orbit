@@ -1,0 +1,20 @@
+[data-startup-style=goatkero]>.boot-scene,[data-startup-style=goatkero]>.boot-bubbles{display:none}
+.goatkero-stage{position:absolute;width:min(92vw,740px);height:min(82vh,580px);display:grid;place-items:center;pointer-events:none;isolation:isolate}
+.goatkero-scene{width:100%;height:100%;overflow:visible;stroke:var(--text);stroke-width:4}
+.goatkero-hero,.goatkero-head,.goatkero-ring-back,.goatkero-ring-front,.goatkero-crown,.goatkero-baa{transform-box:view-box;transform-origin:320px 245px}
+.goatkero-head{transform-origin:320px 245px}
+.goatkero-crown{transform-origin:320px 80px}
+.goatkero-baa{transform-origin:433px 180px}
+.goat-face{fill:var(--panel)}.goat-horn{fill:none;stroke:var(--warm);stroke-width:15}.goat-ear{fill:var(--accent);stroke:var(--text);stroke-width:3}.goat-tuft{fill:var(--accent);stroke-width:3}
+.goat-eye{fill:var(--text);stroke:none}.goat-pupil{fill:var(--bg);stroke:none}.goat-muzzle{fill:var(--accent);stroke:none}.goat-nose{stroke:var(--bg);stroke-width:4}.goat-beard{fill:var(--warm);stroke:var(--text);stroke-width:3}
+.goat-tongue{fill:var(--warm);stroke:var(--text);stroke-width:2;transform-box:fill-box;transform-origin:center top}
+.goat-helmet{fill:color-mix(in srgb,var(--accent),transparent 92%);stroke:var(--accent);stroke-width:4}.goat-glass{stroke:var(--text);stroke-width:5;opacity:.6}
+.goat-suit{fill:var(--accent);stroke:var(--text);stroke-width:4}.goat-arm,.goat-leg{stroke:var(--accent);stroke-width:24}.goat-hoof{stroke:var(--text);stroke-width:15}.goat-suit-badge{fill:var(--bg);stroke:var(--text);stroke-width:2}.goat-badge-ring{stroke:var(--text);stroke-width:3}
+.goatkero-ring-back{stroke:var(--accent);stroke-width:14;opacity:.65}.goatkero-ring-front{stroke:var(--warm);stroke-width:13}.goatkero-crown{fill:var(--warm);stroke:var(--text);stroke-width:4}.goatkero-crown circle{fill:var(--accent);stroke:none}
+.goatkero-stars{stroke:var(--accent);stroke-width:3;opacity:.5}.goatkero-stars path:nth-child(2n){stroke:var(--warm)}
+.goatkero-moon{transform-box:view-box;transform-origin:320px 235px}.goatkero-moon .goat-helmet,.goatkero-moon .goat-tongue{display:none}
+.goatkero-baa{fill:var(--panel);stroke:var(--accent);stroke-width:3}.goatkero-baa text{fill:var(--text);stroke:none;font-family:var(--ui-font,'Orbit Rounded',sans-serif);font-weight:900;font-size:31px;letter-spacing:-1px}
+.goatkero-confetti{stroke:none;fill:var(--accent)}.goatkero-confetti circle:nth-child(2n){fill:var(--warm)}.goatkero-confetti circle:nth-child(3n){fill:var(--green)}
+.goatkero-wordmark{position:absolute;top:84%;font-family:var(--ui-font,'Orbit Rounded',sans-serif);font-size:clamp(32px,5vw,54px);font-weight:900;letter-spacing:-2px;line-height:1.1;color:var(--text)}
+.goatkero-still .goatkero-confetti{display:none}.goatkero-still .goatkero-crown{transform:rotate(-6deg)}
+@media(max-height:500px){.goatkero-stage{height:78vh;width:min(76vw,600px)}.goatkero-wordmark{font-size:30px}}
