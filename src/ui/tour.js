@@ -11,7 +11,7 @@
  const steps=[
   ['#workspace-library','Your games','Your games live here. Open one for details, or choose Play.','library'],
   ['#hero','Pick up where you left off','Your recent game is up front. Play uses your preferred copy.','library'],
-  ['#quick-launch','Quick launch','Press Ctrl+K to find and launch a game from any page.','library'],
+  ['#quick-launch','Quick launch','Find and launch a game from any page.','library'],
   ['#navigation [data-view=installed]','Find games to play','Show installed games, favorites, or games you still need to install.','library'],
   ['#source-navigation','Choose a platform','Use this list to show games from one launcher.','library'],
   ['.library-collections','Keep games together','Use Manage to make collections. Pin them in the sidebar.','library'],

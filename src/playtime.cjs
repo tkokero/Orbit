@@ -3,9 +3,10 @@ const path = require('node:path');
 const { spawn } = require('node:child_process');
 const { performance } = require('node:perf_hooks');
 
-const LAUNCHERS = /^(minecraftlauncher|curseforge|r2modman|overwolflauncher|overwolf|prismlauncher|modrinthapp|steam|steamwebhelper|epicgameslauncher|launcher|gryphlink|riotclientservices|riotclientux|ubisoftconnect|upc|battle\.net|eadesktop|ealauncher|gamelauncher|launch|unins\d*|uninstall|setup|update|updater|crashreportclient|easyanticheat(?:_eos)?|unitycrashhandler\d*|eaanticheat\.gameservicelauncher|start_protected_game|eac_launcher)\.exe$/i;
+const LAUNCHERS = /^(skse64_loader|minecraftlauncher|curseforge|r2modman|overwolflauncher|overwolf|prismlauncher|modrinthapp|steam|steamwebhelper|epicgameslauncher|launcher|gryphlink|riotclientservices|riotclientux|ubisoftconnect|upc|battle\.net|eadesktop|ealauncher|gamelauncher|launch|unins\d*|uninstall|setup|update|updater|crashreportclient|easyanticheat(?:_eos)?|unitycrashhandler\d*|eaanticheat\.gameservicelauncher|start_protected_game|eac_launcher)\.exe$/i;
 const KNOWN = [
   [/^VRChat$/i,['VRChat.exe']],
+  [/^(?:The Elder Scrolls V:\s*)?Skyrim Special Edition$/i,['SkyrimSE.exe']],
   [/^Apex Legends(?:[™®])?$/i,['r5apex.exe','r5apex_dx12.exe']],
   [/^Minecraft for Windows$/i,['Minecraft.Windows.exe']],
   [/arknights.*endfield/i, ['Endfield.exe']], [/^valorant$/i, ['VALORANT-Win64-Shipping.exe']],

@@ -1,0 +1,11 @@
+[data-startup-style=afterglow-encore]>.boot-scene,[data-startup-style=afterglow-encore]>.boot-bubbles{display:none}
+.startup-encore{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:3;background:#19254d}
+.encore-shot{position:absolute;inset:0;width:100%;height:100%;display:block;opacity:0}
+.encore-keyboard{transform-origin:800px 450px}.encore-wing{transform-origin:800px 450px;opacity:0}
+.encore-score{opacity:0}.encore-trace path{stroke-dasharray:100;stroke-dashoffset:0}.encore-night{opacity:1}
+.encore-heart-feather,.encore-day-feather{opacity:0}
+.encore-brand{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:#fffdf8}
+.encore-brand>svg{width:clamp(140px,23vmin,230px);height:clamp(140px,23vmin,230px);flex:none}
+.encore-brand>div{font-family:var(--ui-font,'Orbit Rounded',sans-serif);font-size:clamp(36px,5vmin,58px);font-weight:900;line-height:1.15;letter-spacing:-.04em}
+.encore-still .encore-score,.encore-still .encore-heart,.encore-still .encore-world,.encore-still .encore-comet,.encore-still .encore-night-feather{display:none}
+@media(max-height:420px){.encore-brand>svg{width:108px;height:108px}.encore-brand>div{font-size:30px}}

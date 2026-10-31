@@ -21,3 +21,5 @@ The Windows build retains the complete Chromium notices in `resources/chromium-n
 - The native Discord integration uses Discord Social SDK 1.10.19337. Its SDK binaries are separately licensed under the [Discord Social SDK Terms](https://support-dev.discord.com/hc/en-us/articles/30225844245271-Discord-Social-SDK-Terms), not Orbit's MIT license. Bundled component notices are in src/native/discord/Discord-LICENSE-NOTICES.txt.
 - The native helper uses nlohmann/json 3.12.0 under the MIT license. The unmodified header and notice are in native/discord/vendor; the runtime distribution retains src/native/discord/JSON-LICENSE.txt.
 - The Discord logo is a trademark of Discord; its display does not imply endorsement.
+
+- Experimental Orbit VR uses Valve OpenVR. The pinned upstream revision is in `src/native/vr/UPSTREAM.json`; the unmodified bindings, runtime DLL, and BSD 3-clause notice are retained in that directory. SteamVR is a Valve product; this does not imply endorsement.

@@ -1,0 +1,24 @@
+[data-startup-style=afterglow]>.boot-scene,[data-startup-style=afterglow]>.boot-bubbles{display:none}
+.startup-afterglow{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:3;background:#eff5ff;--afterglow-ring:#6d97c9;--afterglow-dot:#bd795d}
+.afterglow-sky,.afterglow-room,.afterglow-pulse,.afterglow-feathers,.afterglow-comet,.afterglow-title-wash{position:absolute;inset:0;width:100%;height:100%}
+.afterglow-sky{display:block;isolation:isolate}
+.afterglow-room{opacity:0}.afterglow-pulse{opacity:0;stroke-linejoin:round;stroke-linecap:round}
+.afterglow-pulse path{stroke-dasharray:100;stroke-dashoffset:0}
+.afterglow-pulse .pulse-halo{stroke:#ed83af;stroke-width:22;opacity:.18}.afterglow-pulse .pulse-color{stroke:#ed83af;stroke-width:8}.afterglow-pulse .pulse-core{stroke:#fff;stroke-width:2.7}
+.afterglow-feather{position:absolute;display:block;height:auto;aspect-ratio:80/190;transform:rotate(var(--feather-angle));opacity:.85}
+.afterglow-feather svg{display:block;width:100%;height:100%}.afterglow-comet{opacity:0}
+.afterglow-title-wash{opacity:.82;background:radial-gradient(ellipse at 50% 48%,#fffffff2 0%,#ffffffa8 28%,#ffffff1a 66%,transparent 88%)}
+.afterglow-brand{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;opacity:1;color:#1c355b}
+.afterglow-logo{width:clamp(128px,22vmin,216px);height:clamp(128px,22vmin,216px);overflow:visible;shape-rendering:geometricPrecision;flex:none}
+.afterglow-wordmark{font-family:var(--ui-font,'Orbit Rounded',sans-serif);font-size:clamp(36px,5vmin,60px);font-weight:900;line-height:1.15;letter-spacing:-.04em}
+.afterglow-still .afterglow-room,.afterglow-still .afterglow-pulse,.afterglow-still .afterglow-comet{display:none}
+@media(max-height:420px){.afterglow-brand{gap:0}.afterglow-logo{width:110px;height:110px}.afterglow-wordmark{font-size:30px}}
+
+.afterglow-feather[data-feather="0"]{left:9%;top:23%;width:33px;--feather-angle:-32deg}
+.afterglow-feather[data-feather="1"]{left:78%;top:15%;width:47px;--feather-angle:29deg}
+.afterglow-feather[data-feather="2"]{left:24%;top:69%;width:28px;--feather-angle:-17deg}
+.afterglow-feather[data-feather="3"]{left:84%;top:63%;width:39px;--feather-angle:55deg}
+.afterglow-feather[data-feather="4"]{left:64%;top:81%;width:24px;--feather-angle:-28deg}
+.afterglow-feather[data-feather="5"]{left:44%;top:10%;width:22px;--feather-angle:24deg}
+.afterglow-feather[data-feather="6"]{left:5%;top:78%;width:42px;--feather-angle:-55deg}
+.afterglow-feather[data-feather="7"]{left:93%;top:30%;width:25px;--feather-angle:33deg}

@@ -89,9 +89,9 @@ test('automatic starts and update launches request Desktop without affecting exp
  assert.deepEqual(startupQuery({args:['--startup']}),{desktop:'1'});
  assert.deepEqual(startupQuery({args:['--updated'],updateResume:true}),{resume:'1',desktop:'1'});
  assert.deepEqual(startupQuery({args:['--restart-orbit'],updateResume:true}),{desktop:'1'});
- assert.deepEqual(startupQuery({args:['--restart-orbit'],restored:true,updateResume:true}),{resume:'1'});
+ assert.deepEqual(startupQuery({args:['--restart-orbit'],restored:true,updateResume:true}),{resume:'1','restore-workspace':'1'});
  assert.deepEqual(startupQuery({migrated:true}),{desktop:'1'});
  assert.deepEqual(startupQuery({args:['--background'],migrated:true}),{resume:'1'});
- assert.deepEqual(startupQuery({args:['--startup'],restored:true}),{resume:'1'});
+ assert.deepEqual(startupQuery({args:['--startup'],restored:true}),{resume:'1','restore-workspace':'1'});
  assert.deepEqual(startupQuery({args:[]}),{});
 });

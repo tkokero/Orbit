@@ -1,0 +1,13 @@
+const P=require('./ui/friend-presence.js'),Links=require('./ui/friend-links.js');
+const text=(v,max=300)=>typeof v==='string'?v.slice(0,max):'';
+const image=v=>typeof v==='string'&&v.length<4096&&/^file:\/\//i.test(v)?v:null;
+function settings(value={}){return {mode:require('./vr-workspace-model.cjs').anchors.includes(value.mode)?value.mode:'dashboard'};}
+function state({games=[],sessions=[],preferences={},values={},social={},downloads={}}={}){
+ let privateIds=[];try{const p=JSON.parse(values['orbit-couch-home-v1']||'{}');privateIds=Array.isArray(p.privateIds)?p.privateIds:[];}catch{}
+ const visible=games.filter(g=>!g.hidden&&!privateIds.includes(g.id)),ids=new Set(visible.map(g=>g.id));let links;try{links=JSON.parse(values[Links.key]||'{}');}catch{}
+ const friends=P.rows(Links.view(links,social),{filter:'online'}).slice(0,60).map(f=>({id:f.id,name:text(f.name,100),activity:text(f.activity,150),state:P.label(f),providers:P.visible(f).map(p=>p.platform)}));
+ return {games:visible.map(g=>({id:g.id,title:text(g.title),kind:g.kind,installed:Boolean(g.installed),playable:Boolean(g.installed||g.alternateLaunch||g.launcherAvailable||g.directLaunchAvailable),actionLabel:g.installed||g.alternateLaunch||g.directLaunchAvailable?'Play':g.launcherAvailable?'Open launcher':'Not installed',favorite:!!g.favorite,collections:(Array.isArray(g.collections)?g.collections:[]).slice(0,30),cover:image(g.cover),hero:image(g.hero),lastPlayed:Number(g.lastPlayed)||0,notes:text(preferences[g.id]?.notes,4000)})),sessions:sessions.filter(s=>ids.has(s.id)).map(s=>({id:s.id,title:text(s.title),seconds:Math.max(0,Number(s.seconds)||0)})),friends,downloads:(downloads.items||[]).filter(d=>ids.has(d.id)).slice(0,40).map(d=>({id:d.id,title:text(d.title),source:text(d.source),canControl:d.source==='Steam'&&Number.isInteger(d.appId),active:!!d.progress?.active,phase:text(d.progress?.phase),percent:Math.max(0,Math.min(100,Number(d.progress?.percent)||0))})),theme:require('./theme-icon.cjs').palette(values),settings:settings()};
+}
+function frame(bytes,width=1536,height=960){if(!Buffer.isBuffer(bytes)||width!==1536||height!==960||bytes.length!==width*height*4)throw Error('Invalid overlay frame.');const header=Buffer.alloc(13);header.writeUInt32LE(bytes.length+9);header[4]=1;header.writeInt32LE(width,5);header.writeInt32LE(height,9);return Buffer.concat([header,bytes]);}
+function command(value){const json=Buffer.from(JSON.stringify(value));if(json.length>16000)throw Error('Overlay command is too large.');const header=Buffer.alloc(5);header.writeUInt32LE(json.length+1);return Buffer.concat([header,json]);}
+module.exports={state,settings,frame,command};

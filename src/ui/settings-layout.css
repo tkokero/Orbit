@@ -1,0 +1,153 @@
+/* Room for settings, without shrinking labels or changing a saved popup frame. */
+html:root:not(.couch-mode) #modal.settings-dialog #modal-body{grid-template-columns:168px minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);gap:18px 24px;min-width:0}
+html:root:not(.couch-mode) .settings-dialog .settings-tabs{min-width:0;gap:6px;align-self:stretch;overflow:auto}
+html:root:not(.couch-mode) .settings-dialog .settings-tabs button{min-height:44px;padding:9px 12px;font-size:14px;line-height:1.4;gap:9px}
+html:root:not(.couch-mode) .settings-dialog .settings-tabs .desktop-action-icon{width:24px;height:24px;flex-basis:24px}
+html:root:not(.couch-mode) .settings-dialog #modal-body>[role=tabpanel]{min-width:0;min-height:0;padding-right:8px;scroll-padding-top:76px}
+html:root:not(.couch-mode) .settings-dialog .settings-search{min-width:0;margin:0;padding:0 0 14px}
+html:root:not(.couch-mode) .settings-dialog .settings-search input{font-size:15px;min-height:44px;margin:0}
+html:root:not(.couch-mode) .settings-dialog .setting-row{display:flex;align-items:center;justify-content:space-between;gap:20px;min-width:0;min-height:62px}
+html:root:not(.couch-mode) .settings-dialog .setting-row>div:first-child{min-width:0;flex:1}
+html:root:not(.couch-mode) .settings-dialog .setting-row>h3{min-width:0;flex:1}
+html:root:not(.couch-mode) .settings-dialog .setting-row>:is(button,.settings-actions,label){flex:none;max-width:100%}
+html:root:not(.couch-mode) .settings-dialog .setting-row h3{font-size:15px;line-height:1.5;margin:0;overflow-wrap:anywhere}
+html:root:not(.couch-mode) .settings-dialog .setting-row .small-note{margin:6px 0 0;line-height:1.5}
+.appearance-nav{position:sticky;top:0;z-index:2;display:flex;flex-wrap:wrap;gap:6px;margin:0 0 18px;padding:2px 0 14px;background:var(--bg);border-bottom:1px solid var(--line)}
+html #modal .appearance-nav button{min-height:40px;padding:8px 14px;line-height:1.35;font-size:14px;font-weight:800;border-radius:999px;background:transparent;color:var(--muted);border:1px solid transparent;box-shadow:none;transform:none}
+html #modal .appearance-nav button[aria-selected=true]{background:var(--raised);border-color:var(--border-strong,var(--line));color:var(--text)}
+html #modal .appearance-nav button:is(:hover,:focus-visible){border-color:var(--accent);color:var(--text)}
+[data-appearance-section][hidden]{display:none!important}
+html #modal .appearance-theme-palette{padding-top:0;border-top:0}
+html #modal .appearance-theme-palette>h3{font-size:17px;margin:0 0 14px}
+html #modal .appearance-theme-palette .theme-saved-actions{gap:12px;flex-wrap:wrap;margin-bottom:16px}
+html #modal .appearance-theme-palette .theme-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,145px),1fr));gap:10px}
+html #modal [data-appearance-section]>.setting-card:first-child{margin-top:0}
+html #modal [data-appearance-section=layout] .popup-size-controls{padding-top:0}
+.settings-found{outline:2px solid var(--accent);outline-offset:5px;border-radius:12px;animation:settings-found 2s ease-out}
+@keyframes settings-found{0%,70%{outline-color:var(--accent);background-color:var(--raised)}100%{outline-color:transparent}}
+@media(prefers-reduced-motion:reduce){.settings-found{animation-name:settings-found-quiet}}
+.motion-off .settings-found{animation-name:settings-found-quiet}
+@keyframes settings-found-quiet{0%,99%{outline-color:var(--accent)}100%{outline-color:transparent}}
+@container orbit-popup (max-width:680px){
+ html:root:not(.couch-mode) #modal.settings-dialog #modal-body{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr);gap:12px}
+ html:root:not(.couch-mode) .settings-dialog .settings-tabs{grid-column:1;grid-row:1;flex-direction:row;flex-wrap:nowrap;overflow:auto;align-self:stretch}
+ html:root:not(.couch-mode) .settings-dialog .settings-tabs button{flex:none;width:auto;white-space:nowrap}
+ html:root:not(.couch-mode) .settings-dialog .settings-search{grid-column:1;grid-row:2;padding-bottom:8px}
+ html:root:not(.couch-mode) .settings-dialog #modal-body>[role=tabpanel],html:root:not(.couch-mode) .settings-search-results{grid-column:1;grid-row:3}
+ html:root:not(.couch-mode) .settings-dialog .setting-row{flex-wrap:wrap;gap:12px}
+ html #modal .appearance-nav{gap:5px}
+ html #modal .appearance-nav button{padding:7px 11px}
+}
+
+.settings-dialog details.settings-revealed::details-content{transition:none!important}
+
+.settings-search{display:flex;align-items:center;gap:12px}.settings-search>input{min-width:0;flex:1}.settings-search-back{flex:none;white-space:nowrap}@media(max-width:700px){.settings-search{flex-wrap:wrap}.settings-search-back{margin-left:auto}}
+
+/* Calm settings hierarchy: one reading direction, consistent rows, fewer frames. */
+html:root:not(.couch-mode) #modal.settings-dialog .settings-group{margin:0 0 26px;}
+html:root:not(.couch-mode) #modal.settings-dialog .settings-group>h2{font-size:18px;margin:0;padding:0 0 10px;font-weight:850;}
+html:root:not(.couch-mode) #modal.settings-dialog .settings-group-grid{grid-template-columns:minmax(0,1fr);gap:0;}
+html:root:not(.couch-mode) #modal.settings-dialog .setting-card{min-height:0;margin:0;padding:16px 0;border-bottom:1px solid color-mix(in srgb,var(--line),transparent 22%);}
+html:root:not(.couch-mode) #modal.settings-dialog .setting-card.setting-row{min-height:58px;padding:12px 0;gap:18px;}
+html:root:not(.couch-mode) #modal.settings-dialog .setting-row:not(.setting-card){min-height:44px;}
+html:root:not(.couch-mode) #modal.settings-dialog .setting-card h3{font-weight:750;}
+html:root:not(.couch-mode) #modal.settings-dialog .settings-search{padding-bottom:0;border-bottom:0;}
+html:root:not(.couch-mode) #modal.settings-dialog #modal-body{gap:20px 24px;}
+html:root:not(.couch-mode) #modal.settings-dialog .settings-search input{border-radius:14px;background:var(--panel);}
+html:root:not(.couch-mode) #modal.settings-dialog :is(#panel-general,#panel-privacy){padding-top:4px;}
+html:root:not(.couch-mode) #modal .appearance-nav{margin-bottom:18px;padding-bottom:10px;border-bottom:0;gap:8px;}
+html:root:not(.couch-mode) #modal .appearance-nav button{border-radius:12px;min-height:38px;padding:8px 14px;}
+html:root:not(.couch-mode) #modal .appearance-nav button[aria-selected=true]{border-color:transparent;background:var(--raised);box-shadow:inset 0 -2px var(--accent);}
+html:root:not(.couch-mode) #modal .appearance-theme-palette{padding:0 0 18px;}
+html:root:not(.couch-mode) #modal .appearance-theme-palette>h3{font-size:17px;margin:0 0 12px;}
+html:root:not(.couch-mode) #modal .theme-saved-actions{justify-content:flex-end;margin:0 0 12px;}
+html:root:not(.couch-mode) #modal #theme-selection{display:none;}
+html:root:not(.couch-mode) #modal .appearance-theme-palette .theme-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,172px),1fr));gap:8px;margin:0;}
+html:root:not(.couch-mode) #modal .theme-option{display:flex;align-items:center;gap:12px;min-height:52px;padding:10px 12px;border:1px solid transparent;border-radius:14px;background:var(--panel);box-shadow:none;}
+html:root:not(.couch-mode) #modal .theme-option[aria-pressed=true]{border-color:var(--accent);background:var(--raised);}
+html:root:not(.couch-mode) #modal .theme-option:is(:hover,:focus-visible){border-color:var(--accent);}
+html:root:not(.couch-mode) #modal .theme-option .theme-swatches{flex:none;gap:3px;margin:0;}
+html:root:not(.couch-mode) #modal .theme-option .theme-swatches i{width:14px;height:20px;border-radius:5px;}
+html:root:not(.couch-mode) #modal .theme-option>span:last-child{font-size:14px;font-weight:750;line-height:1.4;white-space:normal;overflow-wrap:anywhere;text-align:left;}
+html:root:not(.couch-mode) #modal .app-icon-settings{padding:16px 0;}
+html:root:not(.couch-mode) #modal .app-icon-heading{display:flex;align-items:center;gap:12px;}
+html:root:not(.couch-mode) #modal .app-icon-heading [data-icon-preview] svg{width:36px;height:36px;}
+html:root:not(.couch-mode) #modal .app-icon-settings .app-icon-picker{display:block;margin-top:8px;padding-left:48px;}
+html:root:not(.couch-mode) #modal .app-icon-copy{gap:8px;}
+html:root:not(.couch-mode) #modal .app-icon-copy [data-icon-name]{display:none;}
+html:root:not(.couch-mode) #modal #theme-editor{padding:0;border:0;background:none;border-radius:0;}
+html:root:not(.couch-mode) #modal #theme-editor>summary{padding:14px 0;background:none;border:0;border-radius:0;}
+html:root:not(.couch-mode) #modal #theme-editor[open] #theme-form{padding-top:12px;}
+html:root:not(.couch-mode) #modal .setting-card.settings-fold-card{padding:0;}
+html:root:not(.couch-mode) #modal .settings-fold{margin:0;padding:0;border:0;border-radius:0;background:none;}
+html:root:not(.couch-mode) #modal .settings-fold>summary{display:flex;align-items:center;gap:12px;min-height:58px;margin:0;padding:14px 0;border:0;border-radius:0;background:none;cursor:pointer;list-style:none;}
+html:root:not(.couch-mode) #modal .settings-fold>summary h3{margin:0;flex:1;}
+html:root:not(.couch-mode) #modal .settings-fold>summary::after{content:none;display:none;border:0;transform:none;rotate:none;}
+
+html:root:not(.couch-mode) #modal .settings-fold-body{padding:4px 0 18px;}
+html:root:not(.couch-mode) #modal .settings-fold .desktop-summary-symbol{display:none;}
+html:root:not(.couch-mode) #modal .settings-fold-body .controller-binding-fields{padding:16px;border:0;border-top:1px solid var(--line);border-radius:0;background:none;}
+html:root:not(.couch-mode) #modal .startup-choices{grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:10px;}
+html:root:not(.couch-mode) #modal .startup-choices>.startup-choice{min-height:80px;padding:12px;grid-template-columns:44px minmax(0,1fr);gap:12px;border-radius:16px;}
+html:root:not(.couch-mode) #modal .startup-choice .startup-choice-icon{width:44px;height:44px;border-radius:12px;background:none;}
+html:root:not(.couch-mode) #modal .startup-choice .startup-choice-icon svg{width:38px;height:38px;}
+html:root:not(.couch-mode) #modal .startup-choice[aria-pressed=true] .startup-choice-icon{color:var(--accent);}
+html:root:not(.couch-mode) #modal .discord-disclosure{margin-top:14px;border:0;border-top:1px solid var(--line);padding:0;border-radius:0;}
+html:root:not(.couch-mode) #modal .discord-disclosure>summary{padding:12px 0;background:none;border:0;border-radius:0;}
+@container orbit-popup (max-width:680px){html:root:not(.couch-mode) #modal.settings-dialog #modal-body{gap:12px;}html:root:not(.couch-mode) #modal .app-icon-settings .setting-row{flex-wrap:nowrap;}html:root:not(.couch-mode) #modal .app-icon-match{font-size:14px;gap:10px;}}
+
+@container orbit-popup (max-width:680px){
+ html:root:not(.couch-mode) #modal.settings-dialog .settings-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;overflow:visible;}
+ html:root:not(.couch-mode) #modal.settings-dialog .settings-tabs button{width:100%;min-height:36px;padding:6px 8px;gap:6px;white-space:normal;}
+ html:root:not(.couch-mode) #modal.settings-dialog .settings-tabs .desktop-action-icon{width:18px;height:18px;flex-basis:18px;}
+ html:root:not(.couch-mode) #modal.settings-dialog .settings-search input{min-height:40px;}
+ html:root:not(.couch-mode) #modal.settings-dialog .modal-header{margin-bottom:14px;padding-bottom:12px;}
+}
+@media(max-width:700px),(max-height:650px){
+ html:root:not(.couch-mode) #modal.settings-dialog.popup-auto-fit[open]{--popup-auto-cap:calc(100dvh - 32px);padding:18px;}
+}
+
+html:root:not(.couch-mode) #modal .banner-layout-options{max-width:480px;gap:10px;}
+html:root:not(.couch-mode) #modal .banner-layout-options>button{min-height:58px;padding:10px 12px;gap:12px;border:1px solid transparent;border-radius:14px;box-shadow:none;}
+html:root:not(.couch-mode) #modal .banner-layout-options>button[aria-pressed=true]{border-color:var(--accent);background:var(--raised);}
+html:root:not(.couch-mode) #modal .banner-layout-preview{flex:0 0 56px;height:32px;border-radius:7px;}
+@container orbit-popup (max-width:680px){
+ html:root:not(.couch-mode) #modal .appearance-nav{margin-bottom:12px;padding-bottom:6px;}
+ html:root:not(.couch-mode) #modal [data-appearance-section]>.setting-card:first-child{padding-top:0;}
+}
+
+html:root:not(.couch-mode) #modal .settings-fold>summary::-webkit-details-marker{display:none;}
+html:root:not(.couch-mode) #modal .settings-fold-chevron{display:grid;place-items:center;flex:0 0 32px;width:32px;height:32px;margin-left:auto;border-radius:50%;color:var(--muted);background:var(--panel);}
+html:root:not(.couch-mode) #modal .settings-fold-chevron svg{width:18px;height:18px;display:block;}
+html:root:not(.couch-mode) #modal .settings-fold[open] .settings-fold-chevron svg{transform:rotate(180deg);}
+html:root:not(.couch-mode) #modal .settings-fold>summary:is(:hover,:focus-visible) .settings-fold-chevron{background:var(--raised);color:var(--accent);}
+html:root:not(.couch-mode) #modal .settings-fold>summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:12px;}
+/* Both miniatures depict the same art and actions, arranged like the real banner. */
+html:root:not(.couch-mode) #modal .banner-layout-options{max-width:720px;gap:12px;}
+html:root:not(.couch-mode) #modal .banner-layout-options>button{display:flex;flex-direction:column;align-items:stretch;gap:10px;padding:12px;min-height:0;}
+html:root:not(.couch-mode) #modal .banner-layout-preview{display:grid;position:relative;flex:none;width:100%;height:112px;border:0;border-radius:10px;background:var(--bg);overflow:hidden;}
+.banner-sample-art{position:relative;min-width:0;overflow:hidden;background:var(--raised);}
+.banner-sample-art>svg,.banner-sample-art>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+.banner-sample-copy{position:relative;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:8px;min-width:0;padding:12px;color:var(--text);}
+.banner-sample-copy>strong{font-size:12px;line-height:1.2;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;}
+.banner-sample-actions{display:flex;align-items:center;gap:5px;}
+.banner-sample-actions>span{display:inline-block;border-radius:999px;padding:4px 6px;font-size:8px;line-height:1.1;}
+.banner-sample-play{background:var(--green);color:var(--positive-ink);}
+.banner-sample-details{background:var(--panel);color:var(--text);border:1px solid var(--line);}
+.preview-overlay .banner-sample-art,.preview-overlay .banner-sample-copy{grid-area:1/1;}
+.preview-overlay .banner-sample-copy{background:linear-gradient(90deg,var(--bg),transparent 92%);}
+.preview-split{grid-template-columns:1.55fr 1fr;}
+.banner-layout-caption{display:grid;gap:3px;}
+.banner-layout-caption>strong{font-size:15px;line-height:1.4;}
+.banner-layout-caption>small{font-size:13px;line-height:1.4;color:var(--muted);font-weight:500;}
+ .preview-split .banner-sample-copy{padding:6px;}
+@container orbit-popup (max-width:480px){html:root:not(.couch-mode) #modal .banner-layout-options{grid-template-columns:1fr;}}
+
+/* A single trailing utility area for every Desktop Settings disclosure. */
+html:root:not(.couch-mode) #modal.settings-dialog .settings-disclosure>summary{display:flex;align-items:center;flex-wrap:nowrap;gap:12px;min-width:0;padding-right:0;list-style:none;}
+html:root:not(.couch-mode) #modal.settings-dialog .settings-disclosure>summary::after{content:none;display:none;border:0;transform:none;rotate:none;}
+html:root:not(.couch-mode) #modal.settings-dialog .settings-disclosure>summary::-webkit-details-marker{display:none;}
+html:root:not(.couch-mode) #modal.settings-dialog .settings-disclosure>summary>.settings-fold-chevron{align-self:center;}
+html:root:not(.couch-mode) #modal.settings-dialog .settings-disclosure[open]>summary>.settings-fold-chevron svg{transform:rotate(180deg);}
+html:root:not(.couch-mode) #modal.settings-dialog .settings-disclosure>summary:is(:hover,:focus-visible)>.settings-fold-chevron{background:var(--raised);color:var(--accent);}
+html:root:not(.couch-mode) #modal.settings-dialog .settings-disclosure>summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:12px;}

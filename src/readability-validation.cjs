@@ -13,7 +13,7 @@ module.exports=async({window,target})=>{
   for(const tab of ['appearance','privacy','libraries','manage']){
    const m=await run(`(()=>{const tab=document.querySelector('#tab-${tab}');if(!tab)return null;tab.click();const p=document.querySelector('#panel-${tab}');return {fits:p.scrollWidth<=p.clientWidth+1};})()`);if(m)check('settings category fits without horizontal clipping · '+tab+' · '+suffix,m.fits);
   }
-  await run("document.querySelector('#tab-appearance').click();document.querySelector('#startup-choices').scrollIntoView({block:'center',behavior:'instant'})");await capture('appearance-'+suffix+'.png');
+  await run("document.querySelector('#tab-appearance').click();window.OrbitSettingsLayout?.reveal(document.querySelector('#startup-choices'));document.querySelector('#startup-choices').scrollIntoView({block:'center',behavior:'instant'})");await capture('appearance-'+suffix+'.png');
   await run("(async()=>{closeModal();const g=state.games.find(g=>g.installed&&g.kind==='game');await orbitFeatures.editProfile(g)})()");await wait(130);
   check('launch settings keep readable text and compact utility icons · '+suffix,await run("(()=>{const p=document.querySelector('#launch-profile');return [...p.querySelectorAll('.profile-label label')].every(e=>parseFloat(getComputedStyle(e).fontSize)>=15)&&[...p.querySelectorAll('.info-button')].every(e=>e.offsetWidth===26&&e.offsetHeight===26)&&p.scrollWidth<=p.clientWidth+1;})()"));await capture('profile-'+suffix+'.png');
   await run("closeModal();OrbitCouch.open();OrbitCouch.skipEntry();OrbitCouch.act('settings')");await wait(180);await run('OrbitControllerFocus.cancel()');

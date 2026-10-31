@@ -1,7 +1,7 @@
 /* Local Easter eggs. Never read passwords, chats, or arbitrary editable fields. */
 (()=>{
  const sequence=['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
- const phrases={'kokeroisgoatkero':'goatkero','super duper dark':'void','orbitmagnetar':'magnetar','orbitpulsar':'pulsar','orbitattractor':'attractor'},maxLength=Math.max(...Object.keys(phrases).map(p=>p.length));
+ const phrases={'kokeroisgoatkero':'goatkero','super duper dark':'void','afterglow':'afterglow','orbitmagnetar':'magnetar','orbitpulsar':'pulsar','orbitattractor':'attractor'},maxLength=Math.max(...Object.keys(phrases).map(p=>p.length));
  let index=0,last=0,typed='',lastTyped=0;
  const blocked=e=>e.isComposing||e.repeat||e.ctrlKey||e.altKey||e.metaKey||document.body.classList.contains('booting');
  function goat(){
@@ -9,11 +9,11 @@
   try{localStorage.setItem('orbit-startup-style','goatkero');OrbitStartup.unlock('goatkero');toast('Goatkero unlocked.');window.orbitStartupSettings?.preview('goatkero');}catch{toast('Could not open the startup preview.',true);}
  }
  const controller=()=>Boolean(document.documentElement?.classList.contains('couch-mode'));
- function allowed(id){return ['magnetar','pulsar','attractor'].includes(id)?controller()&&!window.OrbitControllerEntry?.active:id==='void'?!controller():true;}
+ function allowed(id){if(id==='afterglow')return !controller()&&Boolean(document.querySelector?.('#modal.settings-dialog[open]'));return ['magnetar','pulsar','attractor'].includes(id)?controller()&&!window.OrbitControllerEntry?.active:id==='void'?!controller():true;}
  function reveal(id){
   typed='';index=0;
   if(id==='goatkero')return goat();
-  try{if(id==='void'){OrbitStartup.unlock(id);toast('Void unlocked.');window.orbitStartupSettings?.preview(id);}else{const entry=window.OrbitControllerEntry;if(!entry)return;entry.unlock(id);toast(entry.scenes.find(s=>s.id===id).name+' unlocked.');entry.play(id);}}catch{toast('Could not open the startup preview.',true);}
+  try{if(id==='void'||id==='afterglow'){OrbitStartup.unlock(id);toast(id==='void'?'Void unlocked.':'Afterglow unlocked.');window.orbitStartupSettings?.preview(id);}else{const entry=window.OrbitControllerEntry;if(!entry)return;entry.unlock(id);toast(entry.scenes.find(s=>s.id===id).name+' unlocked.');entry.play(id);}}catch{toast('Could not open the startup preview.',true);}
  }
  window.addEventListener('input',e=>{
   const input=e.target;if(e.isComposing||document.body.classList.contains('booting')||!input.matches?.('input[type=search],input#search'))return;

@@ -54,7 +54,7 @@ class LoginStartup{
 
 function backgroundInstance(args){return args.includes('--background');}
 function desktopLaunch(args){return !args.includes('--background')&&(args.includes('--startup')||args.includes('--updated')||args.includes('--restart-orbit'));}
-function startupQuery({args=[],restored=false,updateResume=false,migrated=false}={}){const fullRestart=args.includes('--restart-orbit');return {...(restored||updateResume&&!fullRestart||args.includes('--background')?{resume:'1'}:{}),...(!restored&&!args.includes('--background')&&(migrated||desktopLaunch(args))?{desktop:'1'}:{})};}
+function startupQuery({args=[],restored=false,updateResume=false,migrated=false}={}){const fullRestart=args.includes('--restart-orbit');return {...(restored||updateResume&&!fullRestart||args.includes('--background')?{resume:'1',...(restored?{'restore-workspace':'1'}:{})}:{}),...(!restored&&!args.includes('--background')&&(migrated||desktopLaunch(args))?{desktop:'1'}:{})};}
 function migrateDesktopStartup(store,version){
  const match=/^(\d+)\.(\d+)\.(\d+)(?:[-+].*)?$/.exec(String(version));
  if(!match||Number(match[1])===0&&(Number(match[2])<2||Number(match[2])===2&&Number(match[3])<6)||store.migrations?.desktopStartup026===true)return false;

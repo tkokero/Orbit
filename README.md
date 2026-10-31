@@ -18,7 +18,7 @@ Use Quick start to find games and choose optional connections. **Take a tour** s
 - Search, filter, favorite, and pin collections in the sidebar.
 - Use Ctrl/Shift selection to organize several games together, with Undo for bulk changes.
 - Open Details for game copies, launch settings, artwork, notes, and available statistics. Right-click for related actions.
-- Press **Ctrl+K** for Quick launch or **Ctrl+F** to search your library.
+- Press **Ctrl+K** to search games, collections, settings, and actions. **Ctrl+Shift+P** opens Quick launch; change these in **Settings → General → Keyboard shortcuts**.
 
 ![Selecting and organizing example games](docs/screenshots/orbit-organization.png)
 
@@ -44,11 +44,13 @@ The optional experimental Steam connection restarts Steam and opens a local debu
 
 ## Make it yours
 
-Choose themes, custom colors, backgrounds, fonts, and startup scenes. Match the app icon to your theme or pick a separate style for the next restart. Switch between Overlay and Split banners. Resize Desktop popups from their corners and remember shared or separate sizes. Accessibility includes text scaling, stronger focus, contrast, and reduced motion.
+Choose themes, custom colors, backgrounds, fonts, and startup scenes. Match the app icon to your theme or pick a separate style for the next restart. Switch between Overlay and Split banners. Resize Desktop popups from their corners and remember shared or separate sizes. Drag their headers to save positions per display. Accessibility includes text scaling, stronger focus, contrast, and reduced motion.
 
 ![Orbit appearance settings](docs/screenshots/orbit-appearance.png)
 
 Settings and themes stay in your local profile. **Settings → Manage** includes preference backups, recovery tools, exports, and updates.
+
+**Details → Game options → Launch options** lets you add alternate executables and arguments without replacing the default launch. A picker appears beside Play only after you add an option. Choose **More → VR** to check or start SteamVR; optionally prepare it before a chosen game launch. Headset setup and VR mode selection stay with the game and SteamVR. The optional [VR experiment](docs/VR-EXPERIMENTAL.md) adds an Orbit dashboard, wrist displays, performance readings, and window/display panels. It requires SteamVR; headset tuning and performance testing are ongoing.
 
 ## Controller mode
 

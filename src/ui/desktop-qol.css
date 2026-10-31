@@ -168,3 +168,10 @@ html #installation-dialog.steam-controls-dialog .steam-storage-grid .setting-car
 @container orbit-popup (max-width:440px){.steam-controls-dialog .steam-queue .steam-transfer{grid-template-columns:64px minmax(0,1fr);padding:13px;gap:12px}.steam-controls-dialog .steam-transfer-art{width:64px;grid-row:1}.steam-controls-dialog .steam-transfer-actions{grid-column:1/-1;grid-row:2;justify-content:flex-end}.steam-controls-dialog .steam-tabs{gap:5px}.steam-controls-dialog .steam-tabs button{padding-inline:10px;font-size:13px}.steam-controls-dialog .steam-connection-badge{font-size:11px;padding:5px 8px}}
 
 @container orbit-popup (max-width:440px){:root:not(.couch-mode) .steam-controls-dialog .steam-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) 38px;gap:5px}:root:not(.couch-mode) .steam-controls-dialog .steam-tabs button{min-width:0;padding-inline:7px}:root:not(.couch-mode) .steam-controls-dialog .steam-tabs [data-steam-refresh]{min-width:38px;gap:0;justify-content:center;padding:6px}:root:not(.couch-mode) .steam-controls-dialog .steam-tabs .steam-refresh-label{display:none}}
+
+.activity-scope{flex-wrap:wrap;gap:10px;}
+#activity-all-games{flex:none;white-space:nowrap;}
+.activity-game[aria-pressed=true]{border-color:var(--accent);background:var(--raised);}
+.activity-session-game{display:block;max-width:100%;min-width:0;overflow-wrap:anywhere;white-space:normal;font-size:13px;line-height:1.5;padding:0;margin:0;border:0;border-radius:5px;background:none;color:var(--text);font:inherit;font-weight:800;text-align:left;cursor:pointer;}
+.activity-session-game:is(:hover,:focus-visible){color:var(--accent);}
+.activity-session-game:focus-visible{outline:2px solid var(--accent);outline-offset:3px;}

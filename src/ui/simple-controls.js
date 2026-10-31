@@ -21,7 +21,10 @@
  more.panel.innerHTML='<div data-more-actions></div><div class="toolbar-menu-divider" role="separator"></div><button type="button" class="subtle-button" data-simple-shortcuts>Keyboard shortcuts</button>';
  const moreActions=more.panel.querySelector('[data-more-actions]');
  for(const id of ['refresh','controller-view']){const control=document.getElementById(id);if(control)moreActions.append(control);}
- for(const [control,label,icon] of [[document.getElementById('refresh'),'Refresh','refresh'],[document.getElementById('controller-view'),'Controller mode','gamepad'],[more.panel.querySelector('[data-simple-shortcuts]'),'Keyboard shortcuts','keyboard']]){
+ const vr=document.createElement('button');vr.id='library-vr';vr.type='button';vr.className='subtle-button';
+ moreActions.insertBefore(vr,document.getElementById('controller-view'));
+ vr.onclick=()=>{more.button.focus({preventScroll:true});attempt(()=>window.OrbitDesktopTools.runtime());};
+ for(const [control,label,icon] of [[document.getElementById('refresh'),'Refresh','refresh'],[vr,'VR','vr'],[document.getElementById('controller-view'),'Controller mode','gamepad'],[more.panel.querySelector('[data-simple-shortcuts]'),'Keyboard shortcuts','keyboard']]){
   if(!control)continue;control.classList.add('toolbar-menu-item');control.setAttribute('role','menuitem');
   control.dataset.orbitIcon=icon;control.innerHTML='<span class="toolbar-menu-title">'+label+'</span>';
  }
@@ -58,7 +61,13 @@
   root.before(group);group.append(summary,root);
   const files=document.createElement('div');files.className='settings-actions simple-file-actions';
   for(const id of ['detail-locate','detail-folder']){const control=document.getElementById(id);if(control)files.append(control);}
-  if(files.childElementCount)root.prepend(files);
+  if(!document.documentElement.classList.contains('couch-mode')){
+   for(const control of root.querySelectorAll('.utility-actions>#run-installer,.utility-actions>[data-uninstall-game]'))files.append(control);
+   const utilities=root.querySelector('.utility-actions');if(utilities&&!utilities.childElementCount)utilities.remove();
+   // Adjacent actions share a row; content and section boundaries retain their own space.
+   let row=null;for(const child of [...root.children]){if(child.matches('button.subtle-button,button.link-button,button.primary-button')){if(!row){row=document.createElement('div');row.className='settings-actions';child.before(row);}row.append(child);}else row=null;}
+  }
+  if(files.childElementCount){files.setAttribute('role','group');files.setAttribute('aria-label','Game files and installation');root.prepend(files);}
   const maintenance=document.getElementById('detail-kind')?.parentElement;if(maintenance)root.append(maintenance);
   const local=document.getElementById('timer-toggle')?.closest('.settings-section');if(local)root.append(local);
  }

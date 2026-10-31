@@ -1,7 +1,7 @@
 {
   "name": "orbit-game-launcher",
   "productName": "Orbit",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "A Windows app for organizing and launching games from connected libraries and local files.",
   "main": "src/main.cjs",
   "author": "Orbit",
@@ -12,7 +12,8 @@
     "scan": "node scripts/scan.cjs",
     "package": "electron-builder --config electron-builder.config.cjs --win --x64 --dir --publish never",
     "dist": "electron-builder --config electron-builder.config.cjs --win nsis --x64 --publish never",
-    "dev": "electron . --dev-debug"
+    "dev": "electron . --dev-debug",
+    "build:vr": "node scripts/build-vr.cjs"
   },
   "devDependencies": {
     "electron": "44.9.0",
@@ -42,7 +43,8 @@
     "asarUnpack": [
       "node_modules/@img/**/*",
       "src/native/discord/**/*",
-      "src/native/shell/*.exe"
+      "src/native/shell/*.exe",
+      "src/native/vr/**/*"
     ],
     "npmRebuild": false,
     "generateUpdatesFilesForAllChannels": true,

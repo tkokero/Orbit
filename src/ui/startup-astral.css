@@ -2,6 +2,10 @@
 .startup-astral{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3;background:#030408}
 [data-startup-style="void"] .boot-scene,[data-startup-style="void"] .boot-bubbles{visibility:hidden}
 [data-startup-style="void"] .startup-skip{z-index:5}
+.startup-void{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3;background:#020308}
+.void-wordmark{position:absolute;z-index:4;top:calc(46% + clamp(86px,16vmin,130px));left:0;right:0;text-align:center;pointer-events:none;font-family:inherit;font-weight:750;font-size:clamp(28px,4vmin,40px);line-height:1.2;letter-spacing:-1px;color:#e9edf5;animation:void-wordmark var(--startup-duration,6600ms) ease-out both}
+.boot-still .void-wordmark{animation:none}
+@keyframes void-wordmark{0%,75%{opacity:0;transform:translateY(9px)}94%,100%{opacity:1;transform:none}}
 .controller-arrival.entry-secret .controller-entry-atom{display:none}
 .controller-arrival.entry-secret .arrival-title{animation:astral-title 900ms 2900ms both}
 .controller-arrival.entry-still .arrival-title,.controller-arrival.entry-still .controller-entry-atom{animation:none!important}
@@ -11,4 +15,4 @@
 .entry-preview-pulsar{background:linear-gradient(135deg,transparent 30%,var(--accent-soft),transparent 70%)}
 .entry-preview-attractor{background:radial-gradient(ellipse at center,transparent 12%,var(--accent-soft) 35%,transparent 70%)}
 @keyframes astral-title{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-@media(prefers-reduced-motion:reduce){.controller-arrival.entry-secret .arrival-title{animation:none}}
+@media(prefers-reduced-motion:reduce){.controller-arrival.entry-secret .arrival-title,.void-wordmark{animation:none}}

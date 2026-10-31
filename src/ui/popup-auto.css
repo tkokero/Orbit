@@ -1,0 +1,18 @@
+/* New Desktop frames fit once. Saved manual frames retain the existing sizing rules. */
+html:root dialog.popup-auto-fit[open],
+html:root #modal.popup-auto-fit[open],
+html:root #desktop-search-dialog.popup-auto-fit[open]{
+ --popup-auto-cap:min(82dvh,calc(100dvh - 48px));
+ box-sizing:border-box;height:fit-content;min-height:min(160px,var(--popup-auto-cap));max-height:var(--popup-auto-cap);
+ display:flex;flex-direction:column;overflow:hidden
+}
+html:root dialog.popup-auto-fit.popup-auto-ready[open],
+html:root #modal.popup-auto-fit.popup-auto-ready[open],
+html:root #desktop-search-dialog.popup-auto-fit.popup-auto-ready[open]{height:min(var(--popup-fitted-height),var(--popup-auto-cap))}
+html:root #modal.popup-auto-fit #modal-body{height:auto;min-height:0;max-height:none;flex:0 1 auto;overflow:auto}
+html:root #modal.popup-auto-ready #modal-body{flex:1 1 auto}
+html:root #modal.settings-dialog.popup-auto-fit #modal-body{overflow:hidden}
+html:root dialog.popup-auto-fit>.modal-header,
+html:root dialog.popup-auto-fit>header,
+html:root dialog.popup-auto-fit>footer{flex:none}
+html:root dialog.popup-auto-fit .installation-body{flex:1 1 auto;min-height:0;overflow:auto}

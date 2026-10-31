@@ -1,0 +1,9 @@
+{
+  "repository": "https://github.com/ValveSoftware/openvr",
+  "revision": "0924064316de3effbcd1acf1e309182a2deb1c05",
+  "files": [
+    "headers/openvr_api.cs",
+    "bin/win64/openvr_api.dll",
+    "LICENSE"
+  ]
+}

@@ -1,9 +1,15 @@
 /* Small, theme-colored illustrations stay sharp at television and desktop sizes. */
 (()=>{
  const drawings={
+  move:'<path d="M25 4v42M4 25h42M18 11l7-7 7 7M18 39l7 7 7-7M11 18l-7 7 7 7M39 18l7 7-7 7"/>',
+  close:'<path d="m13 13 24 24m0-24L13 37"/>',
+  pin:'<path d="m29 5 16 16-7 1-9 9-1 8-8-8-13 13m6-24 8-1 9-9 1-5Z"/>',
+  vr:'<path d="M8 14h34l4 8v14H31l-6-8-6 8H4V22l4-8Z"/><circle cx="14" cy="23" r="4"/><circle cx="36" cy="23" r="4"/><path d="M12 14V9h26v5"/>',
   magnetar:'<circle cx="25" cy="25" r="6"/><ellipse cx="25" cy="25" rx="21" ry="9"/><ellipse cx="25" cy="25" rx="21" ry="9" transform="rotate(60 25 25)"/><ellipse cx="25" cy="25" rx="21" ry="9" transform="rotate(120 25 25)"/>',
   pulsar:'<circle cx="25" cy="25" r="7"/><path d="m20 20-9-17-8 8 17 9m10 10 9 17 8-8-17-9M16 27a10 10 0 0 0 9 8m0-20a10 10 0 0 1 9 8"/>',
   attractor:'<circle cx="25" cy="25" r="6"/><path d="M25 2C2 2 2 25 19 25M48 25c0-23-23-23-23-6M25 48c23 0 23-23 6-23M2 25c0 23 23 23 23 6"/>',
+  'afterglow-encore':'<path d="M5 34h11l4-9 6 17 5-27 5 19h10M8 12l10-4m-6 10 13-6"/><path d="m32 8 9 3-5 8-4-11Z"/>',
+  afterglow:'<path d="M4 31h10l4-7 5 15 7-27 4 19h12M7 15l9-5m-1 7 11-6"/><circle cx="38" cy="12" r="4"/>',
   void:'<circle cx="25" cy="25" r="16"/><path d="M16 10a17 17 0 0 1 23 23M8 40h2m31-32h2"/>',
   bubbles:'<circle cx="25" cy="26" r="13"/><circle cx="9" cy="11" r="6"/><circle cx="40" cy="12" r="5"/><circle cx="40" cy="40" r="7"/><path d="M20 20a7 7 0 0 1 6-2"/>',
   startrail:'<path d="m8 6 22 12M4 16l19 9M8 31l13-2"/><circle cx="32" cy="29" r="12"/><path d="m31 19 2 6 6 3-6 2-2 7-2-7-6-2 6-3Z"/>',
