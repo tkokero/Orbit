@@ -38,3 +38,7 @@ These are separate from passing software checks. Controller Home and Library are
 ## Release preparation
 
 Version, in-app notes, source package and installer must agree. Keep user-visible notes short and describe VR as experimental. Do not create or move a public tag, replace published assets, upload a feed, or publish this candidate without approval.
+
+## Final packaging
+
+The release packaging hook retains app-update.yml even with publishing disabled. A dedicated fixture checks the updater configuration and complete license notices. The actual final installer is checked through a loopback updater without executing it; production feed promotion remains a separate publication step.

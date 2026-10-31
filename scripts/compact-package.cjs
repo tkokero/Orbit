@@ -5,5 +5,9 @@ async function compactPackage(context){
  const bytes=await fs.readFile(source),target=path.join(root,'resources','chromium-notices.html.gz');
  if(path.dirname(source)!==root||!target.startsWith(root+path.sep))throw Error('Invalid package path.');
  await fs.writeFile(target,gzipSync(bytes,{level:9}));await fs.unlink(source);
+ // This hook also runs for --publish never and prepackaged NSIS builds.
+ // Keep installed update support available without publishing a release.
+ const updateConfig={provider:'generic',url:require('../src/release-config.cjs').FEED,updaterCacheDirName:context.packager.appInfo.updaterCacheDirName};
+ await fs.writeFile(path.join(root,'resources','app-update.yml'),require('yaml').stringify(updateConfig));
 }
 module.exports=compactPackage;
