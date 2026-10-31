@@ -64,3 +64,32 @@ html #modal .library-pin-choices input:checked::after{content:'';width:5px;heigh
 @media(max-width:700px){:root:not(.couch-mode) .library-collections #library-select{margin-left:0}}
 
 .bulk-collection-empty{display:grid;justify-items:center;gap:16px;padding:24px 16px;text-align:center}.bulk-collection-icon{display:grid;place-items:center;width:60px;height:60px;border-radius:20px;background:var(--raised);color:var(--accent)}.bulk-collection-icon svg{width:34px;height:34px}.bulk-collection-empty :is(h3,p){margin:0}.bulk-collection-empty p{max-width:40ch;color:var(--muted);line-height:1.6}.bulk-collection-empty .settings-actions{justify-content:center;margin-top:8px}
+
+/* Compact Desktop keeps browsing space; wide windows keep their existing actions. */
+#library-organize{display:none}
+@media(max-width:900px){
+ :root:not(.couch-mode) #library-organize{display:inline-flex;flex:none}
+ :root:not(.couch-mode) .library-collections>button:not(#library-organize,.desktop-select-trigger){display:none}
+ :root:not(.couch-mode) .library-collections{flex-wrap:nowrap;gap:10px;margin-top:12px;padding-block:10px}
+ :root:not(.couch-mode) .library-collections>.desktop-select-trigger{min-width:0;flex:1;max-width:none}
+ :root:not(.couch-mode) .toolbar{min-height:0;padding-block:10px;gap:10px}
+ :root:not(.couch-mode) .toolbar-right{gap:8px}
+ :root:not(.couch-mode) #library-feedback{margin-bottom:8px}
+ :root:not(.couch-mode) #library-result-count{line-height:24px}
+ :root:not(.couch-mode) .library-controls{margin-block:4px 10px;gap:10px}
+ :root:not(.couch-mode) #hero.hero{padding:12px;gap:14px}
+ :root:not(.couch-mode) #hero.hero .hero-content{padding:0}
+ :root:not(.couch-mode) #hero.hero h2{font-size:24px;line-height:1.15;margin:7px 0 9px;letter-spacing:-.5px}
+ :root:not(.couch-mode) #hero.hero p{margin:0 0 10px}
+ :root:not(.couch-mode) #hero.hero .hero-actions{gap:8px}
+ :root:not(.couch-mode) #hero.hero:not(:has(>#hero-image[src]:not([hidden]))) .hero-content{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:12px;align-items:center}
+ :root:not(.couch-mode) #hero.hero:not(:has(>#hero-image[src]:not([hidden]))) .hero-content>:not(.hero-actions){grid-column:1}
+ :root:not(.couch-mode) #hero.hero:not(:has(>#hero-image[src]:not([hidden]))) .hero-actions{grid-column:2;grid-row:1/span 3;flex-wrap:nowrap}
+ :root:not(.couch-mode) #hero.hero:not(:has(>#hero-image[src]:not([hidden]))) #hero-play{min-width:88px;padding-inline:14px}
+ :root:not(.couch-mode) #recent-games:empty{display:none;margin:0}
+ :root:not(.couch-mode) #hero.hero:has(>#hero-image[src]:not([hidden])){grid-template-columns:minmax(80px,28%) minmax(0,1fr);align-items:center}
+ :root:not(.couch-mode) #hero.hero>#hero-image[src]{max-height:150px;object-fit:contain}
+ :root:not(.couch-mode)[data-desktop-banner=overlay] #hero.hero:not([data-art-shape=portrait]):not([data-art-shape=square]):has(>#hero-image[src]:not([hidden])){grid-template-columns:minmax(0,1fr);min-height:180px}
+ :root:not(.couch-mode)[data-desktop-banner=overlay] #hero.hero:not([data-art-shape=portrait]):not([data-art-shape=square]):has(>#hero-image[src]:not([hidden]))>#hero-image{max-height:none;object-fit:cover}
+ :root:not(.couch-mode)[data-desktop-banner=overlay] #hero.hero:not([data-art-shape=portrait]):not([data-art-shape=square]):has(>#hero-image[src]:not([hidden]))>.hero-content{padding:18px}
+}

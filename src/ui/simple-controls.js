@@ -20,6 +20,9 @@
  more.button.setAttribute('aria-haspopup','menu');more.panel.setAttribute('role','menu');
  more.panel.innerHTML='<div data-more-actions></div><div class="toolbar-menu-divider" role="separator"></div><button type="button" class="subtle-button" data-simple-shortcuts>Keyboard shortcuts</button>';
  const moreActions=more.panel.querySelector('[data-more-actions]');
+ const quick=document.getElementById('quick-launch'),compactHeader=matchMedia('(max-width:900px)');
+ function compactActions(){if(!quick)return;const compact=compactHeader.matches&&!document.documentElement.classList.contains('couch-mode'),focused=document.activeElement===quick;const parent=compact?moreActions:toolbar;if(quick.parentElement===parent)return;if(compact)moreActions.prepend(quick);else toolbar.insertBefore(quick,document.getElementById('add-game')||more.button);if(focused)(compact?more.button:quick).focus({preventScroll:true});}
+ compactHeader.addEventListener('change',compactActions);window.addEventListener('orbit:couch',compactActions);compactActions();
  for(const id of ['refresh','controller-view']){const control=document.getElementById(id);if(control)moreActions.append(control);}
  const vr=document.createElement('button');vr.id='library-vr';vr.type='button';vr.className='subtle-button';
  moreActions.insertBefore(vr,document.getElementById('controller-view'));

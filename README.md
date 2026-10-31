@@ -10,7 +10,7 @@ A Windows launcher for your game libraries, local games, and tools. Find somethi
 
 Download **Orbit-Setup.exe** from [Releases](https://github.com/tkokero/Orbit/releases). For portable use, extract the entire Windows ZIP before opening Orbit. Windows builds are unsigned.
 
-Use Quick start to find games and choose optional connections. **Take a tour** shows the main controls; reopen it from **Settings → General**. Keep any original clients your games require.
+Use Quick start to find games and choose optional connections. **Take a tour** shows the main controls; reopen it from **Settings → About → Open Quick start**. Keep any original clients your games require.
 
 ## Your library
 

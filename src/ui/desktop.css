@@ -249,6 +249,9 @@ html .download-banner:has(.download-banner-art:empty){grid-template-columns:1fr}
 :root:not(.couch-mode) #modal.game-details-dialog[open]{display:flex;flex-direction:column;overflow:hidden}
 :root:not(.couch-mode) .game-details-dialog .modal-header{flex:none}
 :root:not(.couch-mode) .game-details-dialog #modal-body{flex:1;min-height:0;overflow:auto;scrollbar-gutter:stable;padding-right:6px;overscroll-behavior:contain}
+:root:not(.couch-mode) .game-details-dialog #modal-body>.detail-actions{position:sticky;top:0;z-index:3;margin:0 0 18px;padding:4px 0 14px;background:var(--bg)}
+:root:not(.couch-mode) .detail-placeholder{display:grid;place-items:center;width:64px;height:64px;flex:0 0 64px;border-radius:18px;background:var(--raised);color:var(--accent)}
+:root:not(.couch-mode) .detail-placeholder svg{width:36px;height:36px}
 :root:not(.couch-mode) .game-details-dialog details::details-content{transition:none}
 :root:not(.couch-mode) :is(.personal-notes,.collection-choices){padding:0}
 :root:not(.couch-mode) :is(.personal-notes,.collection-choices)>summary.desktop-summary{margin:0;border:0;border-radius:0;background:none;padding:14px 16px}

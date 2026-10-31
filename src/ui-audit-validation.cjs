@@ -47,6 +47,7 @@ module.exports=async({window,target})=>{
  check('theme labels remain readable and app icon uses a compact preview',await run(`parseFloat(getComputedStyle(document.querySelector('.theme-option>span:last-child')).fontSize)>=14&&document.querySelector('#app-icon-settings [data-icon-preview]').getBoundingClientRect().width<=40`));
  check('quiet icons avoid the generic atom fallback on unrelated utility actions',await run(`!document.querySelector('#theme-export .desktop-action-icon')||document.querySelector('#theme-export .desktop-action-icon').innerHTML!==OrbitControllerArt.icon('relay')`));
  await run(`closeModal()`);
+ try{checks.push(...await require('./ui-polish-validation.cjs')({window,target}));if(process.argv.includes('--surface-review-smoke'))checks.push(...await require('./surface-review-validation.cjs')({window,target}));}catch(error){errors.push({name:'final polish',error:error.message});check('final polish checks completed',false,{error:error.message});}
  const report={passed:checks.every(c=>c.passed)&&!errors.length,checks,errors,scope:'All main Desktop pages and representative dialogs; Orbit/Roseberry/Cloud; wide 100% and narrow 125%; reduced motion; isolated synthetic data. Separate suites cover Controller, popup persistence, news and VR.',liveDisplayTest:false};
  await fs.writeFile(path.join(target,'ui-audit-report.json'),JSON.stringify(report,null,2));return report;
 };

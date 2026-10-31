@@ -48,6 +48,9 @@
   document.addEventListener('orbit:collections',paintPins);
   const selectButton=document.createElement('button');selectButton.id='library-select';selectButton.className='subtle-button';selectButton.textContent='Select';selectButton.title='Select entries · Ctrl-click to toggle · Shift-click for a range · Ctrl+A for all results';selectButton.setAttribute('aria-pressed','false');
   $('.library-collections').append(selectButton);
+  const organize=document.createElement('button');organize.id='library-organize';organize.type='button';organize.className='subtle-button';organize.textContent='Organize';organize.setAttribute('aria-haspopup','menu');organize.setAttribute('aria-expanded','false');
+  $('.library-collections').append(organize);
+  organize.onclick=()=>attempt(async()=>{const r=organize.getBoundingClientRect();organize.setAttribute('aria-expanded','true');try{const choice=await OrbitContextMenu.open([{id:'collections',label:'Manage collections'},{id:'pins',label:'Pin collections'},{id:'select',label:selecting?'Finish selecting':state.section==='tools'?'Select tools':'Select games',type:'checkbox',checked:selecting}],{x:r.left,y:r.bottom+6},'Organize library');if(choice?.action==='collections')$('#manage-collections').click();else if(choice?.action==='pins')pinButton.click();else if(choice?.action==='select')selectButton.click();}finally{organize.setAttribute('aria-expanded','false');}});
   const bulk=document.createElement('section');bulk.id='library-bulk';bulk.hidden=true;bulk.setAttribute('aria-label','Selected entries');
   bulk.innerHTML='<span id="library-selection-count" role="status" aria-live="polite"></span><div class="library-bulk-actions"><button class="subtle-button" data-bulk="all">Select all results</button><button class="subtle-button" data-bulk="favorite">Favorite</button><button class="subtle-button" data-bulk="unfavorite">Unfavorite</button><button class="subtle-button" data-bulk="collections">Collections</button><button class="subtle-button" data-bulk="tags">Tags</button><button class="subtle-button" data-bulk="hide">Hide</button></div>';
   grid.before(bulk);
@@ -92,7 +95,7 @@
       const result=await orbit.bulkLibrary({ids,action,value});if(form?.isConnected)closeModal();
       undo=result.token?{token:result.token,count:result.count}:undo;
       if(result.token)undoBar.querySelector('span').textContent=result.count+' '+(result.count===1?'entry updated':'entries updated');
-      absorb(result.library);toast(result.count?result.count+' entries updated.':'No changes needed.');
+      absorb(result.library);toast(result.count?result.count+' '+(result.count===1?'entry updated.':'entries updated.'):'No changes needed.');
     }catch(error){toast(error.message,true);}finally{busy=false;form?.querySelectorAll('button').forEach(b=>b.disabled=false);paintSelection();}
   }
   undoBar.querySelector('button').onclick=async()=>{if(busy||!undo)return;busy=true;paintSelection();try{const result=await orbit.undoLibrary(undo.token);undo=null;absorb(result.library);toast('Changes undone.');}catch(error){toast(error.message,true);}finally{busy=false;paintSelection();}};

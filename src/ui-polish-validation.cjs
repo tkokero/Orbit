@@ -1,0 +1,52 @@
+/* Explicit hidden UI checks for the final 0.2.7 review findings. */
+const fs=require('node:fs/promises'),path=require('node:path');
+module.exports=async({window,target})=>{
+ const run=s=>window.webContents.executeJavaScript(s),wait=()=>new Promise(r=>setTimeout(r,100)),checks=[];
+ const check=async(name,script)=>{const result=await run(script);checks.push({name,passed:!!result});};
+ const shot=async name=>fs.writeFile(path.join(target,name+'.png'),(await window.webContents.capturePage()).toPNG());
+ await run(`OrbitContextMenu.close();document.querySelectorAll('dialog[open]').forEach(d=>d.close());orbitFeatures.setCouch(false);chooseTheme('orbit');OrbitPopups.resetAll();`);
+ window.setSize(800,700);window.webContents.setZoomFactor(1.25);await wait();
+ await run(`orbitShell.activate('library');document.querySelector('#main-scroll').scrollTop=0;`);await wait();
+ await check('compact Library shows game artwork in the first view',`document.querySelector('#game-grid [data-game]').getBoundingClientRect().top<innerHeight-70`);
+ await check('compact Quick launch stays available from More',`document.querySelector('#library-more #quick-launch')&&document.querySelector('#library-more-button').getBoundingClientRect().width>=44`);
+ await check('compact Library keeps one reachable organization menu',`(()=>{const h=document.querySelector('.library-collections'),r=h.getBoundingClientRect(),button=document.querySelector('#library-organize'),b=button.getBoundingClientRect();return b.width>=44&&b.bottom<=r.bottom+1&&h.scrollWidth<=h.clientWidth+1&&button.scrollWidth<=button.clientWidth+1;})()`);
+ await shot('after-library');
+ await run(`document.querySelector('#library-organize').focus();document.querySelector('#library-organize').click();`);await wait();
+ await check('organization menu exposes collections, pins and selection',`(()=>{const menu=document.querySelector('.orbit-context-menu');return ['Manage collections','Pin collections','Select games'].every(label=>menu.textContent.includes(label));})()`);
+ await shot('after-organize');
+ await run(`document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));`);await wait();
+ await check('Escape restores focus to Organize',`!document.querySelector('.orbit-context-menu')&&document.activeElement.id==='library-organize'&&document.activeElement.getAttribute('aria-expanded')==='false'`);
+ await run(`document.querySelector('#library-organize').click();`);await wait();
+ await run(`[...document.querySelectorAll('.orbit-context-item')].find(b=>b.textContent.includes('Select games')).click();`);await wait();
+ await check('organization selection action enters selection without losing the menu control',`document.querySelector('#game-grid').classList.contains('library-selecting')&&!document.querySelector('#library-bulk').hidden&&document.querySelector('#library-organize').getAttribute('aria-expanded')==='false'`);
+ await run(`orbitDesktopLibrary.clear();showDetails(state.games.find(g=>g.kind==='game').id);`);await wait();
+ const visibleActions=`(()=>{const body=document.querySelector('#modal-body'),b=document.querySelector('#detail-play').getBoundingClientRect(),r=body.getBoundingClientRect();return b.top>=r.top-1&&b.bottom<=r.bottom&&b.width>=70;})()`;
+ await check('Game Details opens with Play visible at narrow 125%',visibleActions);
+ await check('missing artwork uses a small placeholder rather than a full banner',`!document.querySelector('#modal-body>.game-menu-art')&&document.querySelector('.detail-placeholder').getBoundingClientRect().height<=65`);
+ await shot('after-details');
+ await run(`document.querySelector('.detail-summary').insertAdjacentHTML('beforeend','<p>'+('Long game description. '.repeat(80))+'</p>');document.querySelector('.simple-game-options').open=true;document.querySelector('#modal-body').scrollTop=500;`);await wait();
+ await check('Play remains visible while long details and Game options scroll',visibleActions);
+ await run(`document.querySelector('#modal-body').scrollTop=0;`);
+ for(const shape of ['landscape','portrait']){
+  await run(`(()=>{const heading=document.querySelector('.detail-heading');heading.querySelector('.detail-placeholder,.detail-art')?.remove();const img=document.createElement('img');img.className='detail-art';img.alt='';img.src='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="${shape==='portrait'?200:600}" height="${shape==='portrait'?300:200}"><rect width="100%" height="100%" fill="#4875a0"/></svg>');heading.prepend(img);})()`);await wait();
+  await check(shape+' details artwork keeps Play visible',visibleActions);
+ }
+ await run(`closeModal();orbitShell.activate('tools');document.querySelector('#main-scroll').scrollTop=0;`);await wait();
+ await check('a single tool has a singular result label',`document.querySelector('#library-result-count').textContent==='1 tool'`);
+ window.setSize(1440,960);window.webContents.setZoomFactor(1);await wait();
+ await check('wide Library keeps its direct organization buttons',`document.querySelector('#manage-collections').getBoundingClientRect().width>0&&document.querySelector('#library-select').getBoundingClientRect().width>0&&!document.querySelector('#library-organize').getBoundingClientRect().width`);
+ await run(`orbitShell.activate('friends');`);await wait();
+ await run(`document.querySelector('#friends-connections').open=true;`);await wait();
+ await check('expanded disconnected Accounts has no duplicate Connect action',`document.querySelector('#friends-empty-connect').hidden&&document.querySelector('#friends-empty-note').hidden&&!document.querySelector('#section-count').textContent&&!document.querySelector('#friends-account-status').textContent`);
+ await shot('after-friends');
+ await run(`document.querySelector('#friends-connections').open=false;`);await wait();
+ await check('collapsed disconnected Accounts restores its connection action',`!document.querySelector('#friends-empty-connect').hidden&&!document.querySelector('#friends-empty-note').hidden`);
+ await run(`OrbitDesktopTools.runtime();`);await wait();
+ await check('an inactive overlay cannot be stopped',`document.querySelector('#orbit-vr-status').textContent==='Overlay is off.'&&document.querySelector('#orbit-vr-stop').disabled`);
+ await shot('after-vr');
+ await run(`closeModal();showSettings();document.querySelector('#tab-about').click();`);await wait();
+ await check('Quick start is reachable under About',`!document.querySelector('#panel-about').hidden&&document.querySelector('#panel-about #reopen-setup').getBoundingClientRect().height>0`);
+ await shot('after-tour-location');
+ await run(`closeModal();orbitShell.activate('tools');`);await wait();await shot('after-tool-count');
+ return checks;
+};

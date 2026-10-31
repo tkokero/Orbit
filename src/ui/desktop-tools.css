@@ -63,6 +63,8 @@ html:root #modal:not(.settings-dialog):not(.launch-mode-dialog):has(.desktop-opt
 .desktop-option-row>.icon-button{flex:none;width:32px;height:32px;min-width:32px;padding:6px}.desktop-option-row>.icon-button svg{width:18px;height:18px}
 
 #modal-body:has(.desktop-runtime)>.desktop-tools-footer{justify-content:flex-start}
+#modal-body:has(.desktop-runtime) .desktop-runtime{padding:8px 0}
+#modal-body:has(.desktop-runtime)>.desktop-tools-footer{margin-top:8px;padding-top:12px}
 
 .desktop-vr-experiment{margin-top:22px;padding-top:20px;border-top:1px solid var(--border)}.desktop-vr-experiment h3 .small-note{margin-left:10px;color:var(--accent)}
 

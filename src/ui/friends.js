@@ -16,16 +16,16 @@
   document.querySelectorAll('.friend-card').forEach(card=>observer.observe(card));
   $('#friends-empty').hidden=rows.length>0;$('#friends-empty-title').textContent=!data.connected?'No friends connected':ui.platform==='Epic Games'?'Epic friends are not connected':ui.filter==='online'?'No shared online presence':'No friends match';
   $('#friends-empty-note').textContent=!data.connected?'Connect an account to see friends.':ui.platform==='Epic Games'?'Open Epic for your full friends list.':ui.filter==='online'?'Switch to All friends, refresh, or check your privacy settings.':'Try another name or platform.';
-  $('#friends-empty-connect').hidden=Boolean(data.connected);$('#friends-pagination').hidden=!rows.length;$('#friends-page-range').textContent=`${start+1}–${Math.min(start+PAGE,rows.length)} of ${rows.length}`;$('#friends-previous').parentElement.hidden=pages<=1;$('#friends-previous').disabled=ui.page===0;$('#friends-next').disabled=ui.page===pages-1;
+  emptyActions();$('#friends-pagination').hidden=!rows.length;$('#friends-page-range').textContent=`${start+1}–${Math.min(start+PAGE,rows.length)} of ${rows.length}`;$('#friends-previous').parentElement.hidden=pages<=1;$('#friends-previous').disabled=ui.page===0;$('#friends-next').disabled=ui.page===pages-1;
   $('#friends-online').setAttribute('aria-pressed',String(ui.filter==='online'));$('#friends-all').setAttribute('aria-pressed',String(ui.filter==='all'));
  }
  function render(){if(window.orbitMemory?.suspended())return;const data=ui.data,people=window.OrbitFriendLinksUI?.view(data)||data?.friends||[],online=people.filter(f=>P.visible(f).length).length;$('#friends-count').textContent=data?.connected?String(people.length):'—';if(state.section!=='friends')return;
-  $('#page-title').textContent='Friends';$('#section-count').textContent=data?.connected?`${online} online`:'Connect';$('#refresh').disabled=ui.busy;$('#sync-status').textContent=ui.busy?'Checking friends…':'';
+  $('#page-title').textContent='Friends';$('#section-count').textContent=data?.connected?`${online} online`:'';$('#refresh').disabled=ui.busy;$('#sync-status').textContent=ui.busy?'Checking friends…':'';
   $('#friends-updated').textContent=data?.checkedAt?(data.stale?'Last reported ':'Checked ')+new Date(data.checkedAt).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}):'Presence is shown only when a platform shares it.';
   $('#friends-error').hidden=!data?.error;$('#friends-error').textContent=data?.error||'';
   $('#friends-platforms').innerHTML=connections(data);
   const accounts=$('#friends-connections'),connected=(data?.providers||[]).filter(p=>p.connected);
-  $('#friends-account-status').textContent=connected.length?connected.map(p=>p.name).join(' · '):'Connect an account';
+  $('#friends-account-status').textContent=connected.map(p=>p.name).join(' · ');
   if(data){if(!accounts.dataset.initialized){accounts.open=!data.connected;accounts.dataset.initialized='true';}else if(accounts.dataset.connected==='false'&&data.connected)accounts.open=false;accounts.dataset.connected=String(Boolean(data.connected));}
 
   list();
@@ -45,12 +45,19 @@
   form.onsubmit=async e=>{e.preventDefault();e.submitter.disabled=true;const key=form.querySelector('#friends-steam-key');try{const result=await window.orbit.connectSteamFriends({steamId:form.querySelector('#friends-steam-id').value.trim(),apiKey:key.value.trim(),remember:form.querySelector('#friends-remember').checked});key.value='';ui.data=result;ui.loaded=true;if(form.isConnected)closeModal();render();schedule();}catch(error){if(form.isConnected)form.querySelector('#friends-connect-error').textContent=error.message;}finally{if(e.submitter.isConnected)e.submitter.disabled=false;}};
  }
  function bind(){
+  $('#friends-connections').addEventListener('toggle',emptyActions);
   $('#friends-search').oninput=e=>{clearTimeout(ui.searchTimer);ui.searchTimer=setTimeout(()=>{ui.search=e.target.value;ui.page=0;list();},100);};
   $('#friends-platform-filter').onchange=e=>{ui.platform=e.target.value;ui.page=0;list();};
   $('#friends-online').onclick=()=>{ui.filter='online';ui.page=0;list();};$('#friends-all').onclick=()=>{ui.filter='all';ui.page=0;list();};
   $('#friends-grid').onclick=e=>{if(window.OrbitFriendLinksUI?.handleCard(e))return;const row=e.target.closest('[data-friend-profile]');if(row)attempt(()=>window.orbit.friendProfile(row.dataset.friendProfile));};
   $('#friends-platforms').onclick=e=>{const more=e.target.closest('[data-social-more]');if(more){attempt(()=>providerMenu(more));return;}const client=e.target.closest('[data-social-client]');if(client)attempt(async()=>toast((await window.orbit.openSocialClient(client.dataset.socialClient)).message));const account=e.target.closest('[data-social-connect]');if(account)connect(account.dataset.socialConnect);const disconnect=e.target.closest('[data-social-disconnect]');if(disconnect)attempt(()=>window.friendsUI.disconnect(disconnect.dataset.socialDisconnect));};
   $('#friends-empty-connect').onclick=()=>connect();$('#friends-previous').onclick=()=>{ui.page--;list();};$('#friends-next').onclick=()=>{ui.page++;list();};
+ }
+ function emptyActions(){
+  const connected=Boolean(ui.data?.connected),expanded=$('#friends-connections').open,note=$('#friends-empty-note');
+  $('#friends-empty-connect').hidden=connected||expanded;
+  if(!connected){note.textContent=expanded?'':'Connect Steam or Discord to see friends.';note.hidden=expanded;}
+  else note.hidden=false;
  }
  function enter(){render();if(!ui.loaded)load();else{if(ui.data?.connected&&(!ui.data.checkedAt||Date.now()-ui.data.checkedAt>60000))load(true);else schedule();}}
  document.addEventListener('visibilitychange',()=>{if(document.hidden)leave();else if(state.section==='friends')enter();});window.addEventListener('blur',leave);window.addEventListener('focus',()=>{if(state.section==='friends')enter();});
