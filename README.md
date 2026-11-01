@@ -54,7 +54,7 @@ Settings and themes stay in your local profile. **Settings → Manage** includes
 
 ## Controller mode
 
-Use larger controls, gamepad navigation, configurable bindings, and artwork-led game pages. Orbit handles supported game launch and return transitions. See [Controller Mode](CONTROLLER.md) for controls and limitations.
+Use larger controls, gamepad navigation, configurable bindings, and artwork-led game pages. Orbit handles supported game launch and return transitions. See [Controller Mode](docs/CONTROLLER.md) for controls and limitations.
 
 ![Controller library with example games](docs/screenshots/orbit-controller.png)
 
@@ -69,6 +69,8 @@ Closing Orbit normally leaves tracking and essential services in the tray. The i
 Installed builds receive published updates. Draft releases are excluded. Offline mode uses cached information; games keep their own sign-in requirements.
 
 ## Help and source
+
+[Guides](docs/README.md) cover controls, themes, friends, and FPS estimates. See [Releases](https://github.com/tkokero/Orbit/releases) for version history.
 
 Report problems from **Settings → About**, including steps to reproduce them. Leave private account information out of reports.
 

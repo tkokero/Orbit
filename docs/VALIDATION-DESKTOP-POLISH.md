@@ -35,4 +35,4 @@ Checkups use hidden/offscreen windows and isolated profiles. The existing instal
 - outputs/library-dev9-packaged-final/background-checks.json
 - work/library-dev9-final-package-verification.json
 - work/library-dev9-final-smoke-exit.json
-- docs/RELEASE-NOTES-0.2.6-DRAFT.md
+- docs/releases/0.2.6.md

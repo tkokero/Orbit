@@ -36,4 +36,4 @@ Themes, startup scenes, reduced motion, and saved popup sizes work in both modes
 - Guest mode hides personal information on Orbit's pages; it is not account security.
 - Store controller labels do not guarantee every game menu supports a controller.
 
-For diagnostics and tests, see [Contributing](CONTRIBUTING.md) and [Validation](VALIDATION.md). Clipping and synthetic-input tools remain developer-only.
+For diagnostics and tests, see [Contributing](../CONTRIBUTING.md) and [Validation](VALIDATION.md). Clipping and synthetic-input tools remain developer-only.

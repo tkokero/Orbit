@@ -36,7 +36,7 @@
       "package.json",
       "LICENSE",
       "README.md",
-      "CONTROLLER.md",
+      "docs/CONTROLLER.md",
       "THIRD_PARTY.md"
     ],
     "asar": true,

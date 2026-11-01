@@ -26,4 +26,4 @@ Remembered connections use protected local storage. Disconnect from account cont
 
 **Discord Rich Presence** is separate, under **Settings → Privacy**. Share a game name or show only **Playing a game**, and control elapsed time and background sharing. Guest mode and turning sharing off clear the activity.
 
-See [Privacy](PRIVACY.md) for data handling.
+See [Privacy](../PRIVACY.md) for data handling.

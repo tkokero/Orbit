@@ -16,7 +16,7 @@ npm start
 - npm run dist builds the installer and update metadata.
 - npm run dev opens an isolated Orbit-Dev profile. Ctrl+Shift+D opens diagnostics.
 
-Diagnostics and clipping experiments are unavailable in ordinary packaged builds. See [Validation](VALIDATION.md) for test guidance and the [Controller development reference](docs/reference/CONTROLLER-DEVELOPMENT.md) for implementation details.
+Diagnostics and clipping experiments are unavailable in ordinary packaged builds. See [Validation](docs/VALIDATION.md) for test guidance and the [Controller development reference](docs/reference/CONTROLLER-DEVELOPMENT.md) for implementation details.
 
 ## Making changes
 
@@ -30,7 +30,7 @@ Use supported provider sign-in flows. Do not read another app's private credenti
 | Windows app and IPC | src/main.cjs, src/preload.cjs |
 | Interface | src/ui/ |
 | Artwork | src/artwork.cjs, src/custom-artwork.cjs |
-| Themes | [Theme guide](THEMES.md) |
+| Themes | [Theme guide](docs/THEMES.md) |
 
 ## Windows releases
 

@@ -10,4 +10,4 @@ Patches, mods, laptop power limits, thermals, ray tracing, upscaling, frame gene
 
 Hardware calculations stay local. A store lookup uses the requested game's store ID; Orbit does not continuously benchmark your PC.
 
-See [the model and source references](docs/reference/FPS-MODEL.md) for formulas, assumptions, and publisher links.
+See [the model and source references](reference/FPS-MODEL.md) for formulas, assumptions, and publisher links.

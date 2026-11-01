@@ -1,6 +1,6 @@
 # Controller development reference
 
-Retained technical record from the earlier guide. For current controls, see [Controller Mode](../../CONTROLLER.md).
+Retained technical record from the earlier guide. For current controls, see [Controller Mode](../CONTROLLER.md).
 
 # Controller Mode
 
@@ -46,7 +46,7 @@ Controller input works in desktop dialogs as well as Controller Mode. Nested dia
 
 Run `npm run dev` for the developer build. **Settings → General → Controller navigation → Toggle controller diagnostics** shows active device, backend, input mode, focus, last action, synchronous action-to-focus processing time, and sampled renderer FPS. The overlay updates twice a second and timing/FPS collection is disabled when it is off. Processing time is not physical controller-to-display latency.
 
-Run `npm test` for normalization, timing, device handoff, geometry, and existing regression tests. The isolated Electron `--smoke-test` workflow exercises the real renderer and IPC with synthetic controller states, including the drawer, game page, nested keyboard/dropdown, cursor handoff, and Guest information filtering. See `VALIDATION.md` for executed results.
+Run `npm test` for normalization, timing, device handoff, geometry, and existing regression tests. The isolated Electron `--smoke-test` workflow exercises the real renderer and IPC with synthetic controller states, including the drawer, game page, nested keyboard/dropdown, cursor handoff, and Guest information filtering. See [Validation](../VALIDATION.md) for test guidance and historical results.
 
 Smoke checks render offscreen by default. Native show/focus requests are blocked, screenshots explicitly stay hidden, and `background-checks.json` records actual native visibility and focus events. `--interactive-checks` is reserved for an agreed hands-on session; the native handoff and memory lifecycle checks require it. Launching Orbit with `--background` keeps it in the tray without bringing its window over another app.
 

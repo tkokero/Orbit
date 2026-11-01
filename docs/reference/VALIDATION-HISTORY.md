@@ -1,6 +1,6 @@
 # Historical validation records
 
-These are dated snapshots, not current release guarantees. Return to the [validation guide](../../VALIDATION.md) for running checks.
+These are dated snapshots, not current release guarantees. Return to the [validation guide](../VALIDATION.md) for running checks.
 
 # Orbit 0.2.5 release validation
 

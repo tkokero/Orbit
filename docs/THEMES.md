@@ -31,4 +31,4 @@ All eight colors use #RRGGBB. Names can have up to 60 characters, with up to 24 
 
 ## Contributing a palette
 
-Add a unique preset in src/ui/themes.js, then run npm test. Check text, buttons, focus, and reduced motion. Keep effects finite and inexpensive. See [Contributing](CONTRIBUTING.md).
+Add a unique preset in src/ui/themes.js, then run npm test. Check text, buttons, focus, and reduced motion. Keep effects finite and inexpensive. See [Contributing](../CONTRIBUTING.md).
