@@ -1,3 +1,15 @@
 node_modules/
 smoke-output/
+/dist/
+/out/
+/coverage/
+.cache/
 *.log
+*.tmp
+*.bak
+.DS_Store
+Thumbs.db
+desktop.ini
+.env
+.env.*
+!.env.example

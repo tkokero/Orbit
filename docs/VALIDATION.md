@@ -15,4 +15,4 @@ Physical controller behavior, Windows sign-in timing, game handoff/exit, and cle
 
 Before a release, verify the exact package and installer, preserve profiles, check narrow/wide layouts and theme contrast, and keep release notes accurate. Building does not authorize publication.
 
-[Historical results and limitations](reference/VALIDATION-HISTORY.md) are retained separately. Some evidence paths refer to the original local workspace rather than distributed files.
+[Historical results and limitations](history/VALIDATION-HISTORY.md) are retained separately. Some evidence paths refer to the original local workspace rather than distributed files.

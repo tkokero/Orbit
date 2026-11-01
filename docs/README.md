@@ -12,4 +12,4 @@
 
 ## Releases
 
-Published downloads and release history are on [GitHub Releases](https://github.com/tkokero/Orbit/releases). Source notes: [0.2.5](releases/0.2.5.md), [0.2.6](releases/0.2.6.md), and [0.2.7](releases/0.2.7.md). Dated validation and research records remain in this folder and [reference](reference/).
+Published downloads and release history are on [GitHub Releases](https://github.com/tkokero/Orbit/releases). Source notes: [0.2.5](releases/0.2.5.md), [0.2.6](releases/0.2.6.md), and [0.2.7](releases/0.2.7.md). Dated validation and planning records are in [History](history/README.md). Technical background and research are in [Reference](reference/README.md).

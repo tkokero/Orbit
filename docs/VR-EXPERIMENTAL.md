@@ -35,4 +35,4 @@ This remains an experiment, not feature parity with OVR Toolkit, fpsVR or OVR Ad
 
 ## Validation
 
-Unit tests stay offline. The explicit hidden VR fixture checks the actual helper using synthetic frames; it does not initialize SteamVR, capture your screens, send Windows input or change room calibration. A separate software-graphics check verifies exact texture readback. Detailed candidate status is in [release validation](RELEASE-CANDIDATE-0.2.7.md).
+Unit tests stay offline. The explicit hidden VR fixture checks the actual helper using synthetic frames; it does not initialize SteamVR, capture your screens, send Windows input or change room calibration. A separate software-graphics check verifies exact texture readback. Detailed candidate status is in [release validation](history/RELEASE-CANDIDATE-0.2.7.md).

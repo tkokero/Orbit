@@ -13,10 +13,10 @@ The current private candidate is **0.2.7-dev.27**. It is not a published release
 
 ## Experimental
 
-Orbit VR offers a SteamVR dashboard, window/display panels, Watch/Toolbar wrist layouts, compositor readings, media tools and reversible origin offsets. See [VR scope](VR-EXPERIMENTAL.md). Hardware, Virtual Desktop, headset input, real frame pacing and multiple-panel cost remain playtest work.
+Orbit VR offers a SteamVR dashboard, window/display panels, Watch/Toolbar wrist layouts, compositor readings, media tools and reversible origin offsets. See [VR scope](../VR-EXPERIMENTAL.md). Hardware, Virtual Desktop, headset input, real frame pacing and multiple-panel cost remain playtest work.
 
 ## Candidate review
 
 See [0.2.7 candidate checklist](RELEASE-CANDIDATE-0.2.7.md) for checks, limitations and release gates. No new public release or updater feed is created by a private installation.
 
-The earlier implementation record remains in [dev.3 history](reference/DESKTOP-0.2.7-DEV.3.md). Its old counts and profile selections are historical, not current verification.
+The earlier implementation record remains in [dev.3 history](DESKTOP-0.2.7-DEV.3.md). Its old counts and profile selections are historical, not current verification.
