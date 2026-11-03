@@ -5,7 +5,7 @@
  const observer=new IntersectionObserver(entries=>{for(const e of entries)if(e.isIntersecting){observer.unobserve(e.target);queue.push(e.target);}drain();},{rootMargin:'80px'});
  function image(img,id,gameId){if(!window.orbit.friendImage)return Promise.resolve();return window.orbit.friendImage(id,gameId).then(url=>{if(url&&img.isConnected){img.onerror=()=>img.hidden=true;img.src=url;}else img.hidden=true;}).catch(()=>{img.hidden=true;});}
  function drain(){while(active<2&&queue.length){const card=queue.shift();if(!card.isConnected||state.section!=='friends')continue;active++;image(card.querySelector('.friend-avatar img'),card.dataset.friendAvatar||card.dataset.friendProfile).finally(()=>{active--;drain();});}}
- const P=OrbitFriendPresence,live=P.online;
+ const P=OrbitFriendPresence;
  const initials=name=>String(name).trim().split(/\s+/).slice(0,2).map(word=>Array.from(word)[0]||'').join('').toUpperCase();
  function schedule(){clearTimeout(ui.timer);ui.timer=null;if(state.settings?.refreshFriends!==false&&state.section==='friends'&&ui.data?.connected&&!document.hidden&&document.hasFocus())ui.timer=setTimeout(()=>load(true),60000);}
  function leave(){observer.disconnect();queue=[];clearTimeout(ui.timer);ui.timer=null;if(state.section!=='friends'||document.hidden)$('#friends-grid')?.replaceChildren();}

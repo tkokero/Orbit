@@ -1,7 +1,7 @@
 /* Renderer menus use the same theme and controls as Orbit, without activating native windows. */
 (()=>{
  let active=null;
- const symbol=item=>{const value=(item.id||item.label||'').toLowerCase();return /profile|friend|connect/.test(value)?'connection':/copy/.test(value)?'file':/preview/.test(value)?'play':/undo|back/.test(value)?'back':/news|article|headline/.test(value)?'news':/folder|files|collection/.test(value)?'folder':/artwork/.test(value)?'appearance':/repair|detection|health/.test(value)?'repair':/shortcut/.test(value)?'desktop':/playtime|timer/.test(value)?'activity':/hide|hidden/.test(value)?'hide':/return/.test(value)?'play':/close|uninstall|cleanup/.test(value)?'remove':/copy|export/.test(value)?'file':'tune';};
+ const symbol=item=>{const value=(item.id||item.label||'').toLowerCase();return /profile|friend|connect/.test(value)?'connection':/copy/.test(value)?'file':/preview/.test(value)?'play':/undo|back/.test(value)?'back':/news|article|headline/.test(value)?'news':/folder|files|collection/.test(value)?'folder':/artwork/.test(value)?'appearance':/repair|detection|health/.test(value)?'repair':/shortcut/.test(value)?'desktop':/playtime|timer/.test(value)?'activity':/hide|hidden/.test(value)?'hide':/return/.test(value)?'play':/close|uninstall|cleanup/.test(value)?'remove':/export/.test(value)?'file':'tune';};
  function open(items,point={},label='Library actions'){
   active?.();const previous=document.activeElement,menus=[];let typed="",typedAt=0;let resolve,finished=false;
   const owner=previous?.closest('dialog[open]')||[...document.querySelectorAll('dialog:modal')].at(-1)||document.body;
