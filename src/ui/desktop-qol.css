@@ -1,16 +1,17 @@
 /* News, secondary actions, and Steam use Orbit's existing theme tokens. */
 :root:not(.couch-mode) .launch-mode-layout:not(:has(>.game-menu-art)){grid-template-columns:minmax(0,1fr)}
-.orbit-context-menu{position:fixed;inset:auto;margin:0;padding:7px;width:286px;max-width:calc(100vw - 20px);max-height:calc(100vh - 20px);overflow:auto;overscroll-behavior:contain;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:21px;box-shadow:0 14px 44px #0004;font:inherit;animation:context-appear 130ms cubic-bezier(.2,.8,.2,1)}
-.orbit-context-heading{padding:9px 11px 12px;color:var(--muted);font-size:12px;font-weight:700;overflow-wrap:anywhere}
-.orbit-context-menu hr{border:0;border-top:1px solid var(--line);margin:6px 10px}
-.orbit-context-menu .orbit-context-item{display:flex;align-items:center;gap:11px;width:100%;min-height:41px;padding:8px 11px;border:0;border-radius:13px;background:transparent;color:var(--text);text-align:left;font-size:13px;line-height:1.4;font-weight:650;box-shadow:none;transform:none;white-space:normal}
+.orbit-context-menu{position:fixed;inset:auto;margin:0;padding:8px;width:292px;max-width:calc(100vw - 20px);max-height:calc(100vh - 20px);overflow:auto;overscroll-behavior:contain;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:20px;box-shadow:0 14px 44px #0004;font:inherit;animation:context-appear 160ms cubic-bezier(.22,1,.36,1)}
+.orbit-context-heading{padding:8px 12px 12px;color:var(--muted);font-size:13px;font-weight:650;overflow-wrap:anywhere}
+.orbit-context-menu hr{border:0;border-top:1px solid var(--line);margin:8px 12px}
+.orbit-context-menu .orbit-context-item{display:flex;align-items:center;gap:12px;width:100%;min-height:44px;padding:8px 12px;border:0;border-radius:12px;background:transparent;color:var(--text);text-align:left;font-size:14px;line-height:1.4;font-weight:650;box-shadow:none;transform:none;white-space:normal}
 .orbit-context-menu .orbit-context-item:is(:hover,:focus-visible){background:var(--raised);color:var(--accent)}
-.orbit-context-menu .orbit-context-item[aria-expanded=true]{background:color-mix(in srgb,var(--accent),var(--panel) 86%);color:var(--accent)}
+.orbit-context-menu .orbit-context-item[aria-expanded=true]{background:var(--raised);color:var(--text)}
 .orbit-context-menu .orbit-context-item:disabled{opacity:.45}
-.orbit-context-symbol{display:grid;place-items:center;flex:0 0 29px;width:29px;height:29px;background:var(--raised);border-radius:10px;color:var(--accent)}
+.orbit-context-symbol{display:grid;place-items:center;flex:0 0 18px;width:18px;height:18px;background:none;border-radius:0;color:var(--muted)}
 .orbit-context-symbol svg{width:18px;height:18px;stroke:currentColor;fill:none}
-.orbit-context-label{flex:1;min-width:0;overflow-wrap:anywhere}.orbit-context-arrow{font-size:21px;color:var(--muted);margin-left:4px}
+.orbit-context-label{flex:1;min-width:0;overflow-wrap:anywhere}.orbit-context-arrow{font-size:18px;color:var(--muted);margin-left:4px}
 @keyframes context-appear{from{opacity:0;translate:0 4px}to{opacity:1;translate:0}}
+@media(prefers-reduced-motion:no-preference){html:not(.motion-off) .control-menu:popover-open{animation:context-appear 160ms cubic-bezier(.22,1,.36,1)}}
 .news-article-content a{color:var(--accent);text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere;border-radius:3px}
 .news-article-content a:hover{color:var(--text)}
 .news-article-content figure{min-height:64px}
@@ -118,7 +119,7 @@ html:root dialog.steam-controls-dialog[open]{--popup-base-width:1040px}
 .friend-recent-detail{display:grid;gap:10px}.friend-recent-row{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:16px;border:1px solid var(--line);border-radius:18px;background:var(--panel)}.friend-recent-row>strong{font-size:16px}.friend-recent-row>span{font-size:14px;color:var(--muted)}
 .orbit-context-menu .orbit-context-item[role=menuitemcheckbox][aria-checked=true],.orbit-context-menu .orbit-context-item[role=menuitemradio][aria-checked=true]{color:var(--accent)}
 .orbit-context-menu .orbit-context-item:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}.orbit-context-menu .orbit-context-item:active{background:var(--raised);transform:scale(.985)}
-.orbit-context-menu{width:292px;border-radius:23px;padding:8px}.orbit-context-heading{font-size:13px;font-weight:800;line-height:1.4;padding:10px 12px 12px}.orbit-context-menu .orbit-context-item{min-height:44px;font-size:14px;gap:12px;border-radius:14px}.orbit-context-symbol{width:31px;height:31px;flex-basis:31px;border-radius:11px}
+
 
 /* Steam queues use stable, compact cards rather than full-width button rows. */
 .steam-controls-dialog #installation-title{display:flex;align-items:center;gap:12px;min-width:0}

@@ -35,14 +35,11 @@
   }
   return {done,stop:finish,skip:finish,release};
  }
- // Shrink the held artwork over a steady destination; never resize the interface.
+ // Paint the destination under the held frame, then crossfade a single layer.
  function exit(element,{reduced=false,reveal=()=>{}}={}){
-  return new Promise(resolve=>{let finished=false,deadline,animations=[];const finish=()=>{if(finished)return;finished=true;clearTimeout(deadline);for(const a of animations)try{a.cancel();}catch{}resolve();};
-   try{reveal();if(reduced){finish();return;}deadline=setTimeout(finish,950);const options={duration:560,easing:'cubic-bezier(.4,0,.2,1)',fill:'forwards'};
-    const artwork=element.querySelector('.startup-cover')||element;
-    for(const target of artwork.querySelectorAll('.boot-scene,.boot-bubbles,.startup-cosmos,.startup-void,.startup-afterglow,.startup-encore,.void-wordmark,.startup-video,.goatkero-stage'))animations.push(target.animate([{scale:1},{scale:.78}],options));
-    animations.push(element.animate([{opacity:1},{opacity:1,offset:.06},{opacity:0}],options));
-    Promise.allSettled(animations.map(a=>a.finished)).then(finish,finish);
+  return new Promise(resolve=>{let finished=false,deadline,frame=0,animation;const finish=()=>{if(finished)return;finished=true;clearTimeout(deadline);cancelAnimationFrame(frame);try{animation?.cancel();}catch{}resolve();};
+   try{reveal();if(reduced||document.hidden||!element.isConnected){finish();return;}deadline=setTimeout(finish,600);
+    frame=requestAnimationFrame(()=>{if(finished)return;frame=requestAnimationFrame(()=>{frame=0;if(finished)return;try{animation=element.animate([{opacity:1},{opacity:0}],{duration:240,easing:'cubic-bezier(.22,1,.36,1)',fill:'forwards'});animation.id='orbit-startup-handoff';animation.finished.then(finish,finish);}catch{finish();}});});
    }catch{finish();}
   });
  }

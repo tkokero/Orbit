@@ -3,7 +3,7 @@
   "upstream": "0924064316de3effbcd1acf1e309182a2deb1c05",
   "sha256": {
     "openvr_api.cs": "c17e878b7b3b925d1f22ef5382561389c47db8b92019de840705ff5ff28c317a",
-    "OrbitVR.cs": "7dc59e23c03b118fa7db1e6491de28372a5cf011cd6994264ca10c3b08ecd02d",
+    "OrbitVR.cs": "88ac353155d85150684078b6d6a91b2b607d3239d1476b88c8a59c1e12328b03",
     "Telemetry.cs": "c2d6ecfac926213e4081eb66e52aca643d2dffcac104b51ebf6473ac6044c368",
     "Panels.cs": "2d86319bb5df74ea49fee15d2356b34cbfc927bcdbfa2deeb311ceb23b0c42a9",
     "Room.cs": "1d55097c16f7a3ca524a9116e33c5454f44d7462e77e2b1a7bd24d5d378f0f14",
@@ -14,6 +14,6 @@
     "openvr_api.dll": "bab8ac6ef64e68a9ca53315b0014d131088584b2efdfa6db511d67ec03cfcb4a",
     "OPENVR-LICENSE.txt": "f56ff606104d4ef18e617921a75c73ad73b5a1a1d70c69590c29de16919e04ad",
     "orbit.png": "d2f37e6dd9a141a05a611c18e65885ab5d418fa2e2d1f7c36c052194158eccde",
-    "OrbitVR.exe": "6116b251b94ce1cda27c83ebe8ffaa737349095874f283b92798c42e6a12c844"
+    "OrbitVR.exe": "a8d2f48eee97764b03c287dd5cbceac4f4eee6557a247edf3c9488affeceb985"
   }
 }

@@ -1,0 +1,91 @@
+#desktop-library-content{display:contents}
+/* Preview follows the same saved choices; it uses no capture stream or background timer. */
+html:root:not(.couch-mode) #desktop-menu-settings{container-type:inline-size;container-name:desktopMenu}
+html:root:not(.couch-mode) #desktop-menu-settings .menu-live-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:24px;align-items:start}
+html:root:not(.couch-mode) #desktop-menu-settings .menu-live-controls{min-width:0}
+html:root:not(.couch-mode) #desktop-menu-settings .menu-live-controls fieldset{margin:0 0 20px;padding:0;border:0;min-width:0}
+html:root:not(.couch-mode) #desktop-menu-settings .menu-live-controls legend{font-size:14px;font-weight:750;margin-bottom:4px}
+html:root:not(.couch-mode) #desktop-menu-settings .menu-visibility-row{min-height:44px;gap:12px;padding:8px 0;border:0}
+html:root:not(.couch-mode) #desktop-menu-settings .menu-layout-preview{display:none;min-width:0;max-width:430px;width:100%;margin-inline:auto}
+html:root:not(.couch-mode) #desktop-menu-settings.menu-preview-expanded .menu-layout-preview{display:block}
+html:root:not(.couch-mode) #desktop-menu-settings .menu-preview-toggle{margin-left:auto}
+html:root:not(.couch-mode) #desktop-menu-settings .menu-preview-label{display:block;font-size:13px;color:var(--muted);margin-bottom:12px}
+html:root:not(.couch-mode) #desktop-menu-settings [data-menu-preview]{border:1px solid var(--line);border-radius:18px;padding:14px;background:var(--panel);font-size:12px;line-height:1.5;overflow:hidden}
+.menu-preview-title{display:flex;align-items:center;justify-content:space-between;gap:12px;font-weight:850;padding-bottom:12px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.menu-preview-title>span{display:flex;gap:8px;font-size:11px;font-weight:600;flex-wrap:wrap;justify-content:flex-end;color:var(--muted)}
+.menu-preview-workspace{display:grid;grid-template-columns:62px minmax(0,1fr);gap:12px;min-height:250px}
+.menu-preview-sidebar{display:flex;flex-direction:column;gap:12px;color:var(--muted);border-right:1px solid var(--line);padding-right:8px;font-size:11px;overflow-wrap:anywhere}
+.menu-preview-sidebar>strong{color:var(--text)}
+.menu-preview-content{display:flex;flex-direction:column;gap:8px;min-width:0}
+.menu-preview-hero{position:relative;overflow:hidden;isolation:isolate;min-height:72px;background:var(--raised);border-radius:10px;padding:12px;display:flex;flex-direction:column;justify-content:center;gap:4px}
+.menu-preview-hero[data-size=compact]{min-height:60px}.menu-preview-hero[data-size=large]{min-height:110px}
+.menu-preview-hero>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.35;z-index:-1}
+.menu-preview-hero strong{font-size:13px;font-weight:800;overflow-wrap:anywhere}
+.menu-preview-hero>span,.menu-preview-recents>span,.menu-preview-news>small{font-size:11px;color:var(--muted)}
+.menu-preview-recents>div{display:flex;gap:6px;margin-top:5px}.menu-preview-recents>div>span{width:32px;height:26px;border-radius:6px;background:var(--raised);overflow:hidden}
+.menu-preview-recents img,.menu-preview-games img{display:block;width:100%;height:100%;object-fit:cover}
+.menu-preview-news{padding-block:8px;border-block:1px solid var(--line);display:grid;gap:4px;font-weight:750}
+.menu-preview-games{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.menu-preview-games>span{position:relative;isolation:isolate;overflow:hidden;min-width:0;aspect-ratio:2/3;padding:5px;border-radius:8px;background:var(--raised);display:flex;align-items:flex-end}
+.menu-preview-games img{position:absolute;inset:0;z-index:-1;opacity:.35}
+.menu-preview-games small{font-size:11px;line-height:1.4;overflow-wrap:anywhere}
+@container desktopMenu (min-width:560px){html:root:not(.couch-mode) #desktop-menu-settings .menu-live-layout{grid-template-columns:minmax(0,1fr) minmax(0,1.1fr)}html:root:not(.couch-mode) #desktop-menu-settings .menu-layout-preview{display:block;position:sticky;top:0}html:root:not(.couch-mode) #desktop-menu-settings .menu-preview-toggle{display:none}}
+html:not(.couch-mode)[data-recent-count] #recent-games{grid-template-columns:repeat(auto-fit,minmax(min(100%,155px),1fr));gap:12px}
+html:not(.couch-mode)[data-recent-count] #recent-games>.recent-game{display:flex;min-width:0}
+html #modal [data-menu-customization]>details{margin-top:16px;border:0;border-top:1px solid var(--line);border-radius:0;background:none;padding:0}
+html #modal [data-menu-customization]>details>summary{padding:16px 0;cursor:pointer}
+html #modal [data-menu-customization] details .small-note{margin:4px 0 12px}
+html #modal [data-menu-customization] summary>.desktop-summary-symbol{display:none}
+html #modal .menu-order-row{display:flex;align-items:center;gap:12px;min-width:0;min-height:48px;padding:6px 0;border-bottom:1px solid var(--line)}
+html #modal .menu-order-row>span:nth-child(2){flex:1;font-size:15px}
+html #modal .menu-order-row>.icon-button{width:34px;height:34px;flex:none;padding:4px;min-height:34px;font-size:20px}
+.menu-drag-handle{color:var(--muted);cursor:grab;user-select:none}
+html #modal .menu-field{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:10px 0;font-size:15px}
+html #modal .menu-game-picker{margin:12px 0;border:0;background:none;border-radius:0;padding:0}
+html #modal .menu-game-picker>summary{padding:12px 0}
+.menu-picker-tools,.menu-preset-form{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+html #modal :is(.menu-picker-tools,.menu-preset-form)>input{flex:1;min-width:min(180px,100%);margin:0}
+.menu-picker-games{max-height:260px;overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
+html #modal .menu-picker-game{display:flex;align-items:center;gap:12px;min-height:44px;padding:8px 4px;font-size:15px;cursor:pointer;overflow-wrap:anywhere}
+html #modal .menu-picker-game>input{flex:none;margin:0;width:18px;height:18px;accent-color:var(--accent)}
+.menu-preset-builtins{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+.menu-saved-layout{display:flex;gap:10px;align-items:center;margin-bottom:10px}
+.menu-saved-layout>button:first-child{min-width:0;flex:1;justify-content:flex-start;overflow-wrap:anywhere}
+.menu-preset-form>p{flex-basis:100%}
+html #modal .banner-height-setting{margin-top:20px}
+html #modal [data-banner-size][aria-pressed=true]{border-color:var(--accent);background:var(--raised);color:var(--text)}
+/* Banner sizing changes the artwork area; labels keep their readable type sizes. */
+html:root:not(.couch-mode)[data-banner-size=compact] #hero.hero{padding:18px;gap:20px}
+html:root:not(.couch-mode)[data-banner-size=compact] #hero.hero>#hero-image[src]{max-height:220px;aspect-ratio:3.6;object-fit:cover}
+html:root:not(.couch-mode)[data-banner-size=large] #hero.hero>#hero-image[src]{max-height:460px;aspect-ratio:2.6;object-fit:cover}
+html:root:not(.couch-mode):is([data-banner-size=compact],[data-banner-size=large]) #hero.hero:is([data-art-shape=portrait],[data-art-shape=square])>#hero-image[src]{aspect-ratio:auto;object-fit:contain}
+html:root:not(.couch-mode)[data-desktop-banner=overlay][data-banner-size=compact] #hero.hero:not([data-art-shape=portrait]):not([data-art-shape=square]):has(>#hero-image[src]:not([hidden])){padding:0;min-height:220px}
+html:root:not(.couch-mode)[data-desktop-banner=overlay][data-banner-size=large] #hero.hero:not([data-art-shape=portrait]):not([data-art-shape=square]):has(>#hero-image[src]:not([hidden])){padding:0;min-height:clamp(330px,42vh,460px)}
+html:root:not(.couch-mode)[data-desktop-banner=overlay]:is([data-banner-size=compact],[data-banner-size=large]) #hero.hero:not([data-art-shape=portrait]):not([data-art-shape=square]):has(>#hero-image[src]:not([hidden]))>#hero-image{height:100%;max-height:none;aspect-ratio:auto}
+#friends-panel .linked-main-card.friend-card{position:relative;display:flex;flex-direction:column;gap:14px;min-height:166px}
+#friends-panel .linked-main-profile{display:flex;align-items:center;gap:14px;width:calc(100% - 38px);min-width:0;margin:0;padding:0;border:0;border-radius:12px;background:none;color:var(--text);text-align:left;font:inherit;box-shadow:none;transform:none}
+#friends-panel .linked-main-profile>.friend-info{display:grid;gap:6px;min-width:0;flex:1}
+#friends-panel .linked-main-profile .friend-name{display:block;grid-area:auto;min-height:0;margin:0;padding:0;overflow-wrap:anywhere;line-height:1.4}
+#friends-panel .linked-main-profile .friend-avatar{flex:none}
+#friends-panel .linked-main-profile .friend-linked-label{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+#friends-panel .linked-main-profile .platform-logo{width:16px;height:16px;flex:none}
+#friends-panel .linked-main-profile .friend-arrow{flex:none;margin:0}
+#friends-panel .linked-main-settings{position:absolute;right:12px;top:12px;width:30px;height:30px;padding:5px;min-height:30px;color:var(--muted);background:none;border:0}
+#friends-panel .linked-main-card>.friend-activity{font-size:13px;line-height:1.5}
+#friends-panel .linked-profile-details{width:100%;border:0;border-top:1px solid var(--line);padding:0;margin:0;border-radius:0;background:none}
+#friends-panel .linked-profile-details>summary{padding:10px 0 0;cursor:pointer;font-size:13px;color:var(--muted)}
+#friends-panel .linked-profile-details>summary{display:flex;align-items:center;justify-content:space-between;gap:10px;list-style:none}
+#friends-panel .linked-profile-details>summary::-webkit-details-marker{display:none}
+#friends-panel .linked-profile-details>summary::after{content:none}
+#friends-panel .linked-profile-details .desktop-summary-symbol{display:none}
+#friends-panel .linked-profile-details>summary svg{width:16px;height:16px;flex:none}
+#friends-panel .linked-profile-details[open]>summary svg{transform:rotate(180deg)}
+#friends-panel .linked-main-card .linked-profile-actions{display:flex;flex-direction:column;margin:10px 0 0;gap:8px}
+#friends-panel .linked-main-card .linked-profile-actions>button{display:flex;align-items:center;min-width:0;min-height:42px;gap:10px;padding:8px;border-radius:12px;text-align:left;background:var(--bg);color:var(--text)}
+#friends-panel .linked-profile-actions>button>span{min-width:0;overflow-wrap:anywhere}
+#friends-panel .linked-main-card .linked-profile-actions small{display:block;color:var(--muted);font-size:12px;margin-top:3px}
+#modal .friend-primary-choice,#modal .friend-default-primary{display:grid;gap:7px;font-size:14px;min-width:150px;margin:0}
+#modal .friend-default-primary{max-width:340px;margin-bottom:22px}
+#modal .saved-friend-link{flex-wrap:wrap}
+#modal .saved-friend-link .friend-match-people{flex:1 1 280px}
+@media(prefers-reduced-motion:reduce){#friends-panel .linked-main-card{transition:none}}

@@ -21,7 +21,7 @@
    if(!heading.querySelector('img,.console-artwork,.detail-placeholder'))heading.insertAdjacentHTML('afterbegin','<span class="detail-placeholder" aria-hidden="true">'+OrbitControllerArt.icon('home')+'</span>');
    return;
   }
-  if(root.querySelector('#artwork-editor,.game-menu-art,.detail-art,.controller-context-art,[data-game-banner],[data-launch-options-root],.desktop-runtime,[data-vr-loading]'))return;
+  if(root.querySelector('#artwork-editor,.game-menu-art,.detail-art,.controller-context-art,[data-game-banner],[data-launch-options-root],.desktop-runtime,[data-vr-loading],.game-optimization'))return;
   const g=gameFor(title);if(g&&(g.cover||g.hero||document.documentElement.classList.contains('couch-mode')))root.insertAdjacentHTML('afterbegin',markup(g));
  }
  window.OrbitGameArtwork={decorate,markup,thumbnail(id){return markup(state.games.find(g=>g.id===id),'download-game-art');}};

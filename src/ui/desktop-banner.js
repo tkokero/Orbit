@@ -2,7 +2,7 @@
 (()=>{
  const key='orbit-desktop-banner',root=document.documentElement;
  let layout='split';
- try{if(localStorage.getItem(key)==='overlay')layout='overlay';}catch{}
+ try{const saved=window.OrbitDesktopMenus?.custom.bannerLayout;if(['overlay','split'].includes(saved))layout=saved;else if(localStorage.getItem(key)==='overlay')layout='overlay';}catch{}
  function paint(){
   root.dataset.desktopBanner=layout;
   document.querySelectorAll('[data-banner-layout]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.bannerLayout===layout)));
@@ -23,5 +23,5 @@
   panel.prepend(card);paint();
  }
  const previous=showSettings;showSettings=function(...args){const result=previous.apply(this,args);mount();return result;};
- window.OrbitDesktopBanner={set,get layout(){return layout;}};paint();
+ window.OrbitDesktopBanner={set,sync(value){if(['overlay','split'].includes(value)){layout=value;paint();}},get layout(){return layout;}};paint();
 })();

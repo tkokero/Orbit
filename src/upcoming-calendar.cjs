@@ -1,5 +1,5 @@
 const fs=require('node:fs/promises'),path=require('node:path');
-const TTL=12*60*60*1000,DAY=86400000;
+const TTL=12*60*60*1000;
 const key=d=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
 function range(now){const start=new Date(now);start.setHours(0,0,0,0);const end=new Date(start);end.setDate(end.getDate()+31);return {start:key(start),end:key(end)};}
 function text(s){return String(s||'').replace(/<[^>]*>/g,'').replace(/&(?:amp|quot|apos|lt|gt|nbsp|#\d+|#x[0-9a-f]+);/gi,v=>{const names={'&amp;':'&','&quot;':'"','&apos;':"'",'&lt;':'<','&gt;':'>','&nbsp;':' '};if(names[v])return names[v];const n=v.startsWith('&#x')?parseInt(v.slice(3),16):parseInt(v.slice(2),10);return n>0&&n<=0x10ffff?String.fromCodePoint(n):'';}).trim().slice(0,200);}

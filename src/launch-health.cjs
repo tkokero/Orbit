@@ -1,4 +1,3 @@
-const fs=require('node:fs/promises');
 async function diagnose(game,profile={},exists){
  const issues=[],version=game.versions[0];
  const executable=profile.executable||version.executable;

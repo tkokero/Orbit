@@ -6,7 +6,7 @@ function collectionMenu(options){
 }
 function entryMenu(game,tools=[],options={}){
  const collections=collectionMenu(options);
- if(game.robloxPlaceId)return [...(collections?[collections]:[]),{id:'shortcut',label:'Create desktop shortcut'},{id:'artwork',label:'Customize artwork…'},{type:'separator'},{id:'copy-title',label:'Copy title'},{id:'hide',label:game.hidden?'Restore to library':'Hide from library'}];
+ if(game.robloxPlaceId)return [...(collections?[collections]:[]),{id:'shortcut',label:'Create desktop shortcut'},{id:'artwork',label:'Customize artwork…'},{type:'separator'},{id:'copy-title',label:'Copy title'},{id:'hide',label:game.hidden?'Restore to library':'Remove from library'}];
  tools=modSupport.filter(game,tools);
  const items=options.running?[{id:'return',label:'Return to game'}]:[];
  if(options.running)items.push({id:'close-game',label:'Close game…'});
@@ -17,7 +17,7 @@ function entryMenu(game,tools=[],options={}){
  items.push({label:'Artwork & organization',submenu:[{id:'artwork',label:'Customize artwork…'},{id:'repair',label:'Find replacement cover'},{id:'move',label:game.kind==='tool'?'Move to Games':'Move to Tools'}]});
  if(game.kind==='game'&&tools.length)items.push({label:'Mod tools',submenu:tools.map(tool=>({label:tool.title+(tool.installed?'':' · Get'),command:{action:'open-tool',toolId:tool.id}}))});
  if(game.kind==='game'&&!nativePlaytime(game)){const running=['running','paused','waiting'].includes(game.tracking?.state);items.push({label:'Local playtime',submenu:[{id:running?'stop-timer':'start-timer',label:running?'Stop timer':'Start manual timer'},{id:'track-executable',label:'Choose game executable…'}]});}
- items.push({type:'separator'},{id:'copy-title',label:'Copy title'},{id:'hide',label:game.hidden?'Restore to library':'Hide from library'});
+ items.push({type:'separator'},{id:'copy-title',label:'Copy title'},{id:'hide',label:game.hidden?'Restore to library':'Remove from library'});
  return items;
 }
 function backgroundMenu(){return [{id:'manage-collections',label:'Manage collections…'},{id:'hidden-games',label:'Show hidden games'},{type:'separator'},{id:'library-health',label:'Check library…'},{id:'cleanup',label:'Review library cleanup…'},{id:'export-table',label:'Export library table…'}];}

@@ -1,0 +1,28 @@
+{
+  "passed": true,
+  "version": "0.2.8-dev.14",
+  "features": [
+    "Gallery, Workspace and Shelf presets",
+    "Left, right and top navigation with adjustable content width",
+    "Independent transparent top bar",
+    "Previous layout and named-layout preservation",
+    "Corrected Shelf utility row and right-side resizing",
+    "Existing graphics picker and Remove/Undo preserved"
+  ],
+  "installed": true,
+  "quietInstall": true,
+  "settingsPreserved": true,
+  "recordedHistoryPreserved": true,
+  "unitChecks": 739,
+  "appChecks": 791,
+  "nativeChecksSkipped": 2,
+  "validationWindowsShown": 0,
+  "validationWindowsFocused": 0,
+  "published": false,
+  "limits": [
+    "Physical headset/controller and real game launches were not repeated.",
+    "NVIDIA Apply and AMD hardware still need an agreed playtest; fixtures do not establish live vendor behavior.",
+    "Animation durations are configuration values; no measured CPU, RAM, FPS or startup gain is claimed."
+  ],
+  "distributionNote": "Local machine/profile identifiers and private validation details are omitted. Local original retained."
+}

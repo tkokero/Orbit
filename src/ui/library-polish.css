@@ -27,4 +27,16 @@
 #collection-edit-form .settings-actions{display:flex;flex-wrap:wrap;gap:10px}
 :root.couch-mode #library-feedback{display:none!important}
 #library-feedback[hidden]{display:none!important}
+/* Editors keep their decision row reachable while the fields scroll. */
+html:root:not(.couch-mode) #collection-edit-form>.settings-actions,html:root:not(.couch-mode) .smart-collection-footer{position:sticky;bottom:0;z-index:3;background:var(--bg);padding:12px 0 4px;border-top:1px solid var(--line);margin-top:16px;display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+html:root:not(.couch-mode) #modal-body:has(>#collection-edit-form),html:root:not(.couch-mode) #modal-body:has(>#smart-form){scroll-padding-bottom:84px}
+html:root:not(.couch-mode) .smart-collection-footer{grid-column:1/-1;justify-content:space-between}
+html:root:not(.couch-mode) #smart-form>label:first-child{grid-column:1/-1}
+html:root:not(.couch-mode) #smart-form .smart-favorites{display:flex;align-items:center;gap:12px;margin:0;padding:0;font-size:15px}
+html:root:not(.couch-mode) #smart-form .smart-favorites>input{width:18px;height:18px;min-height:18px;padding:0;margin:0;flex:none;accent-color:var(--accent)}
+html:root:not(.couch-mode) .smart-collection-footer>.primary-button{min-height:44px;height:auto;align-self:center;padding:10px 16px}
+html:root:not(.couch-mode) .collection-edit-row .collection-remove{display:grid;place-items:center;width:36px;height:36px;min-height:36px;padding:8px;border:0;background:none;color:var(--muted)}
+html:root:not(.couch-mode) .collection-edit-row .collection-remove svg{width:18px;height:18px}
+html:root:not(.couch-mode) #game-storage .storage-drives{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));grid-auto-flow:row;grid-auto-columns:auto;overflow:visible;scroll-snap-type:none;gap:12px;padding-bottom:0}
+html:root:not(.couch-mode) #game-storage .storage-drive{min-width:0;width:100%}
 @media(max-width:700px){.collection-edit-row{align-items:flex-start;flex-wrap:wrap}.collection-edit-row .settings-actions{flex-basis:100%;justify-content:flex-start}.collection-icon-options,.collection-color-options{grid-template-columns:repeat(2,minmax(0,1fr))}}

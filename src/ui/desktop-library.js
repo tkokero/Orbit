@@ -3,9 +3,13 @@
   const model=OrbitDesktopLibraryModel,key='orbit-desktop-library-v1',selection=new model.Selection();
   let settings=model.preferences(),selecting=false,busy=false,undo=null,scope='';
   try{settings=model.preferences(JSON.parse(localStorage.getItem(key)||'{}'));}catch{}
+  const defaults={...model.display({...settings,layout:state.list?'list':settings.layout})},viewsKey='orbit-library-views-v1';let savedViews=model.views(),displayScope=null,drag=null,suppressClickUntil=0;
+  try{savedViews=model.views(JSON.parse(localStorage.getItem(viewsKey)||'{}'));}catch{}
   const desktop=()=>!document.documentElement.classList.contains('couch-mode');
   const active=()=>desktop()&&!$('#library-panel').hidden&&['games','tools'].includes(state.section)&&(!window.orbitShell||['library','tools'].includes(orbitShell.current()));
-  const save=()=>{try{localStorage.setItem(key,JSON.stringify(settings));}catch{toast('Library display settings could not be saved.',true);}};
+  const save=()=>{try{localStorage.setItem(key,JSON.stringify({...defaults,layout:defaults.layout==='banners'?'banners':'covers',pins:settings.pins}));}catch{toast('Library display settings could not be saved.',true);}};
+  function saveView(){if(!active())return;const current=model.scope(state.section,$('#collection-filter').value);savedViews[current]=model.display({...settings,layout:state.list?'list':settings.layout});savedViews=model.views(savedViews);if(current==='games|')Object.assign(defaults,savedViews[current]);try{localStorage.setItem(viewsKey,JSON.stringify(savedViews));save();}catch{toast('Library display settings could not be saved.',true);}}
+  function syncView(){if(!active())return;const next=model.scope(state.section,$('#collection-filter').value);if(next===displayScope)return;const view=savedViews[next]||savedViews['games|']||defaults;displayScope=next;settings.layout=view.layout==='banners'?'banners':'covers';settings.size=view.size;settings.spacing=view.spacing;state.list=view.layout==='list';for(const [id,field]of [['library-card-size','size'],['library-spacing','spacing']])$('#'+id).value=settings[field];}
   const options=()=>[...$('#collection-filter').options].filter(o=>o.value).map(o=>({value:o.value,name:o.textContent}));
   const grid=$('#game-grid'),view=$('#library-view');
   const sizeControls=document.createElement('div');sizeControls.className='library-size-controls';
@@ -18,10 +22,10 @@
     ['banner-view','Banners','<rect x="3" y="5" width="26" height="8" rx="2"/><rect x="3" y="18" width="26" height="8" rx="2"/>'],
     ['list-view','List','<rect x="3" y="4" width="6" height="6" rx="1.5"/><rect x="3" y="13" width="6" height="6" rx="1.5"/><rect x="3" y="22" width="6" height="6" rx="1.5"/><path d="M14 7h15M14 16h15M14 25h15"/>'],
   ]){const button=$('#'+id);button.type='button';button.classList.remove('desktop-action');button.classList.add('layout-choice');button.setAttribute('aria-label',label);button.innerHTML='<svg class="layout-choice-icon" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">'+art+'</svg><span class="layout-choice-label">'+label+'</span>';}
-  function layout(value){settings.layout=value;state.list=false;save();render();}
-  $('#grid-view').onclick=()=>layout('covers');bannerButton.onclick=()=>layout('banners');
+  function layout(value){settings.layout=value==='banners'?'banners':'covers';state.list=value==='list';saveView();render();}
+  $('#grid-view').onclick=()=>layout('covers');bannerButton.onclick=()=>layout('banners');$('#list-view').onclick=()=>layout('list');
   for(const [id,field]of [['library-card-size','size'],['library-spacing','spacing']]){
-    $('#'+id).value=settings[field];$('#'+id).oninput=e=>{settings[field]=Number(e.target.value);paintDisplay();};$('#'+id).onchange=save;
+    $('#'+id).value=settings[field];$('#'+id).oninput=e=>{settings[field]=Number(e.target.value);paintDisplay();};$('#'+id).onchange=saveView;
   }
   function paintDisplay(){
     const banner=desktop()&&settings.layout==='banners';grid.dataset.libraryLayout=settings.layout;
@@ -33,6 +37,17 @@
   const pinButton=document.createElement('button');pinButton.className='subtle-button';pinButton.textContent='Pin';pinButton.setAttribute('aria-label','Pin collections');pinButton.title='Pin collections in the sidebar';pinButton.dataset.orbitIcon='folder';
   $('.library-collections').append(pinButton);pinButton.onclick=managePins;
   const pins=document.createElement('section');pins.id='pinned-collections';pins.setAttribute('aria-label','Pinned collections');$('#source-navigation').after(pins);
+  const dropList=document.createElement('section');dropList.id='library-drop-collections';dropList.hidden=true;pins.after(dropList);
+  const dragBadge=document.createElement('div');dragBadge.className='library-drag-badge';dragBadge.setAttribute('aria-hidden','true');document.body.append(dragBadge);
+  function endDrag(){drag=null;dropList.hidden=true;dropList.replaceChildren();document.querySelectorAll('.collection-drop-target,.collection-drop-ready,.collection-drop-unavailable').forEach(n=>n.classList.remove('collection-drop-target','collection-drop-ready','collection-drop-unavailable'));}
+  const dropButton=event=>event.target.closest('#pinned-collections [data-pinned-collection],#library-drop-collections [data-drop-collection]');
+  function dropKey(button){return button?.dataset.pinnedCollection||button?.dataset.dropCollection||'';}
+  function accepts(event){return drag&&active()&&!busy&&!document.querySelector('dialog[open]')&&[...event.dataTransfer?.types||[]].includes('application/x-orbit-library-games');}
+  grid.addEventListener('dragstart',event=>{const button=event.target.closest('[data-game]');if(!button||!active()||busy||document.querySelector('dialog[open]')){event.preventDefault();return;}const ids=model.dragIds(button.dataset.game,selection.ids,order());if(!ids.length){event.preventDefault();return;}drag={ids,token:crypto.randomUUID()};event.dataTransfer.effectAllowed='copy';event.dataTransfer.setData('application/x-orbit-library-games',drag.token);dragBadge.textContent=ids.length===1?state.games.find(g=>g.id===ids[0]).title:ids.length+' selected';event.dataTransfer.setDragImage(dragBadge,16,16);const pinned=new Set([...pins.querySelectorAll('[data-pinned-collection]')].map(b=>b.dataset.pinnedCollection));const remaining=options().filter(o=>o.value.startsWith('manual:')&&!pinned.has(o.value));dropList.innerHTML='<div class="sidebar-heading">Add to collection</div>'+remaining.map(o=>'<button type="button" class="nav-item" data-orbit-icon="folder" data-drop-collection="'+esc(o.value)+'">'+esc(o.name)+'</button>').join('');dropList.hidden=!remaining.length;for(const b of pins.querySelectorAll('[data-pinned-collection]'))b.classList.add(b.dataset.pinnedCollection.startsWith('manual:')?'collection-drop-ready':'collection-drop-unavailable');});
+  document.addEventListener('dragover',event=>{const b=dropButton(event);if(!b||!accepts(event))return;event.preventDefault();document.querySelectorAll('.collection-drop-target').forEach(n=>n.classList.remove('collection-drop-target'));const manual=dropKey(b).startsWith('manual:');event.dataTransfer.dropEffect=manual?'copy':'none';if(manual)b.classList.add('collection-drop-target');});
+  document.addEventListener('dragleave',event=>{const b=dropButton(event);if(b&&!b.contains(event.relatedTarget))b.classList.remove('collection-drop-target');});
+  document.addEventListener('drop',event=>{const b=dropButton(event);if(!b||!accepts(event))return;event.preventDefault();const key=dropKey(b),ids=[...drag.ids],valid=event.dataTransfer.getData('application/x-orbit-library-games')===drag.token;endDrag();suppressClickUntil=performance.now()+300;if(!valid||!key.startsWith('manual:')||!options().some(o=>o.value===key))return;runBulk('collection-add',decodeURIComponent(key.slice(7)),ids);});
+  grid.addEventListener('dragend',()=>{suppressClickUntil=performance.now()+300;endDrag();});window.addEventListener('blur',endDrag);document.addEventListener('visibilitychange',()=>{if(document.hidden)endDrag();});
   function pinCollection(value){const control=$('#collection-filter');if(!options().some(o=>o.value===value))return;state.source='';state.view='all';control.value=value;control.dispatchEvent(new Event('change',{bubbles:true}));}
   function managePins(){
     const choices=options();modal('Pin collections',`<form class="library-pin-panel"><div class="library-pin-choices" role="group" aria-label="Collections to pin">${choices.map(o=>{const smart=o.value.startsWith('smart:');return `<label>${window.OrbitCollectionUI?.symbol(o.value)||OrbitControllerArt.icon('folder')}<strong>${esc(smart?o.name.replace(/ · Smart$/,''):o.name)}</strong>${smart?'<span class="library-pin-kind">Smart</span>':''}<input type="checkbox" value="${esc(o.value)}" ${settings.pins.includes(o.value)?'checked':''}></label>`;}).join('')||'<p>Create a collection to pin it here.</p>'}</div><footer class="library-pin-footer"><button type="button" id="library-manage-pins" class="subtle-button">Manage collections</button><button type="submit" id="library-save-pins" class="primary-button">Save</button></footer></form>`);
@@ -52,7 +67,7 @@
   $('.library-collections').append(organize);
   organize.onclick=()=>attempt(async()=>{const r=organize.getBoundingClientRect();organize.setAttribute('aria-expanded','true');try{const choice=await OrbitContextMenu.open([{id:'collections',label:'Manage collections'},{id:'pins',label:'Pin collections'},{id:'select',label:selecting?'Finish selecting':state.section==='tools'?'Select tools':'Select games',type:'checkbox',checked:selecting}],{x:r.left,y:r.bottom+6},'Organize library');if(choice?.action==='collections')$('#manage-collections').click();else if(choice?.action==='pins')pinButton.click();else if(choice?.action==='select')selectButton.click();}finally{organize.setAttribute('aria-expanded','false');}});
   const bulk=document.createElement('section');bulk.id='library-bulk';bulk.hidden=true;bulk.setAttribute('aria-label','Selected entries');
-  bulk.innerHTML='<span id="library-selection-count" role="status" aria-live="polite"></span><div class="library-bulk-actions"><button class="subtle-button" data-bulk="all">Select all results</button><button class="subtle-button" data-bulk="favorite">Favorite</button><button class="subtle-button" data-bulk="unfavorite">Unfavorite</button><button class="subtle-button" data-bulk="collections">Collections</button><button class="subtle-button" data-bulk="tags">Tags</button><button class="subtle-button" data-bulk="hide">Hide</button></div>';
+  bulk.innerHTML='<span id="library-selection-count" role="status" aria-live="polite"></span><div class="library-bulk-actions"><button class="subtle-button" data-bulk="all">Select all results</button><button class="subtle-button" data-bulk="favorite">Favorite</button><button class="subtle-button" data-bulk="unfavorite">Unfavorite</button><button class="subtle-button" data-bulk="collections">Collections</button><button class="subtle-button" data-bulk="tags">Tags</button><button class="subtle-button" data-bulk="hide">Remove</button></div>';
   grid.before(bulk);
   const undoBar=document.createElement('div');undoBar.id='library-undo';undoBar.hidden=true;undoBar.innerHTML='<span role="status"></span><button class="subtle-button">Undo</button><button class="icon-button" aria-label="Dismiss undo">×</button>';grid.before(undoBar);
   function clear(){selection.clear();selecting=false;paintSelection();}
@@ -67,11 +82,11 @@
       if(selecting)button.setAttribute('aria-pressed',String(selected));else button.removeAttribute('aria-pressed');
     }
     for(const button of bulk.querySelectorAll('[data-bulk]'))button.disabled=busy||(!selection.ids.size&&!['all','clear'].includes(button.dataset.bulk));
-    const hide=bulk.querySelector('[data-bulk=hide]'),restore=state.view==='hidden',label=restore?'Show in library':'Hide',icon=restore?'show':'hide';if(hide.dataset.orbitIcon!==icon){hide.dataset.orbitIcon=icon;hide.textContent=label;window.OrbitDesktop?.enhance(bulk);}
+    const hide=bulk.querySelector('[data-bulk=hide]'),restore=state.view==='hidden',label=restore?'Restore':'Remove',icon=restore?'show':'hide';if(hide.dataset.orbitIcon!==icon){hide.dataset.orbitIcon=icon;hide.textContent=label;window.OrbitDesktop?.enhance(bulk);}
     undoBar.hidden=!enabled||!undo;undoBar.querySelectorAll('button').forEach(b=>b.disabled=busy);
   }
   grid.addEventListener('click',e=>{
-    if(!active())return;if(busy){e.preventDefault();e.stopImmediatePropagation();return;}const button=e.target.closest('[data-game]');if(!button||(!selecting&&!e.ctrlKey&&!e.metaKey&&!e.shiftKey))return;
+    if(!active())return;if(busy||performance.now()<suppressClickUntil){e.preventDefault();e.stopImmediatePropagation();return;}const button=e.target.closest('[data-game]');if(!button||(!selecting&&!e.ctrlKey&&!e.metaKey&&!e.shiftKey))return;
     e.preventDefault();e.stopImmediatePropagation();selecting=true;selection.choose(button.dataset.game,order(),{range:e.shiftKey,additive:e.ctrlKey||e.metaKey});paintSelection();
   },true);
   bulk.onclick=e=>{const b=e.target.closest('[data-bulk]');if(!b||busy)return;switch(b.dataset.bulk){
@@ -90,13 +105,14 @@
     form.onsubmit=e=>{e.preventDefault();runBulk((kind==='tags'?'tag':'collection')+'-'+(e.submitter?.value==='remove'?'remove':'add'),new FormData(form).get('value'),ids,form);};
   }
   async function runBulk(action,value,ids=[...selection.ids],form=null){
-    if(busy||!ids.length)return;busy=true;paintSelection();form?.querySelectorAll('button').forEach(b=>b.disabled=true);
+    if(busy||!ids.length)return false;busy=true;paintSelection();form?.querySelectorAll('button').forEach(b=>b.disabled=true);
     try{
       const result=await orbit.bulkLibrary({ids,action,value});if(form?.isConnected)closeModal();
       undo=result.token?{token:result.token,count:result.count}:undo;
-      if(result.token)undoBar.querySelector('span').textContent=result.count+' '+(result.count===1?'entry updated':'entries updated');
-      absorb(result.library);toast(result.count?result.count+' '+(result.count===1?'entry updated.':'entries updated.'):'No changes needed.');
-    }catch(error){toast(error.message,true);}finally{busy=false;form?.querySelectorAll('button').forEach(b=>b.disabled=false);paintSelection();}
+      const message=action==='hidden'?(value?'Removed from library. Games stay installed.':'Restored to library.'):(result.count+' '+(result.count===1?'entry updated.':'entries updated.'));
+      if(result.token)undoBar.querySelector('span').textContent=message;
+      absorb(result.library);toast(result.count?message:'No changes needed.');return true;
+    }catch(error){toast(error.message,true);return false;}finally{busy=false;form?.querySelectorAll('button').forEach(b=>b.disabled=false);paintSelection();}
   }
   undoBar.querySelector('button').onclick=async()=>{if(busy||!undo)return;busy=true;paintSelection();try{const result=await orbit.undoLibrary(undo.token);undo=null;absorb(result.library);toast('Changes undone.');}catch(error){toast(error.message,true);}finally{busy=false;paintSelection();}};
   undoBar.querySelector('.icon-button').onclick=()=>{undo=null;paintSelection();};
@@ -121,20 +137,20 @@
   grid.addEventListener('load',e=>{const img=e.target;if(img.matches?.('[data-library-banner]')){img.dataset.shape=img.naturalWidth/img.naturalHeight<1.4?'fallback':'landscape';img.hidden=false;}},true);
   grid.addEventListener('error',e=>{const img=e.target;if(!img.matches?.('[data-library-banner]'))return;const fallback=state.games.find(g=>g.id===img.dataset.libraryBanner)?.cover;if(fallback&&img.getAttribute('src')!==fallback)queueMicrotask(()=>{if(img.isConnected){img.src=fallback;delete img.dataset.src;img.hidden=false;}});},true);
   const renderBefore=render;render=function(...args){
-    const focused=grid.contains(document.activeElement)?document.activeElement.closest('[data-game]')?.dataset.game:null,result=renderBefore.apply(this,args);
+    if(!active())endDrag();syncView();const focused=grid.contains(document.activeElement)?document.activeElement.closest('[data-game]')?.dataset.game:null,result=renderBefore.apply(this,args);
     if(!active()){selection.clear();selecting=false;scope='';}else{
       const nextScope=state.section+'|'+state.view+'|'+state.source+'|'+state.search+'|'+$('#collection-filter').value;
       if(scope&&nextScope!==scope){selection.clear();selecting=false;}scope=nextScope;selection.reconcile(order());
     }
-    paintDisplay();paintPins();paintSelection();artworkObserver.disconnect();for(const id of pending.splice(0))requested.delete(id);
+    paintDisplay();paintPins();paintSelection();for(const button of grid.querySelectorAll('[data-game]'))button.draggable=active();artworkObserver.disconnect();for(const id of pending.splice(0))requested.delete(id);
     if(active()&&!state.list&&settings.layout==='banners')for(const img of grid.querySelectorAll('[data-library-banner]'))artworkObserver.observe(img);
     if(focused&&!document.querySelector('dialog[open]'))[...grid.querySelectorAll('[data-game]')].find(b=>b.dataset.game===focused)?.focus({preventScroll:true});
     return result;
   };
-  window.addEventListener('orbit:couch',()=>{clear();render();});
+  window.addEventListener('orbit:couch',()=>{clear();displayScope=null;endDrag();render();});
   window.orbitDesktopLibrary={
     image(g){if(!desktop()||settings.layout!=='banners')return null;return (g.hero||g.cover)?`<img data-src="${esc(g.hero||g.cover)}" data-library-banner="${esc(g.id)}" alt="" decoding="async">`:'';},
-    managePins,selection,settings,clear,captureSelection:()=>({selecting,ids:[...selection.ids],anchor:selection.anchor}),restoreSelection(value){selection.clear();if(value&&Array.isArray(value.ids)){for(const id of value.ids)if(typeof id==='string')selection.ids.add(id);selection.anchor=value.anchor;selection.reconcile(order());}selecting=Boolean(value?.selecting);paintSelection();},repaintPins:paintPins,renamePin(from,to){settings.pins=[...new Set(settings.pins.map(key=>key===from?to:key))];save();paintPins();},deactivate(){clear();scope='';pins.hidden=true;undoBar.hidden=true;}
+    setHidden:(ids,value)=>runBulk('hidden',value,ids),managePins,selection,settings,clear,setLayout:layout,captureSelection:()=>({selecting,ids:[...selection.ids],anchor:selection.anchor}),restoreSelection(value){selection.clear();if(value&&Array.isArray(value.ids)){for(const id of value.ids)if(typeof id==='string')selection.ids.add(id);selection.anchor=value.anchor;selection.reconcile(order());}selecting=Boolean(value?.selecting);paintSelection();},repaintPins:paintPins,renamePin(from,to){settings.pins=[...new Set(settings.pins.map(key=>key===from?to:key))];savedViews=model.renameViews(savedViews,from,to);if(displayScope?.endsWith('|'+from))displayScope=null;try{localStorage.setItem(viewsKey,JSON.stringify(savedViews));}catch{toast('Collection layout could not be saved.',true);}save();paintPins();},deactivate(){clear();endDrag();scope='';pins.hidden=true;undoBar.hidden=true;}
   };
   paintDisplay();paintPins();paintSelection();
 })();

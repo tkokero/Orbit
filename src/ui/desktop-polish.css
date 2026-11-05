@@ -1,0 +1,84 @@
+/* Original Orbit styles; redline workflow: Unslop by Damir Sokolovsky, CC BY 4.0.
+   Saved themes, Nunito and Orbit's rounded identity take precedence over generic tokens. */
+html:root:not(.couch-mode){--orbit-desktop-polish:1}
+
+/* 1. Spacing: one rhythm within Settings and between Friends control groups. */
+html:root:not(.couch-mode) #modal.settings-dialog .settings-group{margin-bottom:24px}
+html:root:not(.couch-mode) #modal.settings-dialog .setting-card.setting-row{min-height:56px;padding:12px 0;gap:16px}
+html:root:not(.couch-mode) #modal.settings-dialog .appearance-nav{margin-bottom:16px}
+html:root:not(.couch-mode) #modal.settings-dialog .settings-fold-body{padding:4px 0 16px}
+html:root:not(.couch-mode) #friends-panel .friends-controls{gap:16px;margin-bottom:16px}
+html:root:not(.couch-mode) #friends-panel .friends-controls>.filters{gap:12px}
+html:root:not(.couch-mode) #friends-panel .friend-card{padding:16px;gap:12px;min-height:88px}
+html:root:not(.couch-mode) #friends-panel .linked-main-card{gap:12px;min-height:0}
+
+/* 2. Color: theme roles stay intact; remove only competing frames and fills. */
+html:root:not(.couch-mode) #modal.settings-dialog .settings-disclosure>summary{background:transparent;border:0;box-shadow:none}
+html:root:not(.couch-mode) #friends-panel .friends-connections{background:transparent;border:0;border-bottom:1px solid var(--line);border-radius:0}
+html:root:not(.couch-mode) #friends-panel .friends-connections .social-platform{background:var(--panel)}
+html:root:not(.couch-mode) #friends-panel .view-toggle{border-color:transparent}
+
+/* 3. Icons: keep meaningful provider logos and one trailing disclosure arrow. */
+html:root:not(.couch-mode) #modal.settings-dialog .settings-disclosure>summary>.desktop-summary-symbol{display:none}
+html:root:not(.couch-mode) #modal.settings-dialog .settings-tabs .desktop-action-icon{width:24px;height:24px;flex-basis:24px;background:none}
+html:root:not(.couch-mode) #modal.settings-dialog .settings-tabs .desktop-action-icon svg{width:18px;height:18px}
+html:root:not(.couch-mode) #modal .link-person-initial{width:20px;height:20px;flex:0 0 20px;border:0;border-radius:0;background:none}
+html:root:not(.couch-mode) #modal .link-person-initial img{width:20px;height:20px;object-fit:contain}
+
+/* 4. Copy is shortened in the existing templates; privacy and status stay visible. */
+/* 5. Type: retain the rounded family and expressive headings, with quieter labels. */
+html:root:not(.couch-mode) #modal.settings-dialog .setting-card h3{font-weight:650;letter-spacing:0}
+html:root:not(.couch-mode) #modal.settings-dialog .settings-group>h2{font-weight:800}
+html:root:not(.couch-mode) #modal.settings-dialog .setting-card:not(.setting-row)>h3{font-size:17px;font-weight:750;margin-bottom:12px}
+html:root:not(.couch-mode) #modal.settings-dialog .settings-disclosure>summary{font-size:15px;line-height:1.5;font-weight:750}
+html:root:not(.couch-mode) #modal.settings-dialog .settings-disclosure>summary :is(h3,strong){font-size:15px;font-weight:750;letter-spacing:0}
+html:root:not(.couch-mode) #friends-panel .friend-name{font-weight:750;letter-spacing:0}
+html:root:not(.couch-mode) #friends-panel .friend-linked-label{font-size:13px;line-height:1.5}
+html:root:not(.couch-mode) #friends-panel :is(.friend-state,.friends-updated){font-variant-numeric:tabular-nums}
+
+/* 6. Layout: same sections and actions, with independent hit areas and a quiet footer. */
+html:root:not(.couch-mode) #modal.settings-dialog .settings-disclosure>summary{min-height:56px;padding:12px 0;border-radius:12px;gap:12px}
+html:root:not(.couch-mode) #friends-panel .friends-connections>summary{min-height:48px;padding:12px 0}
+html:root:not(.couch-mode) #friends-panel .linked-main-profile{width:calc(100% - 40px);gap:12px}
+html:root:not(.couch-mode) #friends-panel .linked-main-settings{top:16px;right:16px;width:32px;height:32px;min-height:32px;padding:6px}
+html:root:not(.couch-mode) #friends-panel .linked-profile-details>summary{padding-top:12px;font-size:14px}
+html:root:not(.couch-mode) #friends-panel .linked-profile-actions>button{box-sizing:border-box;display:grid;grid-template-columns:18px minmax(0,1fr) 16px;align-items:center;gap:12px;width:100%;max-width:100%;min-width:0;height:auto;min-height:60px;max-height:none;padding:12px;border-radius:12px;overflow:visible}
+html:root:not(.couch-mode) #friends-panel .linked-profile-actions>button>.platform-logo{width:18px;height:18px}
+html:root:not(.couch-mode) #friends-panel .linked-profile-actions>button>span:nth-child(2){display:block;min-width:0;white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;font-size:14px;line-height:1.45}
+html:root:not(.couch-mode) #friends-panel .linked-profile-actions>button>span:last-child{display:block;justify-self:end}
+html:root:not(.couch-mode) #friends-panel .linked-profile-actions small{display:block;max-height:none;overflow:visible;white-space:normal;font-size:13px;line-height:1.5;margin-top:4px}
+html:root:not(.couch-mode) #friends-panel #friends-pagination{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-top:24px;padding-top:16px}
+html:root:not(.couch-mode) #friends-panel #friends-pagination[hidden]{display:none}
+html:root:not(.couch-mode) #friends-panel #friends-updated{flex:1;min-width:0;margin:0;font-size:13px;line-height:1.5}
+html:root:not(.couch-mode) #friends-panel #friends-pagination>div{margin-left:auto}
+
+/* 7. Details: readable focus, restrained utility targets and no decorative bubbles. */
+html:root:not(.couch-mode) #modal.settings-dialog .settings-disclosure>summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+html:root:not(.couch-mode) #modal.settings-dialog .settings-disclosure>summary:hover>.settings-fold-chevron{color:var(--text);background:var(--raised)}
+html:root:not(.couch-mode) #friends-panel .friend-avatar{border-radius:16px}
+html:root:not(.couch-mode) #friends-panel .linked-main-profile:hover .friend-name{text-decoration:underline;text-underline-offset:3px}
+
+/* 8. Visuals: use existing avatars, provider symbols and game art; no generated assets. */
+/* 9. Motion: hover never shifts cards, including when reduced motion is disabled. */
+html:root:not(.couch-mode) #friends-panel .friend-card{transition:background-color 140ms ease-out,border-color 140ms ease-out;transform:none}
+html:root:not(.couch-mode) #friends-panel .friend-card:hover{transform:none;box-shadow:none}
+html:root:not(.couch-mode) #friends-panel .linked-main-card:hover{background:var(--panel);border-color:var(--line)}
+html:root:not(.couch-mode) #friends-panel .linked-main-card:focus-within{border-color:var(--accent)}
+@media(prefers-reduced-motion:reduce){html:root:not(.couch-mode) #friends-panel .friend-card{transition:none}}
+html:root:not(.couch-mode).motion-off #friends-panel .friend-card{transition:none}
+
+/* Shared controls across Library, Radar, Friends, Downloads, Tools and popups. */
+html:root:not(.couch-mode) :is(.subtle-button,.desktop-select-trigger,.control-menu-trigger){border-radius:var(--control-radius,14px);font-weight:650;letter-spacing:0}
+html:root:not(.couch-mode) :is(.primary-button,.hero-secondary){border-radius:14px;font-weight:750}
+html:root:not(.couch-mode) :is(.settings-actions,.detail-actions,.form-row){gap:12px;row-gap:12px}
+html:root:not(.couch-mode) .sidebar-heading{text-transform:none;letter-spacing:0;font-weight:650}
+html:root:not(.couch-mode) :is(.control-menu,.orbit-context-menu) button{font-weight:650;letter-spacing:0}
+html:root:not(.couch-mode) :is(.subtle-button,.primary-button)>.desktop-action-icon{background:none;border:0;box-shadow:none;border-radius:0;width:18px;height:18px;flex-basis:18px}
+html:root:not(.couch-mode) :is(.subtle-button,.primary-button)>.desktop-action-icon>svg{width:18px;height:18px}
+html:root:not(.couch-mode) :is(.desktop-action,.subtle-button,.desktop-select-trigger):hover{transform:none;box-shadow:none}
+html:root:not(.couch-mode) #modal.settings-dialog :is(.setting-card h3,.settings-disclosure>summary,.settings-disclosure>summary strong){font-weight:650;letter-spacing:0}
+html:root:not(.couch-mode) #modal.settings-dialog .settings-group>h2{font-weight:750}
+html:root:not(.couch-mode) :is(.stats-grid small,.card-meta,.pagination){font-variant-numeric:tabular-nums}
+/* Pinned header actions share one target size, including text-only Add game. */
+html:root:not(.couch-mode) .toolbar-right{align-items:center;gap:12px}
+html:root:not(.couch-mode) .toolbar-right>:is(#add-game,button.subtle-button){box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:10px 16px;border-radius:14px;font-size:14px;line-height:20px}

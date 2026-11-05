@@ -14,6 +14,7 @@
   const focused=host.contains(document.activeElement)?document.activeElement:null,focusedIndex=[...host.children].findIndex(el=>el.contains(focused)),scroll=d.querySelector('.installation-body'),scrollTop=scroll.scrollTop;
   if(global){global.hidden=!queue.length;global.disabled=!queue.length;if(global.dataset.global!==action){global.dataset.global=action;global.dataset.orbitIcon=action==='resumeAll'?'play':'pause';global.innerHTML=glyph(global.dataset.orbitIcon)+'<span>'+(action==='resumeAll'?'Resume all':'Pause all')+'</span>';}}
   const active=queue.filter(r=>r.active&&!r.paused).length,paused=queue.filter(r=>r.paused).length,queued=queue.length-active-paused;
+  d.querySelector('[data-steam-summary]').closest('.steam-download-heading').hidden=!queue.length;
   d.querySelector('[data-steam-summary]').textContent=queue.length?queue.length+' '+(queue.length===1?'download':'downloads'):'Up to date';
   const metrics=d.querySelector('[data-steam-queue-status]');metrics.innerHTML=[active?'<span data-state="active">'+active+' downloading</span>':'',queued?'<span data-state="queued">'+queued+' queued</span>':'',paused?'<span data-state="paused">'+paused+' paused</span>':'',overview.rate>0?'<strong>'+esc(bytes(overview.rate))+'/s</strong>':''].join('');
   const app=id=>(s.apps||[]).find(a=>a.appId===id),title=id=>app(id)?.title||'Steam app '+id;

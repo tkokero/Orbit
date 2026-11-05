@@ -1,10 +1,11 @@
 /* Group related Desktop settings after all feature controls have mounted. */
 (()=>{
  function select(panel,key){
-  const current=panel.querySelector('[data-appearance-section]:not([hidden])');if(current)current.dataset.scroll=String(panel.scrollTop);
+  const current=panel.querySelector('[data-appearance-section]:not([hidden])'),changed=current?.dataset.appearanceSection!==key;if(current)current.dataset.scroll=String(panel.scrollTop);
   panel.querySelectorAll('[data-appearance-section]').forEach(section=>section.hidden=section.dataset.appearanceSection!==key);
   panel.querySelectorAll('[data-appearance-tab]').forEach(button=>{const active=button.dataset.appearanceTab===key;button.setAttribute('aria-selected',String(active));button.tabIndex=active?0:-1;});
   panel.scrollTop=Number(panel.querySelector('[data-appearance-section="'+key+'"]')?.dataset.scroll)||0;
+  if(changed)window.OrbitFX?.content?.(panel.querySelector('[data-appearance-section="'+key+'"]'));
  }
  function reveal(node){const section=node.closest('[data-appearance-section]'),panel=node.closest('#panel-appearance');if(section&&panel)select(panel,section.dataset.appearanceSection);}
  function addSection(panel,nav,key,label){
@@ -21,7 +22,7 @@
    for(const selector of ['#app-icon-settings','#theme-editor']){const node=panel.querySelector(selector);if(node)groups.theme.append(node);}
    const intro=dialog.querySelector('#intro-toggle')?.closest('.setting-card');if(intro)groups.startup.append(intro);
    const startup=panel.querySelector('.startup-settings');if(startup)groups.startup.append(startup);
-   for(const selector of ['.desktop-banner-setting','#motion-toggle','#accessibility-form','[data-popup-sizing]','[data-popup-positions]']){const node=panel.querySelector(selector),card=node?.closest('.setting-card')||node;if(card)groups.layout.append(card);}
+   for(const selector of ['#desktop-menu-settings','.desktop-banner-setting','#motion-toggle','#accessibility-form','[data-popup-sizing]','[data-popup-positions]']){const node=panel.querySelector(selector),card=node?.closest('.setting-card')||node;if(card)groups.layout.append(card);}
    const memory=panel.querySelector('[data-setting="lowMemoryRendering"]')?.closest('.setting-card');if(memory)dialog.querySelector('#panel-general')?.append(memory);
    const leftovers=[...panel.children];panel.append(nav,...Object.values(groups));
    if(leftovers.length){const misc=addSection(panel,nav,'misc','Miscellaneous');misc.append(...leftovers);panel.append(misc);}
@@ -55,7 +56,7 @@
  function disclosures(dialog){
   for(const details of dialog.querySelectorAll('details')){const summary=details.querySelector(':scope>summary');if(!summary)continue;details.classList.add('settings-disclosure');if(summary.querySelector(':scope>.settings-fold-chevron'))continue;const arrow=document.createElement('span');arrow.className='settings-fold-chevron';arrow.setAttribute('aria-hidden','true');arrow.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m6 9 6 6 6-6"/></svg>';summary.append(arrow);}
  }
- function mount(){const dialog=document.querySelector('#modal'),panel=dialog.querySelector('#panel-appearance');if(document.documentElement.classList.contains('couch-mode')||!panel)return;appearance(panel,dialog);general(dialog);simplify(dialog);disclosures(dialog);dialog.querySelector('#shortcut-guide')?.remove();}
+ function mount(){const dialog=document.querySelector('#modal'),panel=dialog.querySelector('#panel-appearance');if(document.documentElement.classList.contains('couch-mode')||!panel)return;window.OrbitDesktopMenus?.mount(panel);appearance(panel,dialog);general(dialog);simplify(dialog);disclosures(dialog);dialog.querySelector('#shortcut-guide')?.remove();}
  const settings=showSettings;showSettings=function(...args){const result=settings.apply(this,args);mount();return result;};
  window.OrbitSettingsLayout={mount,reveal};
 })();

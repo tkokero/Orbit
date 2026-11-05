@@ -38,7 +38,7 @@ async function connectSteam({ parent, steamRoot, interactive = false, persistent
   if (!interactive && !cookies.length) return null;
   if (inflight) return inflight;
   inflight = (async () => {
-    try { const existing = await steamWebLibrary(accountSession, steamRoot); if (existing) return existing; } catch (error) { if (!interactive) throw new Error('Steam account sync failed. Sign in again in Sources & settings.'); }
+    try { const existing = await steamWebLibrary(accountSession, steamRoot); if (existing) return existing; } catch { if (!interactive) throw new Error('Steam account sync failed. Sign in again in Sources & settings.'); }
     if (!interactive) return null;
     return new Promise((resolve, reject) => {
       steamWindow = new BrowserWindow({ parent, width: 1040, height: 800, title: 'Connect Steam to Orbit', autoHideMenuBar: true,

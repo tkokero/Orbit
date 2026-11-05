@@ -1,0 +1,26 @@
+{
+  "passed": true,
+  "version": "0.2.8-dev.13",
+  "features": [
+    "Game artwork in graphics search",
+    "Played / All games with saved choice",
+    "Corrected Contractors folder matching",
+    "Remove from library with Undo and Restore"
+  ],
+  "installed": true,
+  "quietInstall": true,
+  "settingsPreserved": true,
+  "recordedHistoryPreserved": true,
+  "unitChecks": 735,
+  "appChecks": 725,
+  "nativeChecksSkipped": 2,
+  "validationWindowsShown": 0,
+  "validationWindowsFocused": 0,
+  "published": false,
+  "limits": [
+    "Physical headset/controller and real game launches were not repeated.",
+    "NVIDIA Apply and AMD hardware still need an agreed playtest; fixtures do not establish live vendor behavior.",
+    "Animation durations are configuration values; no measured CPU, RAM, FPS or startup gain is claimed."
+  ],
+  "distributionNote": "Local machine/profile identifiers and private validation details are omitted. Local original retained."
+}

@@ -1,5 +1,15 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const {Selection,preferences}=require('../src/ui/desktop-library-model.js');
+const model=require('../src/ui/desktop-library-model.js');
+test('collection views keep list banners sizes and sections independent without changing legacy preferences',()=>{
+ const saved=model.views({'games|':{layout:'covers',size:190,spacing:20},'games|manual:Co-op':{layout:'banners',size:240,spacing:26},'tools|manual:Co-op':{layout:'list',size:130,spacing:8},'invalid':{layout:'list'}});
+ assert.equal(Object.keys(saved).length,3);assert.equal(saved['games|manual:Co-op'].layout,'banners');assert.equal(saved['tools|manual:Co-op'].layout,'list');assert.equal(saved['games|'].size,190);
+ const renamed=model.renameViews(saved,'manual:Co-op','manual:Together');assert.equal(renamed['games|manual:Together'].size,240);assert.equal(renamed['tools|manual:Together'].layout,'list');assert(!Object.hasOwn(renamed,'games|manual:Co-op'));assert.equal(saved['games|manual:Co-op'].size,240);
+ assert.deepEqual(model.display({layout:'list',size:999,spacing:-1}),{layout:'list',size:260,spacing:8});assert.equal(Object.keys(model.views(Object.fromEntries(Array.from({length:250},(_,i)=>['games|manual:'+i,{layout:'banners'}])))).length,200);
+});
+test('dragging a selected card uses only its current selection and visible results',()=>{
+ assert.deepEqual(model.dragIds('a',new Set(['a','b','hidden']),['a','b','c']),['a','b']);assert.deepEqual(model.dragIds('c',new Set(['a','b']),['a','b','c']),['c']);assert.deepEqual(model.dragIds('missing',new Set(),['a']),[]);
+});
 const {BulkLibrary,plan}=require('../src/library-bulk.cjs');
 function fixture(save=async()=>{}){const store={preferences:{a:{favorite:true,tags:['VR'],collections:['Weekend'],notes:'Keep me'},b:{tags:['Co-op']}},collections:['Weekend','Co-op']};const games=['a','b','c'].map(id=>({id}));return {store,games,bulk:new BulkLibrary({store:()=>store,games:()=>games,save})};}
 test('display preferences clamp malformed values and preserve valid unique pins',()=>{
@@ -29,3 +39,5 @@ test('failed saves roll back, failed Undo can be retried',async()=>{
 test('bulk requests serialize, no-ops do not save, and undo expires',async()=>{
   let now=0,writes=0;const {store,games}=fixture();const bulk=new BulkLibrary({store:()=>store,games:()=>games,now:()=>now,save:async()=>{writes++;await Promise.resolve()}});const [a,b]=await Promise.all([bulk.update({ids:['b'],action:'tag-add',value:'One'}),bulk.update({ids:['b'],action:'tag-add',value:'Two'})]);assert.deepEqual(store.preferences.b.tags,['Co-op','One','Two']);await bulk.restore(b.token);await bulk.restore(a.token);assert.deepEqual(store.preferences.b.tags,['Co-op']);const noop=await bulk.update({ids:['a'],action:'favorite',value:true});assert.equal(noop.token,null);assert.equal(writes,4);const r=await bulk.update({ids:['c'],action:'hidden',value:true});now=300001;await assert.rejects(bulk.restore(r.token),/expired/);
 });
+
+test('removed library entries stay excluded after saving and rediscovery, retain other choices, and can be restored',async()=>{const {mergeLibrary}=require('../src/library.cjs'),records=[{id:'steam:removal',title:'Removal fixture',source:'Steam',installed:true,location:'C:/Games/Fixture',playtime:120}],first=mergeLibrary(records)[0],store={preferences:{[first.id]:{favorite:true,tags:['Keep'],collections:['Weekend'],notes:'Keep note'}},collections:['Weekend']};let persisted;const current=()=>mergeLibrary(records,store.preferences),bulk=new BulkLibrary({store:()=>store,games:current,save:async()=>{persisted=JSON.stringify(store);}}),original=structuredClone(store.preferences[first.id]);await bulk.update({ids:[first.id],action:'hidden',value:true});const reloaded=JSON.parse(persisted),discovered=mergeLibrary([...records,{...records[0],title:'Removal fixture™'}],reloaded.preferences)[0];assert.equal(discovered.hidden,true);assert.equal(discovered.installed,true);assert.equal(discovered.favorite,true);assert.deepEqual(reloaded.preferences[first.id].tags,['Keep']);assert.deepEqual(store.preferences[first.id],{...original,hidden:true});await bulk.update({ids:[first.id],action:'hidden',value:false});assert.equal(current()[0].hidden,false);assert.deepEqual(store.preferences[first.id],{...original,hidden:false});});

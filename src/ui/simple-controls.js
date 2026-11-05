@@ -20,8 +20,8 @@
  more.button.setAttribute('aria-haspopup','menu');more.panel.setAttribute('role','menu');
  more.panel.innerHTML='<div data-more-actions></div><div class="toolbar-menu-divider" role="separator"></div><button type="button" class="subtle-button" data-simple-shortcuts>Keyboard shortcuts</button>';
  const moreActions=more.panel.querySelector('[data-more-actions]');
- const quick=document.getElementById('quick-launch'),compactHeader=matchMedia('(max-width:900px)');
- function compactActions(){if(!quick)return;const compact=compactHeader.matches&&!document.documentElement.classList.contains('couch-mode'),focused=document.activeElement===quick;const parent=compact?moreActions:toolbar;if(quick.parentElement===parent)return;if(compact)moreActions.prepend(quick);else toolbar.insertBefore(quick,document.getElementById('add-game')||more.button);if(focused)(compact?more.button:quick).focus({preventScroll:true});}
+ const quick=document.getElementById('quick-launch'),compactHeader=matchMedia('(max-width:900px)');let toolbarReady=false;
+ function compactActions(){if(!toolbarReady||!quick)return;const controller=document.documentElement.classList.contains('couch-mode'),pinned=controller?['quick','add']:window.OrbitDesktopMenus?.custom.quickActions||['quick','add'],compact=compactHeader.matches&&!controller,focus=document.activeElement;for(const [key,id]of [['quick','quick-launch'],['add','add-game'],['refresh','refresh'],['vr','library-vr'],['controller','controller-view']]){const button=document.getElementById(id);if(!button)continue;const inHeader=pinned.includes(key)&&(!compact||key==='add');const parent=inHeader?toolbar:moreActions;if(button.parentElement!==parent){if(inHeader)toolbar.insertBefore(button,more.button);else moreActions.append(button);}button.classList.toggle('toolbar-menu-item',!inHeader);if(inHeader)button.removeAttribute('role');else button.setAttribute('role','menuitem');}for(const key of pinned){const id=({'quick':'quick-launch','add':'add-game','refresh':'refresh','vr':'library-vr','controller':'controller-view'})[key],button=document.getElementById(id);if(button?.parentElement===toolbar)toolbar.insertBefore(button,more.button);}if(focus?.isConnected&&document.activeElement!==focus)(moreActions.contains(focus)?more.button:focus).focus({preventScroll:true});}
  compactHeader.addEventListener('change',compactActions);window.addEventListener('orbit:couch',compactActions);compactActions();
  for(const id of ['refresh','controller-view']){const control=document.getElementById(id);if(control)moreActions.append(control);}
  const vr=document.createElement('button');vr.id='library-vr';vr.type='button';vr.className='subtle-button';
@@ -31,7 +31,8 @@
   if(!control)continue;control.classList.add('toolbar-menu-item');control.setAttribute('role','menuitem');
   control.dataset.orbitIcon=icon;control.innerHTML='<span class="toolbar-menu-title">'+label+'</span>';
  }
- const menuItems=()=>[...more.panel.querySelectorAll('[role="menuitem"]')].filter(item=>!item.disabled&&!item.hidden);
+ const customize=document.createElement('button');customize.type='button';customize.id='customize-desktop-menus';customize.className='subtle-button toolbar-menu-item';customize.setAttribute('role','menuitem');customize.dataset.orbitIcon='appearance';customize.innerHTML='<span class="toolbar-menu-title">Customize menus</span>';customize.onclick=()=>window.OrbitDesktopMenus.open();moreActions.append(customize);
+ const menuItems=()=>[...more.panel.querySelectorAll('[role="menuitem"]')].filter(item=>!item.disabled&&!item.hidden&&item.checkVisibility());
  let keyboardEntry=false;
  more.button.addEventListener('keydown',event=>{if(['ArrowDown','ArrowUp','Enter',' '].includes(event.key)){keyboardEntry=event.key==='ArrowUp'?'last':'first';if(event.key.startsWith('Arrow')){event.preventDefault();if(!more.panel.matches(':popover-open'))more.panel.showPopover();else menuItems()[keyboardEntry==='last'?menuItems().length-1:0]?.focus();}}});
  more.button.addEventListener('pointerdown',()=>{keyboardEntry=false;});
@@ -74,5 +75,5 @@
   const maintenance=document.getElementById('detail-kind')?.parentElement;if(maintenance)root.append(maintenance);
   const local=document.getElementById('timer-toggle')?.closest('.settings-section');if(local)root.append(local);
  }
- window.orbitSimple={closeMenus,details,sync};
+ toolbarReady=true;compactActions();window.orbitSimple={closeMenus,details,sync,configureToolbar:compactActions};
 })();

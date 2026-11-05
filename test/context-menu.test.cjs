@@ -24,3 +24,5 @@ test('Roblox experiences retain collection shortcuts without offering process-sp
 });
 
 test('only running games offer a close action',()=>{assert.ok(entryMenu(game,[],{running:true}).some(i=>i.id==='close-game'));assert.ok(!entryMenu(game).some(i=>i.id==='close-game'));});
+
+test('library removal is distinct from Uninstall and hidden entries offer Restore',()=>{for(const g of [game,{...game,robloxPlaceId:'123'}]){assert.equal(entryMenu(g).find(i=>i.id==='hide').label,'Remove from library');assert.equal(entryMenu({...g,hidden:true}).find(i=>i.id==='hide').label,'Restore to library');}assert.equal(entryMenu(game).find(i=>i.label==='Files & installation').submenu.find(i=>i.id==='uninstall').label,'Uninstall…');});

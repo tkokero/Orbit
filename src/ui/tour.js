@@ -8,7 +8,7 @@
  const copy=card.querySelector('.tour-copy'),back=card.querySelector('#tour-back'),nextButton=card.querySelector('#tour-next');
  const orb=document.createElement('div');orb.className='tour-orb';orb.hidden=true;orb.setAttribute('aria-hidden','true');orb.innerHTML='<svg viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="7" fill="currentColor"/><g stroke="currentColor" stroke-width="1.8"><ellipse cx="32" cy="32" rx="27" ry="11" transform="rotate(-32 32 32)"/><ellipse cx="32" cy="32" rx="27" ry="11" transform="rotate(32 32 32)"/><ellipse cx="32" cy="32" rx="27" ry="11" transform="rotate(90 32 32)"/></g><circle cx="48" cy="13" r="3.5" fill="currentColor"/></svg>';document.body.append(orb);
  // Resolve targets after their workspace opens, rather than while scripts load.
- const steps=[
+ const allSteps=[
   ['#workspace-library','Your games','Your games live here. Open one for details, or choose Play.','library'],
   ['#hero','Pick up where you left off','Your recent game is up front. Play uses your preferred copy.','library'],
   ['#quick-launch','Quick launch','Find and launch a game from any page.','library'],
@@ -33,9 +33,10 @@
   ['.friends-controls','See who’s around','Online shows playing friends first, then DND, then online. All friends includes other statuses.','friends'],
   ['#workspace-tools','Your tools','Keep launchers, utilities, and mod managers together here.','tools'],
  ];
+ let steps=allSteps;
  function detach(){if(previousTarget){if(previousDescription===null)previousTarget.removeAttribute('aria-describedby');else previousTarget.setAttribute('aria-describedby',previousDescription);previousTarget=null;}}
  const visible=e=>Boolean(e?.isConnected&&e.checkVisibility()&&e.getBoundingClientRect().width&&e.getBoundingClientRect().height);
- function target(){const found=document.querySelector(steps[index][0]);return visible(found)?found:document.querySelector('#workspace-'+steps[index][3]);}
+ function target(){const found=document.querySelector(steps[index][0]);return visible(found)?found:found?.closest('#library-more')?document.querySelector('#library-more-button'):document.querySelector('#workspace-'+steps[index][3]);}
  function position(){
   if(!active||card.hidden)return;
   const element=target(),r=visible(element)?element.getBoundingClientRect():null,box=card.getBoundingClientRect();
@@ -68,7 +69,7 @@
   (card.contains(control)&&control.tagName==='BUTTON'&&!control.disabled?control:nextButton).focus({preventScroll:true});
  }
  async function start(){
-  if(active)return;
+  if(active)return;steps=allSteps.filter(step=>window.OrbitDesktopMenus?.targetShown(step[0])!==false);const order=window.OrbitDesktopMenus?.custom?.order;if(order&&order.indexOf('games')<order.indexOf('hero')){const hero=steps.find(step=>step[0]==='#hero');if(hero){steps=steps.filter(step=>step!==hero);steps.splice(steps.findIndex(step=>step[0]==='#game-grid [data-game]')+1,0,hero);}}
   const focus=document.activeElement,attribute=['id','data-game','data-list-play','data-source'].find(key=>focus?.hasAttribute(key));
   origin={workspace:window.orbitShell.current(),state:Object.fromEntries(['section','view','source','search','sort','page','list'].map(k=>[k,state[k]])),scroll:document.querySelector('#main-scroll').scrollTop,focus,focusKey:attribute?[attribute,focus.getAttribute(attribute)]:null,selection:window.orbitDesktopLibrary?.captureSelection(),couch:document.documentElement.classList.contains('couch-mode')};
   active=true;document.documentElement.classList.add('tour-active');if(origin.couch)window.orbitFeatures.setCouch(false);document.addEventListener('scroll',queue,{capture:true,passive:true});window.addEventListener('resize',queue);await show(0);
@@ -81,5 +82,5 @@
  }
  back.onclick=()=>show(index-1);nextButton.onclick=()=>index===steps.length-1?finish():show(index+1);card.querySelector('#tour-stop').onclick=finish;
  document.addEventListener('keydown',e=>{if(active&&e.key==='Escape'){e.preventDefault();finish();}});
- window.orbitTour={start,finish,next:()=>show(index+1),current:()=>index,active:()=>active,steps:steps.length};
+ window.orbitTour={start,finish,next:()=>show(index+1),current:()=>index,active:()=>active,get steps(){return steps.length;}};
 })();

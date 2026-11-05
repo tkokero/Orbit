@@ -1,0 +1,8 @@
+/* Existing Settings rows, with room for honest status and reachable actions. */
+#panel-experiments .experiments-note{margin:0 0 12px;color:var(--muted);font-size:14px;line-height:1.5}
+#panel-experiments .experiment-row{gap:16px;align-items:center;padding:18px 0}
+#panel-experiments .experiment-row h3{margin:0 0 6px}
+#panel-experiments .experiment-row p{margin:0;max-width:56ch;color:var(--muted);font-size:14px;line-height:1.5}
+#panel-experiments .experiment-row>button{flex:none}
+.graphics-experimental{margin-left:auto;color:var(--muted);font-size:13px;font-weight:600;line-height:1.5;padding:4px 0}
+@container orbit-popup (max-width:560px){html:root:not(.couch-mode) #modal #panel-experiments .experiment-row{flex-wrap:wrap}#panel-experiments .experiment-row>div{flex-basis:100%}}

@@ -1,12 +1,13 @@
 {
-  "version": "0.2.7",
+  "version": "0.2.8",
   "notes": [
-    "Search games, collections, settings and actions from one place, with customizable keyboard shortcuts.",
-    "Add named launch options without replacing a game's default setup. Launch errors offer clearer recovery actions.",
-    "See per-game session counts and recorded play streaks. Switch between one game and All games, and keep your place when refreshing.",
-    "Cleaner Settings, clearer banner-layout previews, and more consistent popup sizing, scrolling and keyboard focus.",
-    "New secret startup choices, including Afterglow: Encore, plus an improved Void. Original Afterglow remains available.",
-    "Experimental VR: an optional SteamVR dashboard, Watch and Toolbar wrist displays, window/display panels, and media and performance tools. Headset tuning is still in progress.",
-    "Fixes for long labels, disclosure arrows, older recorded games, delayed recovery prompts, and unnecessary Settings work."
+    "Customize Desktop with Gallery, Workspace and Shelf layouts, a live preview, section ordering, saved layouts and a transparent top bar.",
+    "Drag games into collections, remember each collection’s view, and remove library entries with Undo and Restore.",
+    "Edit, merge or remove recorded sessions with reviewed changes and seven-day recovery. Platform playtime stays unchanged.",
+    "Choose a main Steam or Discord profile for linked friends, with clearer profile controls.",
+    "Glide transitions, easier Settings navigation, searchable dropdowns and cleaner menus across narrow and wide layouts.",
+    "Find early features in More → Experiments. Experimental Graphics settings finds recognized configs and offers reviewed edits, backups and Restore.",
+    "Improved NVIDIA discovery, matching and Stop/Retry controls. AMD per-game settings open in AMD Software.",
+    "Fix VR dashboard trigger-release clicks, reduce repeated Appearance work, and expand the practical guides."
   ]
 }

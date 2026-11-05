@@ -31,7 +31,8 @@
   back.onclick=()=>{if(!returnTo)return;const origin=returnTo;returnTo=null;back.hidden=true;input.value=origin.query;search();results.scrollTop=origin.scroll;const buttons=results.querySelectorAll('button');(buttons[Math.min(origin.index,buttons.length-1)]||input).focus({preventScroll:true});};
   input.oninput=()=>{returnTo=null;back.hidden=true;search();};input.onkeydown=event=>{if(event.key==='Escape'&&input.value){event.preventDefault();event.stopPropagation();input.value='';search();}else if(event.key==='ArrowDown'){event.preventDefault();results.querySelector('button')?.focus();}};
   results.onkeydown=event=>{const buttons=[...results.querySelectorAll('button')],i=buttons.indexOf(document.activeElement);if(event.key==='ArrowDown'||event.key==='ArrowUp'){event.preventDefault();const next=i+(event.key==='ArrowDown'?1:-1);if(next<0)input.focus();else buttons[Math.min(buttons.length-1,next)]?.focus();}else if(event.key==='Escape'){event.preventDefault();event.stopPropagation();input.value='';search();input.focus();}};
-  root.querySelector('.settings-tabs').addEventListener('click',()=>{if(input.value){input.value='';search();}returnTo=null;back.hidden=true;});
+  let currentPanel=root.querySelector('.settings-tabs [aria-selected=true]')?.dataset.settingsTab;
+  root.querySelector('.settings-tabs').addEventListener('click',event=>{if(input.value){input.value='';search();}returnTo=null;back.hidden=true;const key=event.target.closest('[data-settings-tab]')?.dataset.settingsTab;if(key&&key!==currentPanel){currentPanel=key;window.OrbitFX?.content?.(root.querySelector('#panel-'+key));}});
   const dialog=root.closest('dialog'),closed=()=>{if(!dialog.open){observer.disconnect();rows=null;returnTo=null;}};dialog.addEventListener('close',closed);dispose=()=>{observer.disconnect();dialog.removeEventListener('close',closed);rows=null;returnTo=null;};
   root.querySelector('.settings-tabs')?.setAttribute('aria-orientation','vertical');
  }

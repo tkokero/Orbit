@@ -13,3 +13,14 @@ desktop.ini
 .env
 .env.*
 !.env.example
+
+# Never publish real profiles, credentials, private keys or native debug symbols.
+Orbit/
+Orbit-Dev/
+*.dpapi
+*.pfx
+*.p12
+*.pdb
+library.json
+library-cache.json
+ui-preferences.json

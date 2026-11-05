@@ -24,6 +24,8 @@ Use Quick start to find games and choose optional connections. **Take a tour** s
 
 Orbit combines detected copies and lets you choose a preferred launch. Add executables or import supported libraries. Detection and statistics depend on the provider; finding a launcher or old play history does not prove ownership.
 
+For step-by-step instructions, see [Library](docs/LIBRARY.md), [Desktop layouts](docs/DESKTOP-LAYOUTS.md), and [Activity](docs/ACTIVITY.md).
+
 ## Friends
 
 See supported Steam and Discord friends, search by name, and review suggested profile links. Linking requires your confirmation. Online puts playing friends first, followed by Do Not Disturb and plain online; other states remain in All friends.
@@ -48,9 +50,11 @@ Choose themes, custom colors, backgrounds, fonts, and startup scenes. Match the 
 
 ![Orbit appearance settings](docs/screenshots/orbit-appearance.png)
 
-Settings and themes stay in your local profile. **Settings → Manage** includes preference backups, recovery tools, exports, and updates.
+Settings and themes stay in your local profile. **Settings → Manage** includes preference backups, recovery tools, exports, and updates. [Appearance guide](docs/THEMES.md) explains saving themes, startup scenes and icon choices.
 
 **Details → Game options → Launch options** lets you add alternate executables and arguments without replacing the default launch. A picker appears beside Play only after you add an option. Choose **More → VR** to check or start SteamVR; optionally prepare it before a chosen game launch. Headset setup and VR mode selection stay with the game and SteamVR. The optional [VR experiment](docs/VR-EXPERIMENTAL.md) adds an Orbit dashboard, wrist displays, performance readings, and window/display panels. It requires SteamVR; headset tuning and performance testing are ongoing.
+
+[Experiments](docs/EXPERIMENTS.md) groups early features, including Graphics settings and the VR overlay. Graphics edits support recognized formats only and require Review/Apply; they are not universal automatic game optimization.
 
 ## Controller mode
 

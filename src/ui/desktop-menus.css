@@ -1,0 +1,17 @@
+/* Desktop-only. Controller layouts and essential navigation keep their own rules. */
+html:not(.couch-mode)[data-menu-hidden~="hero"] #hero,
+html:not(.couch-mode)[data-menu-hidden~="recents"] #recent-games,
+html:not(.couch-mode)[data-menu-hidden~="news"] #news-shelf,
+html:not(.couch-mode)[data-menu-hidden~="platforms"] :is(#source-navigation,#platforms-heading),
+html:not(.couch-mode)[data-menu-hidden~="activity"] #activity-open,
+html:not(.couch-mode)[data-menu-hidden~="storage"] #game-storage-open{display:none!important}
+html #modal .menu-customize-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+html #modal .menu-customize-heading h3{margin:0;font-size:17px}
+html #modal .desktop-menu-settings>.small-note{margin:8px 0 18px}
+html #modal .desktop-menu-settings fieldset{margin:16px 0 0;padding:0;border:0;min-width:0}
+html #modal .desktop-menu-settings legend{padding:0 0 6px;font-size:14px;color:var(--muted);font-weight:750}
+html #modal .menu-visibility-row{display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:48px;padding:8px 0;border-bottom:1px solid var(--line)}
+html #modal .menu-visibility-row:last-child{border:0}
+html #modal .menu-visibility-row>span{font-size:15px;line-height:1.5;overflow-wrap:anywhere}
+html #modal .menu-visibility-row>.setting-switch{flex:none}
+html.couch-mode #customize-desktop-menus{display:none!important}

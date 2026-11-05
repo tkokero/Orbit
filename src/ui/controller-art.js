@@ -1,6 +1,7 @@
 /* Small, theme-colored illustrations stay sharp at television and desktop sizes. */
 (()=>{
  const drawings={
+  merge:'<path d="M7 8h9l17 17h10M7 42h9l17-17m2-8 8 8-8 8"/>',
   move:'<path d="M25 4v42M4 25h42M18 11l7-7 7 7M18 39l7 7 7-7M11 18l-7 7 7 7M39 18l7 7-7 7"/>',
   close:'<path d="m13 13 24 24m0-24L13 37"/>',
   pin:'<path d="m29 5 16 16-7 1-9 9-1 8-8-8-13 13m6-24 8-1 9-9 1-5Z"/>',
@@ -65,6 +66,7 @@
   pause:'<rect x="12" y="9" width="9" height="32" rx="4"/><rect x="29" y="9" width="9" height="32" rx="4"/>',
   external:'<path d="M28 8h14v14M42 8 23 27M21 12H11a4 4 0 0 0-4 4v23a4 4 0 0 0 4 4h23a4 4 0 0 0 4-4V29"/>',
   refresh:'<path d="M40 19A16 16 0 0 0 12 12l-5 6m0-10v10h10M10 31a16 16 0 0 0 28 7l5-6m0 10V32H33"/>',
+  experiment:'<path d="M19 7h12m-10 0v13L10 38a4 4 0 0 0 3.5 6h23a4 4 0 0 0 3.5-6L29 20V7M17 30h16"/><circle cx="22" cy="36" r="1"/><circle cx="29" cy="39" r="1"/>',
   guest:'<path d="M10 29v-8a15 15 0 0 1 30 0v8m-30-2H6v9h7m27-9h4v9h-7M14 42h22"/><rect x="13" y="15" width="24" height="19" rx="9"/><path d="m19 23 4-3m8 8h-7m-9 9v5m20-5v5"/>'
  };
  window.OrbitControllerArt={icon(name){return `<svg viewBox="0 0 50 50" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${drawings[name]||drawings.library}</svg>`;}};

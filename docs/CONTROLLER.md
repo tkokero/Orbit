@@ -17,6 +17,10 @@ Open **More → Controller mode** for the fullscreen interface. Choose **Desktop
 
 Change bindings, deadzone, repeat timing, or Confirm/Back in **Controller Settings → Controller**. Desktop has the same controls under **Settings → General → Controller navigation**. Conflicting bindings are rejected.
 
+## Try the controls
+
+Open Library, move to a game with the D-pad and confirm. Move between its actions, then press Back to return. If the direction or timing feels wrong, open Controller navigation and change one binding/deadzone/repeat setting at a time. Test Confirm and Back before leaving Settings.
+
 ## Finding and playing games
 
 Home shows recent games and discovery feeds. Library has covers, search, and filters. Select a game for its page, then choose **Play**. The menu also opens Downloads, Favorites, shelves, Shuffle, and Settings.

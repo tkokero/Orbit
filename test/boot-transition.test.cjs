@@ -1,0 +1,12 @@
+const test=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs');
+function fixture(){
+ const listeners=new Map(),classes=new Set(),shell={inert:false},cover={isConnected:true,append(){},querySelector:()=>null,classList:{add(){}},remove(){this.isConnected=false;}},media={matches:false,addEventListener:(k,f)=>listeners.set(k,f),removeEventListener:k=>listeners.delete(k)};
+ let sceneDone,exitDone,releases=0,skips=0;const exits=[],window={},playback={done:new Promise(r=>sceneDone=r),release:()=>releases++,skip:()=>{skips++;sceneDone();}};
+ const document={querySelector:s=>s==='#orbit-boot'?cover:shell,createElement:()=>({}),addEventListener(){},body:{classList:{add:x=>classes.add(x),remove:(...xs)=>xs.forEach(x=>classes.delete(x))}}};
+ vm.runInNewContext(fs.readFileSync(require.resolve('../src/ui/boot.js'),'utf8'),{window,document,URLSearchParams,location:{search:''},localStorage:{getItem:()=>null},matchMedia:()=>media,OrbitStartup:{play:()=>playback,exit:(el,options)=>{exits.push(options);options.reveal();return new Promise(r=>exitDone=r);}}});
+ return {window,cover,shell,classes,listeners,media,exits,scene:()=>sceneDone(),finishExit:()=>exitDone(),get releases(){return releases;},get skips(){return skips;}};
+}
+const tick=()=>new Promise(r=>setImmediate(r));
+test('startup holds the scene until both content and playback are ready, then releases once',async()=>{const f=fixture();assert(f.shell.inert);f.scene();await tick();assert.equal(f.exits.length,0);assert(f.cover.isConnected);f.window.orbitBoot.ready();await tick();assert.equal(f.exits.length,1);assert(f.classes.has('boot-revealing'));assert(f.shell.inert);f.window.orbitBoot.ready();assert.equal(f.exits.length,1);f.finishExit();await f.window.orbitBoot.done;assert(!f.cover.isConnected);assert(!f.shell.inert);assert.equal(f.releases,1);assert.equal(f.listeners.size,0);});
+test('content arriving before the scene cannot expose a blank destination',async()=>{const f=fixture();f.window.orbitBoot.ready();await tick();assert(f.cover.isConnected&&f.shell.inert);assert.equal(f.exits.length,0);f.scene();await tick();f.finishExit();await f.window.orbitBoot.done;assert(!f.shell.inert);});
+test('enabling reduced motion during startup skips playback and removes its listener after handoff',async()=>{const f=fixture();f.media.matches=true;f.listeners.get('change')();f.window.orbitBoot.ready();await tick();assert.equal(f.skips,1);assert(f.exits[0].reduced);f.finishExit();await f.window.orbitBoot.done;assert.equal(f.listeners.size,0);});

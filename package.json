@@ -1,7 +1,7 @@
 {
   "name": "orbit-game-launcher",
   "productName": "Orbit",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "description": "A Windows app for organizing and launching games from connected libraries and local files.",
   "main": "src/main.cjs",
   "author": "Orbit",

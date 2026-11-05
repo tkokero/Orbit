@@ -1,16 +1,24 @@
 # Orbit in VR — experimental
 
-Optional in **Orbit 0.2.7**. Requires SteamVR and opens only when requested. Headset tuning and performance testing are ongoing.
+An optional experiment introduced in **Orbit 0.2.7** and available in **0.2.8**. Requires SteamVR and opens only when requested. Headset tuning and performance testing are ongoing.
 
 ## Open and close
 
-Start SteamVR, then choose **More → VR → Open Orbit in VR**. Pin VR to Orbit’s sidebar for quicker access. The Orbit SteamVR dashboard has your library, friends, downloads and VR tools. **Stop overlay** closes Orbit’s companion while leaving SteamVR and your game running.
+1. Start SteamVR and confirm the headset works in its own runtime.
+2. In Orbit, choose **More → VR**, or **More → Experiments → VR overlay**.
+3. Choose **Open Orbit in VR**. If Runtime not running appears, start SteamVR and use **Check again**.
+
+ Pin VR to Orbit’s sidebar for quicker access. The Orbit SteamVR dashboard has your library, friends, downloads and VR tools. **Stop overlay** closes Orbit’s companion while leaving SteamVR and your game running.
 
 ## Wrist display
 
 Choose **Watch** or **Toolbar**, and the left or right hand. Both use your theme. The display is mounted beside the controller, facing inward, and appears when your headset faces it. This uses headset direction, not eye tracking. No pointing-to-arm step is needed. Physical fit and gaze thresholds still need headset feedback.
 
 The toolbar has time, FPS/GPU readings, media keys, live screen thumbnails and Orbit access. **Tools** expands performance/device shortcuts, screen size, recenter, keyboard, hide and close. Select a thumbnail to float that screen above the wrist; select it again to restore its placement. **Interact / Done** enables or releases pointer interaction outside the SteamVR dashboard.
+
+## A first panel
+
+Open **VR tools**, choose an available window/display from its live preview, and add it. Start with one screen. Use its own bottom strip to move/resize/hide/close it. Enable window-control permission only when you intend to send input to that selected Windows window.
 
 ## Screens
 
@@ -32,6 +40,10 @@ Performance separates submitted game FPS from headset refresh rate, with CPU/GPU
 The menu uses 1536×960 pixels, capture textures 1920×1200, and the wrist 1024×512. Source proportions are retained. Menu painting is capped at 30 FPS, wrist at 24, with a 24 FPS total capture budget shared between screens. Frames use persistent D3D11 textures and bounded latest-frame queues. Commands take priority over waiting frames, while each screen gets a turn. Hidden surfaces stop painting; closed captures release streams. Previews stay local and are never recorded.
 
 This remains an experiment, not feature parity with OVR Toolkit, fpsVR or OVR Advanced Settings. Headset management, audio-device switching, motion-reprojection policy and clipping are outside this build. Real headset latency, pointer alignment, controller grabbing, readability and multi-panel GPU cost still need testing.
+
+## If input or performance is wrong
+
+Use the SteamVR dashboard first; outside it, choose **Interact** before using pinned controls and **Done** to release interaction. Check tracking and gaze direction for a hidden wrist display. Close extra screens to isolate a problem, then report the runtime, headset/controllers and failing action. The 0.2.8 dashboard trigger-release fix passes the native fixture; physical input and compositor cost still need headset confirmation.
 
 ## Validation
 

@@ -1,0 +1,34 @@
+/* Hidden isolated checks for the selected preview design and the broad menu-polish fixes. */
+const fs=require('node:fs/promises'),path=require('node:path'),assert=require('node:assert/strict');
+module.exports=async({window,target})=>{
+ const run=code=>window.webContents.executeJavaScript('(async()=>{'+code+'})()'),wait=ms=>new Promise(r=>setTimeout(r,ms)),checks=[];
+ const check=(name,passed)=>checks.push({name,passed:!!passed}),shot=async name=>{await wait(90);await fs.writeFile(path.join(target,name+'.png'),(await window.webContents.capturePage()).toPNG());};
+ try{
+ await run(`await orbitBoot.done;orbitFeatures.setCouch(false);await orbitShell.activate('library');motionEnabled=false;document.documentElement.classList.add('motion-off');chooseTheme('orbit');OrbitDesktopMenus.open();document.querySelector('#panel-appearance').scrollTop=0;`);await shot('live-layout');
+ check('Live layout appears beside the controls in a wide Settings popup',await run(`const p=document.querySelector('.menu-layout-preview').getBoundingClientRect(),c=document.querySelector('.menu-live-controls').getBoundingClientRect();return p.width>200&&p.right<c.left&&Math.abs(p.top-c.top)<5;`));
+ check('The wide preview fits its initial scrolling area',await run(`const p=document.querySelector('[data-menu-preview]').getBoundingClientRect(),b=document.querySelector('#panel-appearance').getBoundingClientRect();return p.bottom<=b.bottom+2;`));
+ await run(`OrbitDesktopMenus.set('hero',false);`);check('A visibility switch updates the preview immediately',await run(`return !document.querySelector('[data-menu-preview] [data-preview-section=hero]');`));
+ await run(`OrbitDesktopMenus.set('hero',true);OrbitDesktopMenus.customize({order:['games','hero','recents','news'],recentCount:8,bannerSize:'compact',quickActions:['refresh','vr']});`);
+ check('Preview order and quick actions follow the selected layout',await run(`return document.querySelector('.menu-preview-content').firstElementChild.dataset.previewSection==='games'&&document.querySelector('.menu-preview-title').textContent.includes('Refresh')&&document.querySelector('.menu-preview-title').textContent.includes('VR');`));
+ check('Preview Recents count and banner height follow their controls',await run(`return document.querySelector('.menu-preview-recents').textContent.includes('8')&&document.querySelector('.menu-preview-hero').dataset.size==='compact';`));
+ await run(`OrbitDesktopMenus.applyPreset('full');closeModal();await orbitExtras.smartEditor();`);await shot('smart-collections');
+ check('Smart collection save action keeps a regular button height',await run(`const b=document.querySelector('#smart-form .primary-button').getBoundingClientRect();return b.height>=38&&b.height<=50;`));
+ check('Favorites has a compact checkbox beside its label',await run(`const i=document.querySelector('#smart-form input[type=checkbox]').getBoundingClientRect(),l=document.querySelector('.smart-favorites').getBoundingClientRect();return i.width<=22&&i.height<=22&&Math.abs(i.top+i.height/2-l.top-l.height/2)<3;`));
+ await run(`closeModal();await OrbitCollectionUI.manage();`);check('Collection removal uses a named utility button and retains confirmation',await run(`const b=document.querySelector('[data-delete-collection]');b.click();return document.querySelector('#collection-confirm-remove')&&document.querySelector('#modal-body').textContent.includes('stay in your library');`));
+ window.setMinimumSize(640,420);window.setSize(800,700);window.webContents.setZoomFactor(1.25);
+ await run(`closeModal();chooseTheme('cloud');await OrbitCollectionUI.manage();document.querySelector('[data-edit-collection]').click();`);await wait(100);await shot('collection-editor-narrow');
+ check('Collection save and cancel are reachable before scrolling a narrow editor',await run(`const b=document.querySelector('#modal-body').getBoundingClientRect(),a=document.querySelector('#collection-edit-form>.settings-actions').getBoundingClientRect();return a.top>=b.top&&a.bottom<=b.bottom+2;`));
+ await run(`closeModal();await orbitExtras.smartEditor();`);await shot('smart-collections-narrow');
+ check('Smart collection save stays reachable in a narrow popup',await run(`const b=document.querySelector('#modal-body').getBoundingClientRect(),a=document.querySelector('.smart-collection-footer').getBoundingClientRect();return a.top>=b.top&&a.bottom<=b.bottom+2;`));
+ await run(`closeModal();await orbitExtras.storage();`);await wait(180);await shot('storage-narrow');
+ check('Narrow Storage uses wrapped drive cards without sideways scrolling',await run(`const d=document.querySelector('.storage-drives');return getComputedStyle(d).gridAutoFlow==='row'&&d.scrollWidth<=d.clientWidth+2&&[...d.children].every(n=>n.getBoundingClientRect().right<=d.getBoundingClientRect().right+2);`));
+ await run(`closeModal();await OrbitSteam.panel({connected:true,apps:[],folders:[],downloads:{overview:{paused:false},items:[]}});`);await shot('steam-empty');
+ check('Empty Steam downloads show one status instead of a repeated heading',await run(`return document.querySelector('.steam-download-heading').hidden&&document.querySelector('.steam-queue').textContent.includes('No downloads');`));
+ await run(`document.querySelectorAll('dialog[open]').forEach(n=>n.close());OrbitDesktopMenus.open();document.querySelector('#panel-appearance').scrollTop=0;`);await shot('live-layout-narrow');
+ check('Narrow Settings starts with reachable switches and an optional preview',await run(`const toggle=document.querySelector('[data-menu-preview-toggle]'),preview=document.querySelector('.menu-layout-preview');return toggle.checkVisibility()&&!preview.checkVisibility()&&document.querySelector('[data-menu-section=hero]').checkVisibility();`));
+ await run(`document.querySelector('[data-menu-preview-toggle]').click();`);check('The optional narrow preview can be expanded and collapsed',await run(`const t=document.querySelector('[data-menu-preview-toggle]'),shown=document.querySelector('.menu-layout-preview').checkVisibility();t.click();return shown&&!document.querySelector('.menu-layout-preview').checkVisibility();`));
+ await run(`closeModal();await orbitShell.activate('library');`);window.setSize(1440,960);window.webContents.setZoomFactor(1);await wait(80);
+ check('Header actions return in the saved order after resizing',await run(`return document.querySelector('#quick-launch').getBoundingClientRect().left<document.querySelector('#add-game').getBoundingClientRect().left;`));
+ const report={passed:checks.every(c=>c.passed),checks};await fs.writeFile(path.join(target,'clarity-checks.json'),JSON.stringify(report,null,2));assert(report.passed,checks.filter(c=>!c.passed).map(c=>c.name).join('; '));return report;
+ }catch(error){await fs.writeFile(path.join(target,'clarity-failure.json'),JSON.stringify({error:error.stack,checks},null,2));throw error;}
+};

@@ -1,0 +1,43 @@
+/* File names lead; paths and less-used actions stay available on demand. */
+(()=>{
+ const saved=c=>c.newFile?'New config':c.modified?'Saved '+new Date(c.modified).toLocaleString():'Date unavailable';
+ const folder=c=>String(c.path).split(/[\\/]/).slice(0,-1).slice(-2).join(' / ');
+ const date=c=>c.newFile?'New file':c.modified?new Date(c.modified).toLocaleDateString(undefined,{month:'short',day:'numeric'}):'';
+ async function open({game,info,choose,cancel,changeGame,chooseFile}){
+  modal(game.title+' · Config files','<div id="optimization-configs" class="game-optimization"><div class="config-picker-tools"><input type="search" data-config-query aria-label="Search config files" placeholder="Search files" autocomplete="off"><button type="button" class="subtle-button" data-config-scan>Search again</button><button type="button" class="config-options" data-config-options aria-label="Config options" aria-haspopup="menu" aria-expanded="false">•••</button><p data-config-scan-status role="status" hidden></p></div><section data-config-list></section><section data-config-located></section><details class="config-search-help"><summary>About config files</summary><p>Most recent means last saved, not necessarily your active account. Rename a config to recognize it later. Other files are view only until their format is supported.</p></details><p data-config-error role="alert"></p><div class="optimization-footer"><span></span><button type="button" class="subtle-button" data-config-cancel>Graphics settings</button></div></div>');
+  const root=document.querySelector('#optimization-configs'),query=root.querySelector('[data-config-query]'),list=root.querySelector('[data-config-list]'),other=root.querySelector('[data-config-located]'),error=root.querySelector('[data-config-error]'),scroller=document.querySelector('#modal-body');
+  scroller.scrollTop=0;let limit=40,editing=null,busy=false;const expanded=new Set(),candidates=info.candidates.map(c=>({...c})),located=[...(info.foundFiles||[])];
+  const match=c=>(c.label+' '+c.name+' '+c.path+' '+saved(c)).toLocaleLowerCase().includes(query.value.trim().toLocaleLowerCase());
+  function details(c,editable){return '<button type="button" class="config-details-toggle" data-config-details="'+esc(c.token)+'" aria-expanded="'+expanded.has(c.token)+'" aria-controls="config-detail-'+esc(c.token)+'">Details</button><div class="config-file-details" id="config-detail-'+esc(c.token)+'"'+(expanded.has(c.token)?'':' hidden')+'><code>'+esc(c.path)+'</code><span>'+esc(saved(c))+'</span>'+(editable?'<button type="button" class="config-rename" data-config-name="'+esc(c.token)+'">Rename</button>':'')+'</div>';}
+  function paint(){
+   const rows=candidates.filter(match);list.hidden=!candidates.length;
+   list.innerHTML=candidates.length?'<h3>Editable configs <span>'+rows.length+'</span></h3>'+rows.slice(0,limit).map(c=>'<article class="config-result" data-config-token="'+esc(c.token)+'"'+(c.token===info.preferredToken?' data-selected="true"':'')+'><div class="config-picker-row"><button type="button" class="config-picker-use" data-config-use="'+esc(c.token)+'"><span><strong>'+esc(c.label)+'</strong><small>'+esc(folder(c))+(date(c)?' · '+esc(date(c)):'')+'</small></span>'+(c.token===info.preferredToken?'<svg class="config-selected" viewBox="0 0 20 20" width="18" height="18" aria-label="Last selected"><path d="m4 10 4 4 8-8" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>':'<span aria-hidden="true">›</span>')+'</button>'+details(c,true)+'</div>'+(editing===c.token?'<form data-config-name-form="'+esc(c.token)+'"><label>Config name<input name="label" maxlength="40" value="'+esc(c.customLabel)+'" placeholder="Main account"></label><div class="settings-actions"><button class="primary-button">Save name</button><button type="button" class="subtle-button" data-config-name-cancel>Cancel</button></div></form>':'')+'</article>').join('')+(rows.length>limit?'<button type="button" class="subtle-button" data-config-more>Show more · '+limit+' of '+rows.length+'</button>':'')+(rows.length?'':'<p>No matching configs</p>'):'';
+  }
+  function paintLocated(){
+   const rows=located.filter(match);other.hidden=!rows.length;
+   other.innerHTML=rows.length?'<h3>Other files <span>View only · '+rows.length+'</span></h3>'+rows.map(c=>'<article class="config-result"><div class="config-located-row"><span><strong>'+esc(c.name)+'</strong><small>'+esc(folder(c))+'</small></span><button type="button" class="subtle-button" data-config-folder="'+esc(c.token)+'">Show folder</button>'+details(c,false)+'</div></article>').join(''):'';
+   if(!candidates.length&&!rows.length)other.hidden=false,other.innerHTML='<p>No config files found. Choose a file from Config options.</p>';
+  }
+  function paintAll(){paint();paintLocated();}
+  async function select(c){if(busy||!c)return;busy=true;try{await choose(c);}catch(e){if(root.isConnected){error.textContent=e.message;busy=false;}}}
+  query.oninput=()=>{limit=40;editing=null;paintAll();};
+  root.addEventListener('click',async event=>{
+   const use=event.target.closest('[data-config-use]'),toggle=event.target.closest('[data-config-details]'),name=event.target.closest('[data-config-name]');
+   if(use)return select(candidates.find(c=>c.token===use.dataset.configUse));
+   if(toggle){const token=toggle.dataset.configDetails;if(expanded.has(token))expanded.delete(token);else expanded.add(token);toggle.setAttribute('aria-expanded',String(expanded.has(token)));document.getElementById('config-detail-'+token).hidden=!expanded.has(token);return;}
+   if(name){editing=name.dataset.configName;paint();list.querySelector('input')?.focus({preventScroll:true});return;}
+   if(event.target.closest('[data-config-name-cancel]')){const token=editing;editing=null;paint();list.querySelector('[data-config-name="'+token+'"]')?.focus({preventScroll:true});}
+   if(event.target.closest('[data-config-more]')){limit+=40;paint();}
+   const button=event.target.closest('[data-config-folder]');if(button&&!busy)try{await orbit.optimizationFolder({id:game.id,token:button.dataset.configFolder});}catch(e){if(root.isConnected)error.textContent=e.message;}
+  });
+  list.onsubmit=async event=>{event.preventDefault();const form=event.target.closest('[data-config-name-form]');if(!form||busy)return;busy=true;const token=form.dataset.configNameForm;form.querySelector('button').disabled=true;error.textContent='';try{const result=await orbit.optimizationName({id:game.id,fileToken:token,label:form.elements.label.value});if(!root.isConnected)return;Object.assign(candidates.find(c=>c.token===token),result);editing=null;paint();list.querySelector('[data-config-name="'+token+'"]')?.focus({preventScroll:true});}catch(e){if(root.isConnected){error.textContent=e.message;form.querySelector('button').disabled=false;}}finally{busy=false;}};
+  root.querySelector('[data-config-options]').onclick=async event=>{
+   if(busy)return;const button=event.currentTarget,rect=button.getBoundingClientRect();button.setAttribute('aria-expanded','true');
+   try{const item=await OrbitContextMenu.open([{id:'config-file',label:'Choose file'},{id:'config-games',label:'Choose game'}],{x:rect.right-240,y:rect.bottom+6},'Config options');if(!root.isConnected)return;if(item?.action==='config-file')await chooseFile();else if(item?.action==='config-games')await changeGame();}catch(e){if(root.isConnected)error.textContent=e.message;}finally{if(button.isConnected)button.setAttribute('aria-expanded','false');}
+  };
+  function scanStatus(searching=false){const status=root.querySelector('[data-config-scan-status]');status.hidden=!searching&&!info.discovery?.limited;status.textContent=searching?'Searching local folders…':'Search limit reached. Choose a file to look elsewhere.';}
+  root.querySelector('[data-config-scan]').onclick=async()=>{if(busy)return;busy=true;const button=root.querySelector('[data-config-scan]'),options=root.querySelector('[data-config-options]');button.disabled=true;options.disabled=true;error.textContent='';scanStatus(true);try{const next=await orbit.optimizationGame({id:game.id,refresh:true});if(!root.isConnected)return;const scroll=scroller.scrollTop;info=next;candidates.splice(0,candidates.length,...next.candidates.map(c=>({...c})));located.splice(0,located.length,...(next.foundFiles||[]));editing=null;paintAll();scroller.scrollTop=scroll;}catch(e){if(root.isConnected)error.textContent=e.message;}finally{if(root.isConnected){scanStatus();button.disabled=false;options.disabled=false;button.focus({preventScroll:true});busy=false;}}};
+  root.querySelector('[data-config-cancel]').onclick=cancel;scanStatus();paintAll();query.focus({preventScroll:true});
+ }
+ window.OrbitConfigPicker={open,saved};
+})();

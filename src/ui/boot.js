@@ -2,13 +2,15 @@
 (()=>{
  const cover=document.querySelector('#orbit-boot'),shell=document.querySelector('.app-shell');shell.inert=true;
  const debugReplay=Boolean(window.orbitDebug)&&new URLSearchParams(location.search).get('debug-intro')==='1';
- let reduced=new URLSearchParams(location.search).get('quickstart')==='1'||(!debugReplay&&new URLSearchParams(location.search).get('resume')==='1')||matchMedia('(prefers-reduced-motion: reduce)').matches;try{reduced ||=new URLSearchParams(location.search).get('desktop')!=='1'&&localStorage.getItem('orbit-couch')==='on'||localStorage.getItem('orbit-motion')==='off'||(!debugReplay&&localStorage.getItem('orbit-intro')==='off');}catch{}
+ const motionMedia=matchMedia('(prefers-reduced-motion: reduce)');let reduced=new URLSearchParams(location.search).get('quickstart')==='1'||(!debugReplay&&new URLSearchParams(location.search).get('resume')==='1')||motionMedia.matches;try{reduced ||=new URLSearchParams(location.search).get('desktop')!=='1'&&localStorage.getItem('orbit-couch')==='on'||localStorage.getItem('orbit-motion')==='off'||(!debugReplay&&localStorage.getItem('orbit-intro')==='off');}catch{}
  const playback=OrbitStartup.play(cover,{reduced,holdFrame:true});let loaded=false,sceneDone=false,exiting=false,resolve;const done=new Promise(r=>resolve=r);
  const hint=document.createElement('p');hint.className='startup-load-hint';hint.hidden=true;hint.textContent='Opening your library…';cover.append(hint);
  async function leave(){if(!loaded||!sceneDone||exiting)return;exiting=true;cover.classList.add('boot-leaving');
   try{await OrbitStartup.exit(cover,{reduced,reveal:()=>document.body.classList.add('boot-revealing')});}
-  finally{try{playback.release();}finally{cover.remove();document.body.classList.remove('booting','boot-revealing');shell.inert=false;resolve();}}
+  finally{try{playback.release();}finally{motionMedia.removeEventListener('change',reduceMotion);cover.remove();document.body.classList.remove('booting','boot-revealing');shell.inert=false;resolve();}}
  }
+ function reduceMotion(){if(motionMedia.matches){reduced=true;playback.skip();}}
+ motionMedia.addEventListener('change',reduceMotion);
 
  playback.done.then(()=>{sceneDone=true;hint.hidden=loaded;const skip=cover.querySelector('.startup-skip');if(skip){skip.disabled=true;skip.hidden=true;}leave();});
  document.addEventListener('keydown',e=>{if(!exiting&&e.key==='Escape'&&cover.isConnected){e.preventDefault();playback.skip();}});
