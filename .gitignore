@@ -24,3 +24,13 @@ Orbit-Dev/
 library.json
 library-cache.json
 ui-preferences.json
+
+# Local scratch data and generated release or Rust/Tauri output.
+/work/
+/outputs/
+/artifacts/
+/installer/
+/rust/target/
+/rust/web/
+/rust/crates/orbit-desktop/gen/
+/native/**/build/

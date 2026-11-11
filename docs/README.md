@@ -19,3 +19,4 @@ Guides and technical documentation for Orbit.
 * [**Roadmap**](../ROADMAP.md): Milestones leading to 1.0.
 * [**Contributing**](../CONTRIBUTING.md): Build instructions, architecture, and testing standards.
 * [**Privacy Policy**](../PRIVACY.md): Local storage, offline behavior, and provider connections.
+* [**Development Archive**](https://github.com/tkokero/Orbit/tree/v0.2.8/docs): Earlier plans, technical research, validation limits, and before/after evidence, preserved with the released source.

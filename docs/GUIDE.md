@@ -98,6 +98,6 @@ Open **Settings → Appearance** to customize Orbit's look and feel.
 
 * **Color Themes:** Choose built-in palettes or design your own with custom accents and background colors.
 * **Custom Backgrounds:** Import PNG, JPEG, or WebP images with adjustable opacity and blur.
-* **Startup Scenes:** Choose animated intro scenes (Astral, Afterglow, Void, Encore) and configure optional startup sound effects and volume.
-* **App Icons:** Switch the application taskbar icon to match your chosen theme.
+* **Startup Scenes:** Choose an intro scene or your own video, with optional sound and volume controls. Secret scenes appear after unlocking them.
+* **App Icons:** Match the app icon to your theme or choose a separate style. Fully restart Orbit to apply the taskbar and tray icons together.
 * **Typography & Accessibility:** Adjust font sizing, contrast enhancement, reduced motion, or supply a custom local font.

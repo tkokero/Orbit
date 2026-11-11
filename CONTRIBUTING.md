@@ -49,7 +49,7 @@ npm run dist
 ## Testing & Quality Guidelines
 
 1. **Automated Tests:** Always run `npm test` before committing changes. All tests in `test/*.test.cjs` should pass cleanly.
-2. **Smoke & Integration Tests:** In development, Electron smoke tests can be run using flags like `--smoke-test` with isolated profiles.
+2. **Smoke & Integration Tests:** Run source smoke tests with `--smoke-test` and an isolated profile. Routine checks must stay hidden. Physical controller, focus, game-launch and authorization checks require an agreed playtest. Production packages exclude the smoke/fixture modules; use a development validation build for those internal checks.
 3. **Data Preservation:** User preferences, themes, artwork caches, and session history must always be preserved across restarts and updates.
 4. **Performance & Resources:**
    - Keep background CPU and RAM minimal.
@@ -58,6 +58,10 @@ npm run dist
 5. **Accessibility & Layouts:** Test UI views with varying window bounds (narrow and wide), high DPI scaling, theme contrast, and reduced motion settings.
 
 ---
+
+## Repository Housekeeping
+
+Keep current help in `docs/` and version summaries in `CHANGELOG.md`. Older development notes and evidence remain in [the tagged source history](https://github.com/tkokero/Orbit/tree/v0.2.8/docs). Link useful guide images from `docs/screenshots/`; keep generated output out of source control. Retain working tests, build inputs and license notices.
 
 ## Issues & Pull Requests
 

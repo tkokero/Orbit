@@ -22,6 +22,8 @@ Orbit can locate and adjust recognized local game configuration files to apply p
 3. Review changes in the diff view before applying.
 4. Orbit automatically creates verified backups before writing. Use **Restore original settings** at any time to revert changes.
 
+Close the game before applying changes. Unsupported files stay view only. NVIDIA Apply still needs a live playtest; AMD opens its own settings app rather than editing its profiles inside Orbit.
+
 ---
 
 ## 2. Orbit in VR (SteamVR Overlay)
@@ -38,12 +40,16 @@ An optional overlay dashboard for SteamVR headsets that brings your launcher and
 * **Spatial Windows:** Spawn up to four desktop windows or physical monitors in 3D space with move, resize, and hide controls.
 * **Safe Controls:** Input forwarding is explicitly gated per window; close the companion overlay anytime without interrupting your running VR title.
 
+Physical headset input, wrist placement and compositor performance still need hardware testing. Software fixture checks do not establish headset compatibility.
+
 ---
 
 ## 3. Hardware FPS Estimates
 
 Select **Estimate FPS** in a game's details view to see projected performance targets calculated locally from your detected CPU, GPU, and RAM.
 
-* **Publisher-Reference Models:** Supported titles (such as Cyberpunk 2077, Ghost of Tsushima, and Assassin's Creed Mirage) use published hardware baselines to project realistic resolution and preset performance ranges.
+* **Publisher-Reference Models:** Supported titles (such as Cyberpunk 2077, Ghost of Tsushima, and Assassin's Creed Mirage) use published hardware baselines to estimate resolution and preset performance ranges.
 * **Generic Fallbacks:** Other games use broader workload heuristics.
 * **Privacy:** All calculations are performed entirely on your PC; Orbit does not run background benchmarks or upload system telemetry.
+
+These ranges are estimates, not measured game FPS or guaranteed performance gains.

@@ -1,85 +1,85 @@
 {
-    "name":  "orbit-game-launcher",
-    "productName":  "Orbit",
-    "version":  "0.2.8",
-    "description":  "A Windows app for organizing and launching games from connected libraries and local files.",
-    "main":  "src/main.cjs",
-    "author":  "Orbit",
-    "license":  "MIT",
-    "scripts":  {
-                    "start":  "electron .",
-                    "test":  "node --test test/*.test.cjs",
-                    "scan":  "node scripts/scan.cjs",
-                    "package":  "electron-builder --config electron-builder.config.cjs --win --x64 --dir --publish never",
-                    "dist":  "electron-builder --config electron-builder.config.cjs --win nsis --x64 --publish never",
-                    "dev":  "electron . --dev-debug",
-                    "build:vr":  "node scripts/build-vr.cjs"
-                },
-    "devDependencies":  {
-                            "electron":  "44.9.0",
-                            "electron-builder":  "26.15.3"
-                        },
-    "dependencies":  {
-                         "electron-updater":  "6.8.9",
-                         "mediabunny":  "1.62.1",
-                         "sharp":  "^0.35.5",
-                         "yaml":  "^2.9.1"
-                     },
-    "build":  {
-                  "appId":  "io.github.tkokero.orbit",
-                  "productName":  "Orbit",
-                  "directories":  {
-                                      "output":  "../installer"
-                                  },
-                  "files":  [
-                                "src/**/*",
-                                "!src/*-validation.cjs",
-                                "!src/*fixture*.cjs",
-                                "!src/ui/*smoke*.js",
-                                "package.json",
-                                "LICENSE",
-                                "README.md",
-                                "docs/CONTROLLER.md",
-                                "THIRD_PARTY.md"
-                            ],
-                  "asar":  true,
-                  "asarUnpack":  [
-                                     "node_modules/@img/**/*",
-                                     "src/native/discord/**/*",
-                                     "src/native/shell/*.exe",
-                                     "src/native/vr/**/*"
-                                 ],
-                  "npmRebuild":  false,
-                  "generateUpdatesFilesForAllChannels":  true,
-                  "publish":  [
-                                  {
-                                      "provider":  "generic",
-                                      "url":  "https://github.com/tkokero/Orbit/releases/download/v0.2.0-pre.1",
-                                      "channel":  "latest"
-                                  }
-                              ],
-                  "win":  {
-                              "target":  [
-                                             "nsis"
-                                         ],
-                              "signExecutable":  false,
-                              "icon":  "src/assets/orbit.ico"
-                          },
-                  "nsis":  {
-                               "artifactName":  "Orbit-Setup.exe",
-                               "oneClick":  true,
-                               "perMachine":  false,
-                               "allowElevation":  false,
-                               "runAfterFinish":  true,
-                               "createDesktopShortcut":  true,
-                               "createStartMenuShortcut":  true,
-                               "deleteAppDataOnUninstall":  false,
-                               "installerIcon":  "src/assets/orbit.ico",
-                               "uninstallerIcon":  "src/assets/orbit.ico"
-                           },
-                  "electronLanguages":  [
-                                            "en-US"
-                                        ],
-                  "compression":  "maximum"
-              }
+  "name": "orbit-game-launcher",
+  "productName": "Orbit",
+  "version": "0.2.8",
+  "description": "A Windows app for organizing and launching games from connected libraries and local files.",
+  "main": "src/main.cjs",
+  "author": "Orbit",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test test/*.test.cjs",
+    "scan": "node scripts/scan.cjs",
+    "package": "electron-builder --config electron-builder.config.cjs --win --x64 --dir --publish never",
+    "dist": "electron-builder --config electron-builder.config.cjs --win nsis --x64 --publish never",
+    "dev": "electron . --dev-debug",
+    "build:vr": "node scripts/build-vr.cjs"
+  },
+  "devDependencies": {
+    "electron": "44.9.0",
+    "electron-builder": "26.15.3"
+  },
+  "dependencies": {
+    "electron-updater": "6.8.9",
+    "mediabunny": "1.62.1",
+    "sharp": "^0.35.5",
+    "yaml": "^2.9.1"
+  },
+  "build": {
+    "appId": "io.github.tkokero.orbit",
+    "productName": "Orbit",
+    "directories": {
+      "output": "../installer"
+    },
+    "files": [
+      "src/**/*",
+      "!src/*-validation.cjs",
+      "!src/*fixture*.cjs",
+      "!src/ui/*smoke*.js",
+      "package.json",
+      "LICENSE",
+      "README.md",
+      "docs/CONTROLLER.md",
+      "THIRD_PARTY.md"
+    ],
+    "asar": true,
+    "asarUnpack": [
+      "node_modules/@img/**/*",
+      "src/native/discord/**/*",
+      "src/native/shell/*.exe",
+      "src/native/vr/**/*"
+    ],
+    "npmRebuild": false,
+    "generateUpdatesFilesForAllChannels": true,
+    "publish": [
+      {
+        "provider": "generic",
+        "url": "https://github.com/tkokero/Orbit/releases/download/v0.2.0-pre.1",
+        "channel": "latest"
+      }
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "signExecutable": false,
+      "icon": "src/assets/orbit.ico"
+    },
+    "nsis": {
+      "artifactName": "Orbit-Setup.exe",
+      "oneClick": true,
+      "perMachine": false,
+      "allowElevation": false,
+      "runAfterFinish": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "deleteAppDataOnUninstall": false,
+      "installerIcon": "src/assets/orbit.ico",
+      "uninstallerIcon": "src/assets/orbit.ico"
+    },
+    "electronLanguages": [
+      "en-US"
+    ],
+    "compression": "maximum"
+  }
 }

@@ -13,4 +13,4 @@ The dashboard cleanup reference is [Damir Sokolovsky's before/after clip](https:
 - Preserve recognizable launcher symbols, meaningful warnings, privacy explanations, and status. Removing decoration must not remove information.
 - Scope this cleanup to Desktop chrome. Controller Home/Library, startup scenes, selected artwork, popup preferences, and functional behavior remain unchanged.
 
-Verify rendered captures at wide/narrow widths, larger scaling, light/dark themes, and reduced motion. Development checks and installs stay hidden.
+Verify rendered captures at wide/narrow widths, larger scaling, light/dark themes, and reduced motion. Development checks stay hidden; automatic development installs show setup.

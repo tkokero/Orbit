@@ -10,7 +10,7 @@ Orbit stores your library catalog, detected executable paths, custom settings, t
 ---
 
 ## Online Connections & External Requests
-Orbit only makes network requests when you actively use an online feature:
+Enabled online features can make requests automatically, including update checks, library refreshes and remembered connections:
 * **Game Artwork & Metadata:** Fetches official artwork covers and titles for detected games from public APIs or store servers.
 * **Game News & Releases:** Loads announcements and release radar information from official feeds.
 * **Update Verification:** Queries GitHub Releases for new published builds.
@@ -22,7 +22,7 @@ Orbit only makes network requests when you actively use an online feature:
 
 ### Discord
 * **Friends List:** An optional, read-only connection that queries your currently accepted Discord friends and their game presence via the local Discord desktop application. It does not access private messages, servers, or voice channels.
-* **Rich Presence:** Optional and configurable in **Settings → Privacy**. You can choose to broadcast game status, display custom elapsed times, or mask specific game titles as simply "Playing a game".
+* **Rich Presence:** Optional and configurable in **Settings → Privacy**. You can share game status, show session time, or mask specific game titles as "Playing a game".
 
 ### Steam
 * **Steam Web API:** Connecting your Steam ID and API Key allows Orbit to display your Steam friends and library. Your API Key is stored only on your computer.
