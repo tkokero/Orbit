@@ -1,81 +1,89 @@
 # Orbit
 
-A Windows launcher for your game libraries, local games, and tools. Find something to play, organize your collection, and launch it from one place.
+**An all-connected, elegant Windows launcher for your game libraries, local games, and emulators.**
 
-![Orbit with an example Desktop library](docs/screenshots/orbit-library.png)
+Find something to play, organize your collection, and launch your titles seamlessly from one unified place.
 
-*Example library with real games and publisher artwork. Profiles, playtime, and downloads are sample data. Screenshots show the development build; published builds may differ.*
+![Orbit Desktop Library](docs/screenshots/orbit-library.png)
 
-## Get started
+---
 
-Download **Orbit-Setup.exe** from [Releases](https://github.com/tkokero/Orbit/releases). For portable use, extract the entire Windows ZIP before opening Orbit. Windows builds are unsigned.
+## Highlights
 
-Use Quick start to find games and choose optional connections. **Take a tour** shows the main controls; reopen it from **Settings → About → Open Quick start**. Keep any original clients your games require.
+* 🎮 **Unified Library:** Automatically discovers and aggregates games from Steam, Epic, Ubisoft, Roblox, and custom executables into one clean, consolidated library.
+* 🕹️ **Controller Mode:** Fullscreen gamepad navigation with customizable bindings, on-screen keyboard, and console-style game pages designed for TV gaming.
+* 🎨 **Deep Customization:** Built-in and custom color palettes, custom background images, animated startup scenes, custom fonts, and matching Windows taskbar icons.
+* 📐 **Flexible Desktop Layouts:** Choose between Gallery, Workspace, and Shelf layout presets, with custom section ordering, collapsible sidebars, and resizable modals.
+* 👥 **Friends & Rich Presence:** Connect Steam and Discord friends into a unified list, link matching profiles, and broadcast granular Discord Rich Presence.
+* ⏱️ **Activity & Playtime:** Track local session times and streaks with built-in tools to edit times, merge split sessions, and recover edits.
+* 🚀 **Downloads & Storage:** Monitor active downloads, manage multi-drive storage, and control Steam queues directly within Orbit.
+* ⚡ **Experimental Capabilities:** Optional SteamVR overlay dashboard with wrist controls, game graphics configuration presets, and hardware FPS estimates.
 
-## Your library
+---
 
-- Browse covers, landscape banners, or a list. Adjust card size and spacing.
-- Search, filter, favorite, and pin collections in the sidebar.
-- Use Ctrl/Shift selection to organize several games together, with Undo for bulk changes.
-- Open Details for game copies, launch settings, artwork, notes, and available statistics. Right-click for related actions.
-- Press **Ctrl+K** to search games, collections, settings, and actions. **Ctrl+Shift+P** opens Quick launch; change these in **Settings → General → Keyboard shortcuts**.
+## Gallery
 
-![Selecting and organizing example games](docs/screenshots/orbit-organization.png)
+| Organizing Collections | Controller Mode |
+| :---: | :---: |
+| ![Organizing Games](docs/screenshots/orbit-organization.png) | ![Controller Mode](docs/screenshots/orbit-controller.png) |
 
-Orbit combines detected copies and lets you choose a preferred launch. Add executables or import supported libraries. Detection and statistics depend on the provider; finding a launcher or old play history does not prove ownership.
+| Friends & Profiles | Themes & Appearance |
+| :---: | :---: |
+| ![Friends View](docs/screenshots/orbit-friends.png) | ![Themes](docs/screenshots/orbit-appearance.png) |
 
-For step-by-step instructions, see [Library](docs/LIBRARY.md), [Desktop layouts](docs/DESKTOP-LAYOUTS.md), and [Activity](docs/ACTIVITY.md).
+---
 
-## Friends
+## Installation
 
-See supported Steam and Discord friends, search by name, and review suggested profile links. Linking requires your confirmation. Online puts playing friends first, followed by Do Not Disturb and plain online; other states remain in All friends.
+Download the latest version from [GitHub Releases](https://github.com/tkokero/Orbit/releases):
 
-![Friends with sample profiles](docs/screenshots/orbit-friends.png)
+* **Installer:** Download and run `Orbit-Setup.exe` for automatic installation and background updates.
+* **Portable:** Download `Orbit-Windows.zip`, extract to any folder, and run `Orbit.exe`.
 
-Discord friends requests basic identity and read-only relationships access and needs the Discord desktop client. Epic is client-only. Optional **Discord Rich Presence** has separate controls in **Settings → Privacy**. Hidden game names show **Playing a game**.
+---
 
-## Downloads and Steam
+## Quick Start
 
-Follow supported downloads with artwork, progress, and available speed estimates. Steam controls group **Downloads**, **Storage**, and **Connection**, including folder space and supported queue actions.
+1. **Launch Orbit:** Orbit runs a quick initial scan to detect installed games and launchers.
+2. **Keyboard Shortcuts:**
+   * `Ctrl+K`: Global search for games, collections, settings, and actions.
+   * `Ctrl+Shift+P`: Quick Launch menu.
+3. **Customize:** Open **Settings → Appearance** to select your favorite theme, layout preset, and startup animation.
 
-![Example Steam download controls](docs/screenshots/orbit-steam.png)
+---
 
-The optional experimental Steam connection restarts Steam and opens a local debugging channel. Use it only on a trusted computer. Steam updates can break compatibility; sign-in, agreements, and some operations still need the original client. Restart Steam normally to disable the channel.
+## Building from Source
 
-**Radar** brings together upcoming releases, your wishlist, and Steam deals. Game news opens inside Orbit with photos and working links. Dates and prices can change; check the original store before purchasing.
+Ensure you have **Node.js 22.12+** installed:
 
-## Make it yours
+```powershell
+# Clone the repository
+git clone https://github.com/tkokero/Orbit.git
+cd Orbit
 
-Choose themes, custom colors, backgrounds, fonts, and startup scenes. Match the app icon to your theme or pick a separate style for the next restart. Switch between Overlay and Split banners. Resize Desktop popups from their corners and remember shared or separate sizes. Drag their headers to save positions per display. Accessibility includes text scaling, stronger focus, contrast, and reduced motion.
+# Install dependencies and run tests
+npm ci
+npm test
 
-![Orbit appearance settings](docs/screenshots/orbit-appearance.png)
+# Launch Orbit in development mode
+npm start
+```
 
-Settings and themes stay in your local profile. **Settings → Manage** includes preference backups, recovery tools, exports, and updates. [Appearance guide](docs/THEMES.md) explains saving themes, startup scenes and icon choices.
+For complete development and architecture details, see [Contributing](CONTRIBUTING.md).
 
-**Details → Game options → Launch options** lets you add alternate executables and arguments without replacing the default launch. A picker appears beside Play only after you add an option. Choose **More → VR** to check or start SteamVR; optionally prepare it before a chosen game launch. Headset setup and VR mode selection stay with the game and SteamVR. The optional [VR experiment](docs/VR-EXPERIMENTAL.md) adds an Orbit dashboard, wrist displays, performance readings, and window/display panels. It requires SteamVR; headset tuning and performance testing are ongoing.
+---
 
-[Experiments](docs/EXPERIMENTS.md) groups early features, including Graphics settings and the VR overlay. Graphics edits support recognized formats only and require Review/Apply; they are not universal automatic game optimization.
+## Documentation
 
-## Controller mode
+* 📖 [**User Guide**](docs/GUIDE.md): Library management, layout presets, activity tracking, and friends.
+* 🎮 [**Controller Mode Guide**](docs/CONTROLLER.md): Gamepad controls, shortcuts, and TV mode settings.
+* 🧪 [**Experimental Features**](docs/EXPERIMENTS.md): SteamVR companion, graphics presets, and FPS estimates.
+* 🗺️ [**Roadmap**](ROADMAP.md): Milestones leading to Orbit 1.0.
+* 📝 [**Changelog**](CHANGELOG.md): History of updates and improvements.
+* 🔒 [**Privacy Policy**](PRIVACY.md): Data handling and local-first storage.
 
-Use larger controls, gamepad navigation, configurable bindings, and artwork-led game pages. Orbit handles supported game launch and return transitions. See [Controller Mode](docs/CONTROLLER.md) for controls and limitations.
+---
 
-![Controller library with example games](docs/screenshots/orbit-controller.png)
+## License
 
-## Sessions and backups
-
-Orbit tracks supported running games, including launches outside Orbit. Activity shows local sessions; platform-reported hours stay separate. Storage shows installations and drive space.
-
-Choose a save folder to make local snapshots. Restore previews changes and keeps a recovery copy. Close the game before restoring, and keep another backup elsewhere.
-
-Closing Orbit normally leaves tracking and essential services in the tray. The interface targets low-maintenance mode after two seconds when no dialog or protected operation is active. Use the tray menu to quit.
-
-Installed builds receive published updates. Draft releases are excluded. Offline mode uses cached information; games keep their own sign-in requirements.
-
-## Help and source
-
-[Guides](docs/README.md) cover controls, themes, friends, and FPS estimates. See [Releases](https://github.com/tkokero/Orbit/releases) for version history.
-
-Report problems from **Settings → About**, including steps to reproduce them. Leave private account information out of reports.
-
-Orbit is [MIT licensed](LICENSE). See [CONTRIBUTING.md](CONTRIBUTING.md) for building from source, [PRIVACY.md](PRIVACY.md) for data handling, and [THIRD_PARTY.md](THIRD_PARTY.md) for notices. Hardware performance estimates are approximate, not measured benchmarks.
+Orbit is licensed under the [MIT License](LICENSE).

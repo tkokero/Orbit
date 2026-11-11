@@ -1,33 +1,36 @@
-# Privacy
+# Privacy Policy
 
-Updated October 25, 2026. Orbit is a personal game-launcher project by kokero.
+Orbit is a personal, open-source game launcher. Your privacy and local control are primary design goals.
 
-## Local data
+---
 
-Orbit stores library information, game paths, settings, themes, and enabled session history locally. Optional features also store cached artwork/news, custom media, download history, save backups, profile links, and remembered connections. Protected account credentials are not shown in normal renderer data.
+## Local Data Storage
+Orbit stores your library catalog, detected executable paths, custom settings, themes, and session activity purely on your local computer. Optional cached artwork, local save snapshots, and configuration backups also remain on your PC. Orbit does not transmit your personal library or usage data to any external analytics service.
 
-## Online requests
+---
 
-Account connections, artwork, news, prices, calendars, updates, and requested installer downloads contact their providers. Each service receives the information needed for the request and applies its own privacy policy. Offline mode stops new online checks; cached information may be outdated.
+## Online Connections & External Requests
+Orbit only makes network requests when you actively use an online feature:
+* **Game Artwork & Metadata:** Fetches official artwork covers and titles for detected games from public APIs or store servers.
+* **Game News & Releases:** Loads announcements and release radar information from official feeds.
+* **Update Verification:** Queries GitHub Releases for new published builds.
+* **Offline Mode:** Enabling **Offline Mode** in Settings halts all background online checks.
 
-## Discord
+---
 
-**Friends** is an optional read-only connection for basic identity, accepted friends, and available presence. It requires Discord's desktop app. It does not request messages, voice, invitations, or friend-management access.
+## Integrations
 
-**Rich Presence** is separate and optional. In **Settings → Privacy**, control game names, elapsed time, menu activity, and background sharing. Hidden game names appear as **Playing a game**. Guest mode and disabling sharing clear the activity. Discord controls who can see activity.
+### Discord
+* **Friends List:** An optional, read-only connection that queries your currently accepted Discord friends and their game presence via the local Discord desktop application. It does not access private messages, servers, or voice channels.
+* **Rich Presence:** Optional and configurable in **Settings → Privacy**. You can choose to broadcast game status, display custom elapsed times, or mask specific game titles as simply "Playing a game".
 
-## Steam controls
+### Steam
+* **Steam Web API:** Connecting your Steam ID and API Key allows Orbit to display your Steam friends and library. Your API Key is stored only on your computer.
+* **Steam Queue & Storage Controls:** The optional local debugging bridge interfaces with your running Steam client to manage downloads and libraries. Orbit never handles or stores your Steam password.
 
-The optional experimental connection reads local Steam status and sends actions you choose. It opens a local debugging channel that other software on your computer could access. Quit Steam and reopen it normally to close that channel. Steam handles login, ownership checks, and game downloads; Orbit does not save your Steam password.
+---
 
-## Backups, exports, and capture
-
-Backups and exports remain where you save them. Removing history does not remove exported copies.
-
-The developer-only clipping prototype is off by default. It records after you choose a source and start it. System audio includes desktop sound; it does not record the microphone. Temporary footage is buffered locally and saved clips are not uploaded. Stopping removes the current temporary buffer; saved clips remain until you remove them.
-
-## Your choices
-
-Use **Settings → Privacy** for recording and data controls, account controls to disconnect, and **Settings → Manage** for backups and recovery. Disabling history does not delete existing records.
-
-Ask questions through [GitHub issues](https://github.com/tkokero/Orbit/issues). Issues are public; never post passwords, tokens, or private files.
+## Data Management & Controls
+* Use **Settings → Privacy** to toggle session tracking, presence broadcasting, and data features.
+* Use **Settings → Manage** to export preferences, manage backups, or perform safe rollbacks.
+* Disabling tracking stops future recording; existing local history remains under your control to edit, merge, or delete.

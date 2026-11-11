@@ -1,41 +1,65 @@
-# Contributing
+# Contributing to Orbit
 
-Orbit is a Windows Electron app with plain JavaScript and CSS, licensed under [MIT](LICENSE).
+Orbit is an open-source Windows game launcher built with Electron, Node.js, and vanilla web standards (HTML5/CSS3/JavaScript), licensed under [MIT](LICENSE).
 
-## Run and build
+---
 
-Install Node.js 22.12 or newer, then run these commands in the source folder:
+## Getting Started
 
-~~~powershell
+### Prerequisites
+* **Node.js**: Version 22.12 or newer.
+* **Operating System**: Windows 10 / 11 (x64).
+
+### Setup and Development Commands
+```powershell
+# Install dependencies
 npm ci
+
+# Run test suite
 npm test
+
+# Launch Orbit in development mode
 npm start
-~~~
 
-- npm run package creates an unpacked Windows build.
-- npm run dist builds the installer and update metadata.
-- npm run dev opens an isolated Orbit-Dev profile. Ctrl+Shift+D opens diagnostics.
+# Run with developer tools and diagnostics enabled
+npm run dev
 
-Diagnostics and clipping experiments are unavailable in ordinary packaged builds. See [Validation](docs/VALIDATION.md) for test guidance and the [Controller development reference](docs/reference/CONTROLLER-DEVELOPMENT.md) for implementation details.
+# Package an unpacked directory build
+npm run package
 
-## Making changes
+# Build the production NSIS installer
+npm run dist
+```
 
-Preserve settings, themes, artwork, and remembered connections. Use shared controls, simple labels, accessible focus, and reduced motion. Load artwork on demand and avoid unnecessary polling or dependencies.
+---
 
-Use supported provider sign-in flows. Do not read another app's private credentials, infer ownership from artwork/history, or present missing data as known. Test changes to identities, files, launches, and saved data. Use fixtures and isolated profiles; native window or authorization checks need an agreed playtest.
+## Code Architecture
 
-| Area | Source |
+| Area | Primary Files |
 | --- | --- |
-| Discovery and identity | src/discovery.cjs, src/catalogs.cjs, src/library.cjs |
-| Windows app and IPC | src/main.cjs, src/preload.cjs |
-| Interface | src/ui/ |
-| Artwork | src/artwork.cjs, src/custom-artwork.cjs |
-| Themes | [Theme guide](docs/THEMES.md) |
+| **Main Process & App Lifecycle** | `src/main.cjs`, `src/preload.cjs`, `src/app-restart.cjs` |
+| **Library Discovery & Merging** | `src/discovery.cjs`, `src/library.cjs`, `src/catalogs.cjs` |
+| **Integrations (Steam, Discord, Roblox)** | `src/steam-bridge.cjs`, `src/social-discord.cjs`, `src/roblox.cjs` |
+| **Activity Tracking & Playtime** | `src/activity-history.cjs`, `src/playtime.cjs` |
+| **User Interface (Renderer)** | `src/ui/` (HTML views, CSS styles, JavaScript modular controllers) |
+| **Native Addons & Helpers** | `native/discord/` (C++ RPC bridge), `src/native/` |
 
-## Windows releases
+---
 
-Building does not publish a release. Obtain explicit approval before publication. Increase the package version and update src/release-notes.json; never reuse a version for different update contents.
+## Testing & Quality Guidelines
 
-Publish the matching installer, blockmap, latest.yml, Windows ZIP, and source. Verify hashes and keep prior installers recoverable. Existing 0.x clients use the compatibility feed at v0.2.0-pre.1: preserve its address, retain the prior versioned manifest, and point the new manifest to absolute HTTPS asset URLs. Portable ZIP updates are manual. Keep credentials out of source and release files.
+1. **Automated Tests:** Always run `npm test` before committing changes. All tests in `test/*.test.cjs` should pass cleanly.
+2. **Smoke & Integration Tests:** In development, Electron smoke tests can be run using flags like `--smoke-test` with isolated profiles.
+3. **Data Preservation:** User preferences, themes, artwork caches, and session history must always be preserved across restarts and updates.
+4. **Performance & Resources:**
+   - Keep background CPU and RAM minimal.
+   - Defer non-critical scans and load artwork on-demand.
+   - The UI automatically targets a low-maintenance background state when inactive.
+5. **Accessibility & Layouts:** Test UI views with varying window bounds (narrow and wide), high DPI scaling, theme contrast, and reduced motion settings.
 
-Include reproduction steps and the Orbit version in [bug reports](https://github.com/tkokero/Orbit/issues). Keep license and dependency notices intact.
+---
+
+## Issues & Pull Requests
+
+* **Bug Reports:** When reporting issues, please include your Windows build, Orbit version, and clear steps to reproduce the problem. Never post API keys, passwords, or personal credentials.
+* **Pull Requests:** Keep PRs focused, preserve documentation integrity, and ensure automated tests pass.
