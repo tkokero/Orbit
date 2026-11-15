@@ -4,6 +4,8 @@ Development started November 4, 2026. This is a development plan, not a public r
 
 **November 13 priority:** polish and validate regular Orbit for 0.3.0. Orbit Rust remains a separate, incomplete preview; its migration does not block fixes to the existing app. The release review covers UI, CPU/RAM, startup/background behavior, clipping, storage/network and experimental VR. Hardware checks and comparable performance measurements remain separate from fixture results.
 
+Latest review: [broad polish and validation](VALIDATION-0.3.0-BROAD-POLISH.md).
+
 ## First development build
 
 **Optional Desktop Workspace (dev.18):** a separate app composition with a Library grid and side inspector, plus Clips, Downloads, Friends and Settings pages. Current UI remains the default. Launching, recording, account management and advanced utility dialogs use existing services. Workspace presentation choices are saved independently. This is regular Orbit; it does not replace or finish the separate Rust preview.
@@ -33,6 +35,6 @@ Full sessions, bookmarks, per-game preferences and optional startup arming are i
 
 The [recording-mode research](CLIPPING-RESEARCH.md) records what was learned and what dev.12 implements. Quick Start now includes appearance, startups, library preferences, optional clipping arming and the real app tour. See [Quick Start](QUICK-START.md).
 
-The [long-term roadmap](ROADMAP-TO-1.0.md) retains clipping as the headline for 0.3.0. As of November 10, the approved [Rust/Tauri rebuild](RUST-MIGRATION.md) is the current development priority. Replacement depends on feature compatibility and upgrade checks, rather than waiting for 0.5.0. The working installed app remains available while its services are ported.
+The [long-term roadmap](ROADMAP-TO-1.0.md) retains clipping as the headline for 0.3.0. The [Rust/Tauri rebuild](RUST-MIGRATION.md) was approved on November 10 and remains separate from the current regular Orbit release-polish priority. Replacement depends on feature compatibility and upgrade checks, rather than waiting for 0.5.0. The working installed app remains available while its services are ported.
 
 The separate [Newer build](../rust/NEWER.md) adds a new Playnite-inspired Desktop interface and Rust library services. It coexists with the installed app. Its [porting status](../rust/NEWER-PORTS.md) records what works and what remains; it is not a feature-complete replacement yet.
