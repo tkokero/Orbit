@@ -1,6 +1,6 @@
 # Orbit project preferences
 
-These preferences reflect recurring user feedback. Apply the latest explicit user direction when it changes an earlier choice. Keep implementation status and detailed version plans in the roadmap and validation documents.
+These instructions consolidate the user’s recurring preferences and explicit product decisions. Apply the latest explicit user direction when it supersedes an earlier choice. A requested feature is not evidence that it is implemented or authorized for an unrelated task. Keep implementation status, current version, release approvals and detailed plans in the roadmap and validation records rather than treating historical chat statements as current state.
 
 ## Priorities and user data
 
@@ -9,7 +9,7 @@ These preferences reflect recurring user feedback. Apply the latest explicit use
 - Preservation includes artwork and crop choices, library layouts and density, collections and pins, popup preferences, privacy settings, profile-link decisions, startup/tray choices, and authorized remembered connections. Check existing normal and dev profiles when changing persistence.
 - Validate repaired preferences through the normal loader and its storage limits. Do not blindly merge archival themes into a live profile; honor the latest saved choices and retain older copies separately when they do not fit.
 - Keep features that already work intact while polishing them. Distinguish implemented features, proposed additions, and checks that still need a playtest.
-- Clipping is the intended headline feature for 0.3.0; keep detailed release scope in the roadmap instead of adding unrelated major features to a polish pass.
+- Clipping defines the 0.3.0 release direction. Keep the active release scope in the roadmap; do not add unrelated major features to a polish pass. The latest priority is regular Orbit and release polish across UI, CPU/RAM, startup, clipping, background behavior and relevant VR regressions.
 
 ## Quiet validation and installation
 
@@ -17,12 +17,12 @@ These preferences reflect recurring user feedback. Apply the latest explicit use
 - Target renderer unloading two seconds after closing to the tray, while retaining safety gates for active work and keeping native background services alive.
 
 - Run checkups and UI validation hidden, without showing or focusing native windows. Do not interrupt a running game or focus Orbit for a routine check or validation install.
-- Normal user updates should reopen Orbit visibly in Desktop mode, and Windows sign-in should open Desktop mode when Launch at login is enabled. Migrate the old start-minimized default once for 0.2.6 without enabling disabled Windows startup entries. Automatic updates during a game should reopen without taking focus from the game.
+- Normal user updates should reopen Orbit visibly in Desktop mode, and Windows sign-in should open Desktop mode when Launch at login is enabled. Retain the one-time 0.2.6 start-minimized migration where needed; do not repeat it on every startup or enable disabled Windows startup entries. Automatic updates during a game should reopen without taking focus from the game.
 - Run native focus, game-launch, and account-authorization checks only during a user-agreed playtest. Keep native-window test fixtures explicitly opt-in; a routine unit-test command must not silently start them.
 - Use isolated profiles and fixture data for automated UI checks. Do not manipulate real downloads, game installations, accounts, or saved credentials to make a test pass.
 - A user's daily-use and installer feedback counts as playtest evidence. Avoid repeating disruptive checks without a concrete reason. Record skipped, failed, and unperformed checks honestly.
 - The user has given standing approval to install each finished, validated Orbit build locally. Install it automatically after required checks pass; do not ask for installation approval again. Show the setup window for these development installs, as requested on November 9, 2026; do not use silent installation. Back up and preserve both normal and dev profiles, and verify the installed files and saved settings. Keep routine validation hidden and do not close or interrupt games.
-- Installation approval does not authorize publication. Keep the current 0.2.6 release unpublished and in draft until the user explicitly approves publishing it.
+- Installation approval does not authorize publication. Keep an unapproved release in draft until the user explicitly approves publishing that release. Earlier published versions and old approvals are history, not a standing publication grant.
 
 ## Shared design and text
 
@@ -89,7 +89,7 @@ These preferences reflect recurring user feedback. Apply the latest explicit use
 
 - Keep Friends native-feeling, simple, and uncluttered. Collapse account-management controls when they are not needed.
 - Online should show fresh Online and Do Not Disturb presence, excluding Away, offline, and stale entries. Sort playing friends first, then DND, then plain online friends. Keep other states available through an explicit All friends view.
-- Similar Steam/Discord names can suggest a match; linking requires confirmation. Keep provider identities and their individual presence distinct, and preserve confirmed links across restarts.
+- Similar Steam/Discord names can suggest a match; linking requires confirmation. Keep provider identities and their individual presence distinct, and preserve confirmed links across restarts. Default the main linked profile to Discord; allow a per-friend override and preserve it.
 - Discord friends access should request only basic identity and read-only relationships access. Do not add activity, chat, voice, invites, or friend-management permissions as a fallback. Show only accepted friends and describe consent accurately.
 - Keep Discord Rich Presence separate from Friends, under Privacy. Hidden/unshared game names should show generic "Playing a game" activity under Orbit; Guest mode and disabling sharing still clear it. Keep elapsed-time and background controls respected.
 - Keep native integrations useful and honest about their availability. Do not display an unsupported provider as connected. Explain failures and provide relevant retry or client-opening actions.
@@ -109,7 +109,7 @@ These preferences reflect recurring user feedback. Apply the latest explicit use
 - Battery and background behavior: reduce wakeups, pause hidden previews/animations, and verify idle, unfocused, tray, disconnected-runtime, and optional-feature-off states. A closed VR or capture feature must not leave its helper, streams, or device resources running.
 - Measure before and after using the same fixture, workload, machine, process scope, and sampling method. Report startup/responsiveness timings, CPU, memory, or frame-time changes only when measured; distinguish working set, private memory, GPU memory, and cache effects. Do not use forced memory trimming or one idle screenshot as proof of a lasting improvement.
 - Optimization must preserve settings, privacy, accessibility, useful status, visual quality, and working features. Do not obtain lower usage by silently disabling features, lowering capture quality, removing feedback, shrinking text, or skipping required work. Ask about a genuine quality/functionality tradeoff when existing preferences do not settle it.
-- For each release candidate, keep a concise record of findings, fixes, comparable measurements, regression checks, remaining limitations, and user playtest evidence. A question board is not proof of optimization, and automated checks are not a substitute for an unperformed hardware test.
+- For each release candidate, keep a concise record of findings, fixes, comparable measurements, regression checks, remaining limitations, and user playtest evidence. A question board is not proof of optimization, and automated checks are not a substitute for an unperformed hardware test. Use [the release optimization checklist](outputs/Orbit-source/docs/RELEASE-OPTIMIZATION-CHECKLIST.md).
 
 ## Documentation and release notes
 
@@ -121,3 +121,83 @@ These preferences reflect recurring user feedback. Apply the latest explicit use
 - Keep public Markdown guides short and practical, with detailed technical/history records linked separately. Keep the README generalized: explain Orbit, its overall features, and major capabilities in clear language for users.
 - Write release notes around overall new features and user-visible improvements. Group bug fixes and optimizations into concise descriptions. Keep implementation details, exhaustive checks, and known validation limitations in development or validation documentation.
 - Describe the final shipped scope accurately. Do not announce a proposed feature or an unvalidated integration as completed.
+
+## Library identity, removal and activity
+
+- Remove from library and Hide are different operations. Removal must remove the game from Orbit’s active library and tracking, not move it to Hidden. Prevent automatic discovery from immediately resurrecting a deliberately removed entry; use the project’s explicit re-add/restore mechanism. Never interpret removal as uninstalling the game or deleting its files. Preserve privacy hiding as a separate choice.
+- When entries share executable/install files, prioritize the specific card launched through Orbit for the observed session. Avoid attributing its playtime, presence, clips or running state to a different card merely because paths overlap. Do not count one verified game process twice.
+- Detection must distinguish installed, owned/account-library and previously played/unverified entries. Play history alone is not proof of current ownership. Investigate false positives and launcher chains using evidence, rather than deleting legitimate games by title or guessing running state from a launcher alone.
+- Show per-game times played and current streak in game details, backed by recorded sessions. Keep per-game and overall streaks distinct; do not invent historical sessions or imply a playtime total proves a launch count.
+- Activity must offer All games and an obvious way to clear a selected game. Clicking the selected game filter should permit returning to the overall view. Preserve recording/history privacy preferences.
+- Keep cover, landscape-banner and list layouts; saved size/spacing, pinned manual and smart collections, active-filter chips, clear filters/counts, useful empty states, Ctrl/Shift selection, bulk organization and Undo. New controls must not break these established capabilities.
+
+## Optional Desktop layouts and settings
+
+- Unified Search should reach games, collections, settings and useful actions. Open the actual setting with its correct section expanded and focus visible. Keep Clips reachable through Search when its sidebar entry is hidden; do not let development-only gates hide shipped functionality.
+- For launch choices, prefer the selected Quick picker direction. Named/custom targets should solve real launch differences, not add mandatory Normal/Modded/VR clicks when the game or existing mod launcher already handles them. Do not present launch presets or SteamVR preparation as required for every game.
+- The optional Library workspace is a distinct interface with a grid and useful details panel, inspired by Playnite desktop while retaining Orbit’s identity. A request for a new UI means a meaningful new composition, not merely repositioned existing assets. Keep the original interface available.
+- Layout customization should allow independently mixing navigation/sidebar style, library presentation and details behavior, rather than locking every choice to a preset. Use visual layout examples and an interactive preview instead of names alone. Respect the saved theme and background across every combination.
+- Let users choose visible sections/functions, their order, recents behavior, sidebar items, density and top-bar transparency. Presets are starting points, not overrides of later custom choices. Keep an accessible route back to settings and useful hidden-navigation features through Search or another appropriate route.
+- Automatically fit Recents to the usable row width without arbitrary gaps, clipped cards or unstable reordering. Keep art and titles readable. Give the details panel enough width and proportional banner space; keep Game settings close to its Play/details controls.
+- Reuse the existing complete Settings popup in both interfaces. Do not maintain a reduced duplicate settings page underneath it or create nested Settings routes. Fit the shared settings elements to available space. Do not add a Customize layout button that only returns to controls already visible on the same page.
+- Quick Start should help users choose preferences, themes, startup choices and relevant implemented features. Recommend the tour clearly without forcing it. Keep tour controls stationary and navigation logically grouped; do not make the user chase Next around the screen.
+- Editable bindings should use the shortcut itself as the edit target, not an unnecessary adjacent Change button. Show conflicts and capture/cancel states clearly.
+
+## Clipping and playback
+
+- Aim for a Medal-like local replay workflow: capture in the background when explicitly enabled, save the recent moment with a configurable shortcut, and browse/play saved clips in Orbit. Research public documentation and observable behavior; do not claim access to another product’s proprietary backend or copy inaccessible code.
+- Preserve explicit capture-source selection and opt-in audio. Source previews should be large, stable, proportional and visual; refreshes must not reshuffle sources unnecessarily. Merely opening Clips or a preview must not start recording.
+- Support the implemented replay/session modes, quality choices and per-game recording overrides without silently changing them. Keep 1440p available with a confirmation explaining its higher resource demand before applying it. Do not repeat that warning as a persistent tagline.
+- Let users choose PC/game audio by app or output device and optionally add a microphone, with independent device selection, volume and saved presets. Missing/unrecognized devices must not prevent remaining audio from recording: omit unavailable devices from the active list, retain the saved selection, and restore that selection when the device returns. Do not silently capture a different microphone or unrelated app as a fallback.
+- Keep save/stop shortcuts changeable and usable during games. Play a short Orbit-like clip-saved cue after a successful save, with a saved preference to disable it. Do not signal success before the file is successfully saved.
+- The viewer should use available width and height while preserving video proportions, with working volume, fullscreen and playback controls. Avoid a tiny centered video above a mostly empty popup. Keep source thumbnails and saved-clip grids stable during refresh and resize.
+- Keep internal metadata, replay segments and temporary audio files out of the ordinary user-facing gallery. Clean up owned temporary resources without deleting recordings. Preserve actual playable media and show meaningful game/source titles rather than raw timestamp filenames where metadata exists.
+- Do not announce unsupported cloud sharing, automatic highlights, trimming or separate-track editing as completed. Distinguish supported audio mixing from future separate audio tracks.
+
+## Additional interaction details
+
+- Popup dragging and corner resizing should work across all eligible menus, including Clips and game details. Remember positions per display when supported, constrain restored geometry to the available display, and preserve the shared-size versus separate-size preference. Do not shrink text to simulate resizing.
+- Clicking outside a dismissible popup should close it where appropriate, with Escape and a reachable close control retained. Do not silently discard unsaved edits or dismiss a destructive confirmation as though it succeeded.
+- Parse news lists and separators into separate readable notes. Handle Steam markup, inline images and clickable links instead of showing raw list terminators or concatenating bullet points into a paragraph.
+- Keep VR panels sharp enough to read at their intended physical size. Address flicker, click latency and unresponsive menus rather than covering them with animation. Do not rely on an awkward point-to-use gate for the wrist toolbar; preserve explicit desktop-input consent for captured windows.
+- VR performance readings must identify their source and measurement interval. Distinguish measured application FPS, compositor/reprojection state and frame timing; do not label an unverified inverse-frametime approximation as fpsVR-equivalent accuracy. Keep headset/runtime compatibility claims, including Virtual Desktop, limited to evidence.
+- If a promotional demo is requested in both formats, deliver landscape and portrait versions with readable framing and actual interaction. Keep the requested duration, and do not claim every feature is demonstrated when the edit only shows a subset.
+
+## Graphics settings and experimental features
+
+- Graphics editing and VR overlay belong behind a clear Experiments setting while still under test. Provide a discoverable VR entry in More and an optional sidebar pin; do not rely solely on a Search query. Clipping must remain accessible when included in a release, not disappear behind a development-only version gate.
+- Search automatically for compatible graphics/config files using installed-game identity and known locations. Make game/config selection easy, show real game artwork and file choices, and distinguish Not found from Not supported. A file may not exist until first play; do not assume this explains every missing result. Provide a played-games default where applicable and an explicit Show all option.
+- Show actual setting names and decoded values such as texture quality, shadows and post-processing, with current and proposed values. Do not present unexplained Level 2/3/4 as meaningful graphics labels or claim arbitrary numeric mappings are verified.
+- Keep NVIDIA/AMD integration honest: inspect supported interfaces and current documentation, separate driver settings from in-game files, bound/cancel slow discovery and expose failure/recovery states. Opening a vendor app is not proof Orbit can edit its settings or use its recommendation engine.
+- Before config writes, show the exact planned changes, preserve unknown settings and unrelated values, back up originals and provide a working restore path. Do not make speculative writes to unknown formats or promise FPS gains without measurements. Editing a game config is not authorization to alter account, anti-cheat or security files.
+
+## Startup scenes, shell integration and media
+
+- Windows sign-in should still play the selected startup animation and sound. Speed up useful app startup by deferring nonessential work; do not remove the intro to achieve faster timing. Preserve seamless intro-to-interface handoff without blank or purple flashes.
+- Keep Restart Orbit discoverable in the Orbit-themed tray menu. Related tray actions and recent-game shortcuts should be compact and recognizable; preserve actual game icons and consistent shell artwork. Recognize pinned Windows shortcuts/cache behavior rather than repeatedly forcing live icon replacement.
+- Treat secret intros as deliberate unlocks, remember discovered choices and retain previous versions when the user asks for a new variant. Historical requested themes include Magnetar’s magnetic rings, Pulsar, Great Attractor, Void, Afterglow and Encore; their actual availability belongs in the implementation records.
+- Preserve requested unlock phrases when maintaining their implementations: Void uses “super duper dark”; the silly Orbit-inspired secret uses “kokeroisgoatkero”. Keep discovery playful and avoid putting a spoiler list into ordinary public onboarding or release notes without a request.
+- Void should have a strong, readable buildup and impact comparable to Singularity/Supernova/Big Bang, not simply a darker static logo. Preserve the original Afterglow when improving its anime-inspired variant. Afterglow/Encore should visibly and audibly reflect the Angel Beats/Charlotte opening references through original work, not low-resolution generic Orbit imagery.
+- For illustrated musicians, check hand laterality, thumb placement, wrist direction and contact with keys against the user’s reference. Do not claim anatomical corrections without inspecting the actual rendered frames.
+- Notifications should use meaningful game artwork where available, concise game/status text and a useful View game action. Respect Windows rendering constraints rather than promising to replace all native notification chrome.
+- Requested app demos should show the app actually being used, with purposeful zooms, motion and sound, not only a sequence of screenshots. Label mockups honestly. Use real generic games such as DOOM in example libraries and README screenshots instead of invented titles; keep personal data out of promotional captures.
+
+## Integration and migration boundaries
+
+- Epic local discovery and full account synchronization are separate capabilities. Do not imply local manifests or developer-catalog ownership APIs provide general whole-account access. Research supported authentication/data access before promising an integration, and keep account links native-feeling and simple.
+- Steam Downloads, Storage and Connection should retain content and progress when opened from Downloads. Do not let opening the Steam popup empty or reset the underlying page. Keep library-folder controls readable and related move/limit actions easy to reach.
+- Update checks must honestly distinguish installed and portable builds, offline/retry states and unpublished feeds. Avoid a disabled Check for updates with no useful recovery route. Review actual updater configuration and legacy client feed URLs; do not assume a friend’s slow internet explains a disabled update control.
+- Updates belong in Settings → Manage; About should stay concise. Keep version/build labels meaningful and avoid redundant installer/retry buttons when their actions are unavailable or identical.
+- Keep the separate native Rust build named Orbit Rust, independently installed with separate data and no replacement of regular Orbit unless requested. The user wants full feature parity and both original and Playnite-inspired layouts, not a renamed prototype claimed as a complete rewrite. Track each migrated feature and missing capability honestly.
+- The earlier Tauri-with-existing-UI direction was followed by a request for a fully native Rust alternative. Do not silently choose an obsolete architecture or announce full migration based on scaffolding. Regular Orbit polish is the latest active priority; resume Rust work only when requested.
+
+## Code, repository and conversation hygiene
+
+- Audit unused code/files by checking callers, imports, build/packaging paths and documentation links before deleting. Remove proven dead code, stale duplicate drafts and generated clutter from the public source where appropriate; retain licenses, required native assets, source, tests and useful history. Do not treat a line as useless merely because it is unfamiliar.
+- Keep public guides practical and illustrated where helpful. Consolidate old draft notes and archival updater metadata rather than scattering redundant files through the repository or release assets. Backups and explicit authorization still apply to irreversible hosted attachment removal.
+- History documents should distinguish published releases, skipped versions and development builds, and use actual dated reference screenshots where available. Do not invent early history from later layouts. Keep uncertain history labeled.
+- Do not disclose API keys, tokens, remembered connections, live profiles or personal capture data in source, archives, screenshots or logs. Report secret-scan findings without revealing matched values; a clean pattern scan is not a guarantee.
+- Keep validation explanations simple and pair changed UI with before/after images. If screenshots cannot show a behavioral difference, report the real check and use a clearly labeled diagram or annotation; do not mistake selected-card styling for focus evidence.
+- For long work, maintain a concise file-backed handoff with source location, active objective, validated package/commit, local installation versus remote draft state, blockers and next action. Keep this document as durable instructions, not a transcript or growing release log.
+- Use the focused Orbit skills when applicable: orbit-ui-polish, orbit-quiet-validation, orbit-preserve-settings, orbit-release-prep and orbit-handoff. They complement these instructions and do not override newer user requests.
+- When asked about token cost, distinguish cached input, uncached input, output and actual billing. Reasoning may already be included in output. Do not equate an API-equivalent estimate with the user’s Codex bill or promise that forking removes chat history. Avoid unnecessary full-log/full-file reads and repeated broad checks when targeted evidence is sufficient.

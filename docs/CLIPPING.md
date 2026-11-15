@@ -34,6 +34,8 @@ Open a thumbnail for the larger player. Use **Previous/Next** to browse the curr
 
 While the video is focused, **Space** plays/pauses, **←/→** seeks five seconds, and **Page Up/Down** changes clips. **Esc** exits fullscreen first, then returns to the gallery. The video controls include volume and fullscreen. **Playback speed** beside Previous/Next changes the speed and keeps it while browsing clips.
 
+Right-click a recording for playback, **Show file**, **Copy clip title** and **Delete clip**. Delete is also available beside the player. Confirming moves that recording and its details to the Windows Recycle Bin; Cancel keeps them. To recover it, restore both files from Windows and refresh Clips. A recording still being written cannot be deleted.
+
 ## Capture settings
 
 Expand **Capture settings** to choose 15, 30, 60, or 120 seconds, 720p, 1080p or 1440p, and 30 or 60 FPS. Selecting 1440p shows a resource warning before applying it. The source and encoder may deliver fewer frames; smaller sources are not enlarged to 1440p. Short clips can begin at a nearby keyframe; the buffer meter shows the available replay time.

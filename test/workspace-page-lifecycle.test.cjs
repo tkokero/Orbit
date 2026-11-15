@@ -3,7 +3,7 @@ const tick=()=>new Promise(resolve=>setImmediate(resolve));
 function deferred(){let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});return {promise,resolve,reject};}
 function fixture(orbit){
  const body={innerHTML:'',querySelector:()=>null,querySelectorAll:()=>[]},messages=[];
- const sandbox={window:{},orbit,orbitCalendar:{hide(){}},document:{hasFocus:()=>false},setTimeout,clearTimeout};
+ const sandbox={window:{addEventListener(){}},orbit,orbitCalendar:{hide(){}},document:{hasFocus:()=>false},setTimeout,clearTimeout};
  vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../src/ui/workspace-pages.js'),'utf8'),sandbox);
  const pages=sandbox.window.OrbitWorkspacePages({body,html:String,icon:()=>'',button:()=>'<button>Retry</button>',visible:()=>true,release(){},message:text=>messages.push(text),run:fn=>Promise.resolve().then(fn).catch(error=>messages.push(error.message))});
  return {pages,body,messages};

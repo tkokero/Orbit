@@ -1,10 +1,10 @@
 /* Renderer menus use the same theme and controls as Orbit, without activating native windows. */
 (()=>{
  let active=null;
- const symbol=item=>{const value=(item.id||item.label||'').toLowerCase();return /^session-/.test(value)?({'session-edit':'tune','session-merge':'merge','session-remove':'remove','session-select':'check','session-game':'library'}[value]||'activity'):/profile|friend|connect/.test(value)?'connection':/copy/.test(value)?'file':/preview/.test(value)?'play':/undo|back/.test(value)?'back':/news|article|headline/.test(value)?'news':/folder|files|collection/.test(value)?'folder':/artwork/.test(value)?'appearance':/repair|detection|health/.test(value)?'repair':/shortcut/.test(value)?'desktop':/playtime|timer/.test(value)?'activity':/hide|hidden/.test(value)?'hide':/return/.test(value)?'play':/close|uninstall|cleanup/.test(value)?'remove':/export/.test(value)?'file':'tune';};
+ const symbol=item=>{const value=(item.id||item.label||'').toLowerCase();return /^session-/.test(value)?({'session-edit':'tune','session-merge':'merge','session-remove':'remove','session-select':'check','session-game':'library'}[value]||'activity'):/profile|friend|connect/.test(value)?'connection':/copy/.test(value)?'file':/pause/.test(value)?'pause':/^clip-play|preview/.test(value)?'play':/mute|sound/.test(value)?'sound':/undo|back/.test(value)?'back':/news|article|headline/.test(value)?'news':/folder|file$|files|collection/.test(value)?'folder':/artwork/.test(value)?'appearance':/repair|detection|health/.test(value)?'repair':/shortcut/.test(value)?'desktop':/playtime|timer/.test(value)?'activity':/hide|hidden/.test(value)?'hide':/return/.test(value)?'play':/close|uninstall|cleanup|delete|remove/.test(value)?'remove':/export/.test(value)?'file':'tune';};
  function open(items,point={},label='Library actions'){
-  active?.();const previous=document.activeElement,menus=[];let typed="",typedAt=0;let resolve,finished=false;
-  const owner=previous?.closest('dialog[open]')||[...document.querySelectorAll('dialog:modal')].at(-1)||document.body;
+  active?.();const previous=point.anchor?.closest('button,a,input,select,textarea,[tabindex]')||document.activeElement,menus=[];let typed="",typedAt=0;let resolve,finished=false;
+  const owner=point.anchor?.closest('dialog[open]')||previous?.closest('dialog[open]')||[...document.querySelectorAll('dialog:modal')].at(-1)||document.body;
   const result=new Promise(r=>resolve=r);let hoverTimer=null;
   const cancelHover=()=>{clearTimeout(hoverTimer);hoverTimer=null;};
   function removeFrom(index){for(const row of menus.splice(index)){row.parent?.setAttribute('aria-expanded','false');row.menu.remove();}}
@@ -16,7 +16,7 @@
    if(!depth){const heading=document.createElement('div');heading.className='orbit-context-heading';heading.textContent=label;menu.append(heading);}
    choices.forEach(item=>{
     if(item.type==='separator'){const line=document.createElement('hr');line.setAttribute('role','separator');menu.append(line);return;}
-    const b=document.createElement('button');b.type='button';b.className='orbit-context-item';b.disabled=item.enabled===false;
+    const b=document.createElement('button');b.type='button';b.className='orbit-context-item'+(item.danger?' is-danger':'');b.disabled=item.enabled===false;
     b.setAttribute('role',item.type==='checkbox'?'menuitemcheckbox':item.type==='radio'?'menuitemradio':'menuitem');if(['checkbox','radio'].includes(item.type))b.setAttribute('aria-checked',String(Boolean(item.checked)));
     const glyph=document.createElement('span');glyph.className='orbit-context-symbol';glyph.setAttribute('aria-hidden','true');glyph.innerHTML=window.OrbitControllerArt?.icon(item.checked?'check':symbol(item))||'';
     const text=document.createElement('span');text.className='orbit-context-label';text.textContent=item.label;b.append(glyph,text);

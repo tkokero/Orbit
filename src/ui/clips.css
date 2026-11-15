@@ -77,3 +77,8 @@ html:root .clips-dialog .clip-search input{width:100%;min-width:0;min-height:42p
 .clip-recording-preferences{border-block:1px solid var(--line);padding:14px 0;margin:0}.clip-recording-preferences>summary{font-weight:650;cursor:pointer}.clip-recording-preferences>.clip-option-grid{margin-top:16px}.clip-recording-preferences>p{font-size:13px;color:var(--muted);margin:12px 0}.clip-auto-start{display:inline-flex;align-items:center;gap:10px;max-width:calc(100% - 40px)}.clip-auto-start input{flex:none}.clip-moments{min-width:0}.clip-viewer-navigation .clip-moments :is(select,.desktop-select-trigger){width:126px}.clip-viewer-navigation{flex-wrap:wrap}.clip-settings .clip-options>.info-button{vertical-align:middle}
 
 html:root .clips-dialog .clip-options .clip-auto-start{display:inline-flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:10px;margin:16px 8px 16px 0}.clip-auto-start input{width:18px;height:18px;accent-color:var(--accent)}.clip-options .clip-recording-preferences{border-inline:0;border-radius:0;padding:0;margin:0 0 16px}
+
+.clip-delete-dialog{width:440px!important;max-width:calc(100vw - 32px)}
+.clip-delete-dialog .installation-body>strong{display:block;overflow-wrap:anywhere}
+.clip-delete-dialog [data-clip-delete-error]{color:var(--warning,var(--text));overflow-wrap:anywhere}
+.orbit-context-item.is-danger{color:var(--danger,#ee8d8d)}

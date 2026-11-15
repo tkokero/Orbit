@@ -431,6 +431,7 @@ function setupHandlers() {
   handle('clips:audio-sources',refresh=>smoke&&process.argv.includes('--clips-audio-layout-smoke')?require('./clips-audio-layout-validation.cjs').sources:smoke?{outputs:[{id:'fixture-output',name:'Sample gaming output'}],microphones:[{id:'fixture-mic',name:'Sample microphone'}],apps:[{id:'C:\\Fixture\\Game.exe',name:'Sample game'},{id:'C:\\Fixture\\Chat.exe',name:'Sample chat'}]}:require('./clips-audio.cjs').sources(refresh===true));
   handle('clips:configure',input=>clips.configure(input));
   handle('clips:arm',()=>{if(smoke)throw Error('Capture is disabled in smoke tests.');const result=clips.arm();scheduleRunningPoll?.(100);return result;});
+  handle('clips:delete',input=>clips.remove(input,async file=>{if(smoke){const bin=path.join(app.getPath('userData'),'test-trash');await fs.mkdir(bin,{recursive:true});await fs.rename(file,path.join(bin,path.basename(file)));}else await shell.trashItem(file);}));
   handle('clips:media',name=>clips.media(name));
   handle('clips:start',input=>{if(smoke)throw Error('Capture is disabled in smoke tests.');return clips.start({sourceId:input?.sourceId});});
   handle('clips:stop',()=>clips.stop());handle('clips:save',()=>clips.save());

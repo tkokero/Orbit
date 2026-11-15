@@ -179,6 +179,21 @@ class Clips{
   if(!file||path.dirname(file)!==this.folder)throw Error('Choose a clip from this folder.');
   const stat=await fs.lstat(file);if(!stat.isFile()||stat.isSymbolicLink())throw Error('The saved clip is no longer available.');return file;
  }
+ async remove({name,confirmed}={},trash){
+  if(confirmed!==true)throw Error('Confirm deleting this clip first.');
+  if(typeof trash!=='function')throw Error('The Recycle Bin is unavailable.');
+  this.removing||=new Set();if(this.removing.has(name))throw Error('This clip is already being deleted.');
+  if(name===this.state.sessionPartial)throw Error('Stop this recording before deleting it.');
+  this.removing.add(name);
+  try{
+   let file;try{file=await this.file(name);}catch(error){if(error.code==='ENOENT')throw Error('The saved clip is no longer available.');throw error;}
+   let metadata=null;try{const stat=await fs.lstat(file+'.json');if(!stat.isFile()||stat.isSymbolicLink())throw Error('The clip details changed. Refresh Clips before deleting.');metadata=file+'.json';if(name.endsWith('.partial')&&stat.size<=128*1024){const info=JSON.parse(await fs.readFile(metadata,'utf8'));if(info.recording&&Number.isSafeInteger(info.writerPid)&&info.writerPid>0){try{process.kill(info.writerPid,0);throw Error('Stop this recording before deleting it.');}catch(error){if(error.code!=='ESRCH')throw error;}}}}catch(error){if(error.code!=='ENOENT')throw error;}
+   await trash(file);this.saved.delete(name);let warning=null;
+   if(metadata)try{await trash(metadata);}catch{warning='The recording was moved to the Recycle Bin, but its details could not be moved.';}
+   if(this.state.lastSaved?.name===name)this.emit({lastSaved:null});
+   return {deleted:true,name,recycled:true,warning};
+  }finally{this.removing.delete(name);}
+ }
  async media(name){return pathToFileURL(await this.file(name)).href;}
 }
 module.exports={Clips};
