@@ -113,6 +113,8 @@ These preferences reflect recurring user feedback. Apply the latest explicit use
 
 ## Documentation and release notes
 
+- Release notes must cover additions and user-visible changes since the previous published version without presenting existing features as new. Include the meaningful new capabilities, group related changes, and avoid both vague claims and exhaustive implementation detail.
+
 - Keep validation notes short and easy to understand. Lead with what changed, what passed, and what still needs testing. Explain important changes with concrete examples, such as "Before: reopening showed Tools. After: it keeps your saved Games view." Label illustrative examples separately from checks actually performed.
 - Pair each validation example with both a short explanation and a relevant image. Prefer actual app screenshots for UI changes; use a clear diagram for behavior that a screenshot cannot show. Label sample data, mockups, and illustrative images accurately. For changed UI, include paired before/after screenshots with a short explanation of the difference, and do not present an illustration as proof that a check passed. Keep detailed evidence linked separately.
 - Summarize test results and settings preservation in plain language. Keep skipped checks, unresolved issues, and measurement limits visible; link detailed logs and technical records instead of filling the summary with implementation terms, hashes, and exhaustive check lists. Never claim performance gains without comparable measurements.
