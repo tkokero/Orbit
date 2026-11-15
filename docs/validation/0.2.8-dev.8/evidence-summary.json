@@ -1,0 +1,11 @@
+{
+  "version": "0.2.8-dev.8",
+  "appChecks": 896,
+  "unitPassed": 686,
+  "limits": {
+    "gameplayBenchmarkPerformed": false,
+    "realGameConfigsApplied": false,
+    "physicalDisplayScalingRepeated": false,
+    "presetsExperimental": true
+  }
+}

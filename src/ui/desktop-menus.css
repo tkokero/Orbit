@@ -15,3 +15,6 @@ html #modal .menu-visibility-row:last-child{border:0}
 html #modal .menu-visibility-row>span{font-size:15px;line-height:1.5;overflow-wrap:anywhere}
 html #modal .menu-visibility-row>.setting-switch{flex:none}
 html.couch-mode #customize-desktop-menus{display:none!important}
+
+/* Automatic Recents keeps a single readable row; manual counts retain their layout. */
+html:not(.couch-mode) #recent-games[data-recent-auto=true]{grid-template-columns:repeat(var(--recent-columns,1),minmax(0,1fr))}

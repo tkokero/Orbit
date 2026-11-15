@@ -1,0 +1,25 @@
+.action-overflow-menu{margin:0;padding:8px;border:1px solid var(--line);border-radius:16px;background:var(--panel);color:var(--text);overflow:auto;overscroll-behavior:contain;box-shadow:0 12px 32px #0003}
+.action-overflow-menu:popover-open{display:grid;gap:4px}
+html:root .action-overflow-menu>button{display:flex;align-items:center;justify-content:flex-start;gap:10px;width:100%;min-height:40px;margin:0;padding:10px 12px;border:0;border-radius:10px;box-shadow:none;background:transparent;color:var(--text);text-align:left;font:inherit;font-size:14px;white-space:normal}
+html:root .action-overflow-menu>button:hover,html:root .action-overflow-menu>button:focus-visible{background:var(--raised);outline:1px solid var(--accent);outline-offset:-1px}
+.action-overflow-menu .desktop-action-icon{background:none!important;box-shadow:none!important;flex:0 0 18px;width:18px;height:18px;padding:0}.action-overflow-menu .desktop-action-icon svg{width:18px;height:18px}
+.action-overflow-trigger{display:inline-flex;align-items:center;gap:10px}.action-overflow-trigger>svg{flex:none}
+.detail-quick-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.detail-quick-actions>.settings-actions{margin:0!important;padding:0;display:contents}
+html:root:not(.couch-mode):not(.action-density-paused) .quiet-save[data-dirty=false] .quiet-save-button{display:none!important}
+html:root:not(.couch-mode):not(.action-density-paused) .installation-footer.utility-close-only{display:none}
+html:root:not(.couch-mode):not(.action-density-paused) .density-redundant{display:none}
+html:root:not(.couch-mode):not(.action-density-paused) #detail-utilities .density-empty{display:none}
+html:root:not(.couch-mode):not(.action-density-paused) #orbit-vr-stop:disabled{display:none}
+html:root:not(.couch-mode) #detail-utilities>.action-disclosure{display:block;align-self:stretch;width:100%;min-width:0;box-sizing:border-box;margin:0;padding:0;border:1px solid var(--line);border-radius:20px;background:none;overflow:hidden}
+html:root:not(.couch-mode) #modal #detail-utilities>.action-disclosure>summary.desktop-summary{cursor:pointer;display:flex;align-items:center;gap:11px;min-height:56px;margin:0;padding:14px 16px;box-sizing:border-box;border:0;border-radius:0;background:none;font:inherit;font-size:var(--type-label);font-weight:600;list-style:none}
+html:root #detail-utilities>.action-disclosure>summary::after{content:'';margin-left:auto;color:var(--muted);position:static;flex:none;width:8px;height:8px;border:0;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg)}html:root #detail-utilities>.action-disclosure[open]>summary::after{transform:rotate(225deg)}
+html:root #detail-utilities>.action-disclosure>summary:focus-visible{outline:2px solid var(--accent);outline-offset:-3px}
+.action-disclosure>button{margin:0 0 16px 16px;max-width:calc(100% - 32px)}.action-disclosure>:is(#system-result,[data-fps-panel]){margin:0 16px 16px;min-width:0}.density-library-actions{margin:16px 0 0}
+html:root .collection-choices>.density-library-actions{padding:0 18px 16px;margin:0;border:0;min-height:0}
+html:root .action-disclosure>.settings-actions{margin-top:12px}
+html:root .settings-actions:has(> .action-overflow-menu):not(:has(>button:not([data-action-menu-item]))){display:none}
+html:root:not(.couch-mode) #detail-utilities :is(.settings-actions,.utility-actions):empty{display:none}
+html:root:not(.couch-mode) #detail-utilities .library-detail-tools{display:flex;flex-direction:column;gap:16px;margin:0}
+html:root:not(.couch-mode) #detail-utilities .library-detail-tools>:is(.personal-notes,.collection-choices,.settings-actions){margin:0}
+
+html:root:not(.couch-mode) #modal.game-details-dialog #detail-utilities :is(.personal-notes,.collection-choices){margin:0}

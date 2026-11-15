@@ -6,13 +6,20 @@ const sameProcess=(a,b)=>a?.pid===b.pid&&(!a.started||!b.started||a.started===b.
 // Scan its actual game candidates without turning the launcher into an installed/owned copy.
 const monitorable=game=>game.kind==='game'&&!game.robloxPlaceId&&(game.installed||game.versions?.some(v=>v.launcherAvailable||v.shortcutGameTarget));
 class RunningGames{
- constructor({games,emit,find=findProcesses,clock=Date.now,configs=()=>({})}){Object.assign(this,{games,emit,find,clock,configs});this.sessions=new Map();this.pendingCloseCleanup=new Map();this.lastRows=[];this.checkedAt=null;this.scanFailed=false;this.busy=false;this.stopped=false;}
+ constructor({games,emit,find=findProcesses,clock=Date.now,configs=()=>({})}){Object.assign(this,{games,emit,find,clock,configs});this.sessions=new Map();this.launches=new Map();this.launchOrder=0;this.pendingCloseCleanup=new Map();this.lastRows=[];this.checkedAt=null;this.scanFailed=false;this.busy=false;this.stopped=false;}
+ noteLaunch(id){if(this.stopped)return;this.launches.delete(id);this.launches.set(id,{at:this.clock(),order:++this.launchOrder});if(this.launches.size>64)this.launches.delete(this.launches.keys().next().value);}
  scan(){if(this.stopped)return Promise.resolve(this.snapshot());if(this.inflight)return this.inflight;this.inflight=this.scanNow().finally(()=>{this.inflight=null;});return this.inflight;}
  async scanNow(){if(this.stopped)return this.snapshot();this.busy=true;try{
   const candidates=this.games().filter(monitorable).map(game=>({game,candidates:candidatesFor(game,this.configs()[game.id])}));
   const rows=await this.find([...new Set(candidates.flatMap(c=>c.candidates.names))]);
   this.lastRows=rows;this.checkedAt=this.clock();this.scanFailed=false;
-  const live=new Map(),claimed=new Set();for(const {game,candidates:expected}of candidates){const previous=this.sessions.get(game.id),eligible=row=>!claimed.has(row.pid)&&isSessionProcess(row)&&matchesProcess(row,expected),p=rows.find(row=>sameProcess(previous,row)&&eligible(row))||rows.find(eligible);if(!p)continue;claimed.add(p.pid);const same=sameProcess(previous,p);live.set(game.id,{id:game.id,title:game.title,pid:p.pid,name:p.name,path:p.path,started:p.started||(same?previous.started:null),activity:activity(p),since:same?previous.since:/^RobloxPlayer(?:Beta)?$/i.test(p.name)?this.clock():Math.min(this.clock(),Date.parse(p.started)||this.clock())});}
+  const ids=new Set(candidates.map(c=>c.game.id));
+  for(const [id,launch]of this.launches)if(!ids.has(id)||(launch.process?!rows.some(row=>sameProcess(launch.process,row)):this.clock()-launch.at>600000))this.launches.delete(id);
+  // Claims follow a successful user launch, then an existing verified session.
+  // A launch request alone is never evidence that the game is running.
+  const priority=game=>{const launch=this.launches.get(game.id);if(launch)return 3e15+launch.order;const previous=this.sessions.get(game.id);if(previous&&rows.some(r=>sameProcess(previous,r)))return 2e15;return Number(game.lastOpened)||0;};
+  candidates.sort((a,b)=>priority(b.game)-priority(a.game));
+  const live=new Map(),claimed=new Set();for(const {game,candidates:expected}of candidates){const previous=this.sessions.get(game.id),launch=this.launches.get(game.id),eligible=row=>!claimed.has(row.pid)&&isSessionProcess(row)&&matchesProcess(row,expected),p=rows.find(row=>sameProcess(launch?.process||previous,row)&&eligible(row))||rows.find(eligible);if(!p)continue;claimed.add(p.pid);if(launch)launch.process={pid:p.pid,started:p.started};const same=sameProcess(previous,p);live.set(game.id,{id:game.id,title:game.title,pid:p.pid,name:p.name,path:p.path,started:p.started||(same?previous.started:null),activity:activity(p),...(p.windowHandle?{windowHandle:p.windowHandle}:{}),since:same?previous.since:/^RobloxPlayer(?:Beta)?$/i.test(p.name)?this.clock():Math.min(this.clock(),Date.parse(p.started)||this.clock())});}
 
   if(!this.stopped){this.sessions=live;await this.cleanupClosedClients(live);this.emit(this.snapshot());}return this.snapshot();
  }catch(error){this.scanFailed=true;throw error;}finally{this.busy=false;}}
@@ -27,7 +34,7 @@ class RunningGames{
   return {id,title:game.title,status,note,checkedAt:this.checkedAt,stale:this.scanFailed,expectedNames:expected.names,processes};
  }
  snapshot(){return [...this.sessions.values()].map(({path,started,name,...s})=>({...s,processStarted:started,seconds:Math.max(0,(this.clock()-s.since)/1000)}));}
- stop(){this.stopped=true;this.sessions.clear();this.pendingCloseCleanup.clear();}
+ stop(){this.stopped=true;this.sessions.clear();this.launches.clear();this.pendingCloseCleanup.clear();}
  async close(id,force=false,close=require('./close-game.cjs').closeProcess){
   const session=this.sessions.get(id);if(!session)throw Error('This game is no longer running.');
   const game=this.games().find(g=>g.id===id),valid=require('./close-game.cjs').validSession;

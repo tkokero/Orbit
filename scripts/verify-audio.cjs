@@ -1,0 +1,2 @@
+const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
+module.exports=()=>{const folder=path.resolve(__dirname,'../src/native/capture'),record=JSON.parse(fs.readFileSync(path.join(folder,'BUILD.json'),'utf8'));for(const file of ['Audio.cs','OrbitAudio.exe'])if(record.sha256[file]!==crypto.createHash('sha256').update(fs.readFileSync(path.join(folder,file))).digest('hex'))throw Error('Rebuild the audio helper before packaging: '+file);return true;};

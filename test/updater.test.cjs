@@ -37,3 +37,30 @@ test('changing settings during a check leaves exactly one automatic update sched
  await timers.fire(1000);assert.equal(d.checks,2);assert.equal(timers.tasks.size,1);
  assert.equal([...timers.tasks.values()][0].ms,6*60*60*1000);u.stop();
 });
+
+test('failed startup checks retry after 2, 5, 15 and at most 60 minutes',async()=>{
+ const timers=clock(),d=new Driver();d.checkForUpdates=async()=>{throw Error('offline');};
+ const u=new OrbitUpdater({driver:d,version:'0.2.6',timers});u.start();await timers.fire(1000);
+ for(const delay of [2,5,15,60,60]){assert.equal(timers.tasks.size,1);assert.equal([...timers.tasks.values()][0].ms,delay*60000);assert.match(u.snapshot().message,/Retrying/);await timers.fire(delay*60000);}
+ u.stop();assert.equal(timers.tasks.size,0);
+});
+test('download errors replace the six-hour check with one retry, including promise-only failures',async()=>{
+ const timers=clock(),d=new Driver();let rejectDownload;d.checkForUpdates=async()=>({downloadPromise:new Promise((_,reject)=>rejectDownload=reject)});
+ const u=new OrbitUpdater({driver:d,version:'0.2.6',timers});u.start();await timers.fire(1000);
+ rejectDownload(Error('connection lost'));await new Promise(r=>setImmediate(r));
+ assert.equal(u.snapshot().phase,'error');assert.equal(timers.tasks.size,1);assert.equal([...timers.tasks.values()][0].ms,120000);
+ d.emit('error',Error('connection lost'));assert.equal(timers.tasks.size,1);assert.equal(u.retryCount,1);u.stop();
+});
+test('a slow download is not duplicated by manual checks or settings changes',async()=>{
+ const timers=clock(),d=new Driver();let complete;d.checkForUpdates=async()=>{d.checks=(d.checks||0)+1;return {downloadPromise:new Promise(r=>complete=r)};};
+ const u=new OrbitUpdater({driver:d,version:'0.2.6',timers});u.start();await timers.fire(1000);await u.check();u.settingsChanged();await timers.fire(1000);assert.equal(d.checks,1);complete();await new Promise(r=>setImmediate(r));u.stop();
+});
+test('successful update checks reset the retry delay and restore normal polling',async()=>{
+ const timers=clock(),d=new Driver();let fail=true;d.checkForUpdates=async()=>{if(fail)throw Error('offline');d.emit('update-not-available');return {};};
+ const u=new OrbitUpdater({driver:d,version:'0.2.6',timers});u.start();await timers.fire(1000);fail=false;await timers.fire(120000);assert.equal(u.retryCount,0);assert.equal([...timers.tasks.values()][0].ms,6*60*60*1000);
+ fail=true;await timers.fire(6*60*60*1000);assert.equal([...timers.tasks.values()][0].ms,120000);u.stop();
+});
+test('disabled or stopped background checking cannot restart after a download fails',async()=>{
+ const timers=clock(),d=new Driver(),settings={};let rejectDownload;d.checkForUpdates=async()=>({downloadPromise:new Promise((_,reject)=>rejectDownload=reject)});
+ const u=new OrbitUpdater({driver:d,version:'0.2.6',timers,settings:()=>settings});u.start();await timers.fire(1000);settings.autoUpdates=false;u.settingsChanged();rejectDownload(Error('offline'));await new Promise(r=>setImmediate(r));assert.equal(timers.tasks.size,0);assert.equal(d.installArgs,undefined);
+});

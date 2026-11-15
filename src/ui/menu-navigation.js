@@ -16,7 +16,7 @@
  function clearBack(){dialog.querySelector('#menu-settings-back')?.remove();}
  const originalModal=modal;
  modal=function(title,...args){
-  const fromSettings=desktop()&&dialog.open&&dialog.classList.contains('settings-dialog')&&title==='Keyboard shortcuts';
+  const fromSettings=desktop()&&dialog.open&&dialog.classList.contains('settings-dialog')&&String(args[0]).includes('class="desktop-shortcut-list"');
   if(dialog.open)remember();clearBack();const result=originalModal.call(this,title,...args);
   if(fromSettings){const back=document.createElement('button');back.type='button';back.id='menu-settings-back';back.className='icon-button';back.setAttribute('aria-label','Back to Settings');back.title='Back to Settings';back.innerHTML='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg>';dialog.querySelector('.modal-header').prepend(back);back.onclick=()=>{showSettings();const card=dialog.querySelector('[data-desktop-shortcuts]');window.OrbitSettingsNav?.focus(card);};}
   return result;

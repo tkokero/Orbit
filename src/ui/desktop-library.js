@@ -67,7 +67,7 @@
   $('.library-collections').append(organize);
   organize.onclick=()=>attempt(async()=>{const r=organize.getBoundingClientRect();organize.setAttribute('aria-expanded','true');try{const choice=await OrbitContextMenu.open([{id:'collections',label:'Manage collections'},{id:'pins',label:'Pin collections'},{id:'select',label:selecting?'Finish selecting':state.section==='tools'?'Select tools':'Select games',type:'checkbox',checked:selecting}],{x:r.left,y:r.bottom+6},'Organize library');if(choice?.action==='collections')$('#manage-collections').click();else if(choice?.action==='pins')pinButton.click();else if(choice?.action==='select')selectButton.click();}finally{organize.setAttribute('aria-expanded','false');}});
   const bulk=document.createElement('section');bulk.id='library-bulk';bulk.hidden=true;bulk.setAttribute('aria-label','Selected entries');
-  bulk.innerHTML='<span id="library-selection-count" role="status" aria-live="polite"></span><div class="library-bulk-actions"><button class="subtle-button" data-bulk="all">Select all results</button><button class="subtle-button" data-bulk="favorite">Favorite</button><button class="subtle-button" data-bulk="unfavorite">Unfavorite</button><button class="subtle-button" data-bulk="collections">Collections</button><button class="subtle-button" data-bulk="tags">Tags</button><button class="subtle-button" data-bulk="hide">Remove</button></div>';
+  bulk.innerHTML='<span id="library-selection-count" role="status" aria-live="polite"></span><div class="library-bulk-actions"><button class="subtle-button" data-bulk="all">Select all results</button><button class="subtle-button" data-bulk="favorite">Favorite</button><button class="subtle-button" data-bulk="unfavorite">Unfavorite</button><button class="subtle-button" data-bulk="collections">Collections</button><button class="subtle-button" data-bulk="tags">Tags</button><button class="subtle-button" data-bulk="hide">Hide</button></div>';
   grid.before(bulk);
   const undoBar=document.createElement('div');undoBar.id='library-undo';undoBar.hidden=true;undoBar.innerHTML='<span role="status"></span><button class="subtle-button">Undo</button><button class="icon-button" aria-label="Dismiss undo">×</button>';grid.before(undoBar);
   function clear(){selection.clear();selecting=false;paintSelection();}
@@ -82,7 +82,7 @@
       if(selecting)button.setAttribute('aria-pressed',String(selected));else button.removeAttribute('aria-pressed');
     }
     for(const button of bulk.querySelectorAll('[data-bulk]'))button.disabled=busy||(!selection.ids.size&&!['all','clear'].includes(button.dataset.bulk));
-    const hide=bulk.querySelector('[data-bulk=hide]'),restore=state.view==='hidden',label=restore?'Restore':'Remove',icon=restore?'show':'hide';if(hide.dataset.orbitIcon!==icon){hide.dataset.orbitIcon=icon;hide.textContent=label;window.OrbitDesktop?.enhance(bulk);}
+    const hide=bulk.querySelector('[data-bulk=hide]'),restore=state.view==='hidden',label=restore?'Unhide':'Hide',icon=restore?'show':'hide';if(hide.dataset.orbitIcon!==icon){hide.dataset.orbitIcon=icon;hide.textContent=label;window.OrbitDesktop?.enhance(bulk);}
     undoBar.hidden=!enabled||!undo;undoBar.querySelectorAll('button').forEach(b=>b.disabled=busy);
   }
   grid.addEventListener('click',e=>{
@@ -109,7 +109,7 @@
     try{
       const result=await orbit.bulkLibrary({ids,action,value});if(form?.isConnected)closeModal();
       undo=result.token?{token:result.token,count:result.count}:undo;
-      const message=action==='hidden'?(value?'Removed from library. Games stay installed.':'Restored to library.'):(result.count+' '+(result.count===1?'entry updated.':'entries updated.'));
+      const message=action==='hidden'?(value?'Hidden from library.':'Game visibility restored.'):(result.count+' '+(result.count===1?'entry updated.':'entries updated.'));
       if(result.token)undoBar.querySelector('span').textContent=message;
       absorb(result.library);toast(result.count?message:'No changes needed.');return true;
     }catch(error){toast(error.message,true);return false;}finally{busy=false;form?.querySelectorAll('button').forEach(b=>b.disabled=false);paintSelection();}
@@ -149,6 +149,12 @@
   };
   window.addEventListener('orbit:couch',()=>{clear();displayScope=null;endDrag();render();});
   window.orbitDesktopLibrary={
+    defaultDisplay:()=>({...defaults}),configureDefault(patch){
+      const next=model.display({...defaults,...patch}),nextViews={...savedViews,'games|':{...next}},previous=[localStorage.getItem(viewsKey),localStorage.getItem(key)];
+      try{localStorage.setItem(viewsKey,JSON.stringify(nextViews));localStorage.setItem(key,JSON.stringify({...next,layout:next.layout==='banners'?'banners':'covers',pins:settings.pins}));}
+      catch{try{for(const [i,name] of [viewsKey,key].entries())if(previous[i]===null)localStorage.removeItem(name);else localStorage.setItem(name,previous[i]);}catch{}toast('Library display settings could not be saved.',true);return false;}
+      Object.assign(defaults,next);savedViews=nextViews;if(active()&&displayScope==='games|'){Object.assign(settings,{layout:next.layout==='banners'?'banners':'covers',size:next.size,spacing:next.spacing});state.list=next.layout==='list';render();}return true;
+    },
     image(g){if(!desktop()||settings.layout!=='banners')return null;return (g.hero||g.cover)?`<img data-src="${esc(g.hero||g.cover)}" data-library-banner="${esc(g.id)}" alt="" decoding="async">`:'';},
     setHidden:(ids,value)=>runBulk('hidden',value,ids),managePins,selection,settings,clear,setLayout:layout,captureSelection:()=>({selecting,ids:[...selection.ids],anchor:selection.anchor}),restoreSelection(value){selection.clear();if(value&&Array.isArray(value.ids)){for(const id of value.ids)if(typeof id==='string')selection.ids.add(id);selection.anchor=value.anchor;selection.reconcile(order());}selecting=Boolean(value?.selecting);paintSelection();},repaintPins:paintPins,renamePin(from,to){settings.pins=[...new Set(settings.pins.map(key=>key===from?to:key))];savedViews=model.renameViews(savedViews,from,to);if(displayScope?.endsWith('|'+from))displayScope=null;try{localStorage.setItem(viewsKey,JSON.stringify(savedViews));}catch{toast('Collection layout could not be saved.',true);}save();paintPins();},deactivate(){clear();endDrag();scope='';pins.hidden=true;undoBar.hidden=true;}
   };

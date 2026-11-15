@@ -47,7 +47,7 @@ module.exports=async({window,target})=>{
  }
  const verify=async(name,script)=>checks.push({name,passed:Boolean(await run(script))});
  await verify('Tools menu offers Select tools',`document.querySelector('.orbit-context-menu').textContent.includes('Select tools')&&!document.querySelector('.orbit-context-menu').textContent.includes('Select games')`);
- await capture('compact-fps-initial',`(async()=>{await showDetails(__reviewGame.id);document.querySelector('.simple-game-options').open=true;document.querySelector('[data-fps-estimate]').scrollIntoView({block:'center'});})()`);
+ await capture('compact-fps-initial',`(async()=>{await showDetails(__reviewGame.id);document.querySelector('.simple-game-options').open=true;window.OrbitActionDensity?.apply();const performance=document.querySelector('[data-action-section="Performance"]');if(performance&&!performance.open)performance.querySelector('summary').click();document.querySelector('[data-fps-estimate]').scrollIntoView({block:'center'});})()`);
  await verify('FPS starts without an empty table or a placeholder model badge',`document.querySelector('.fps-table').getBoundingClientRect().height===0&&!document.querySelector('.fps-badge')`);
  await run(`document.querySelector('.simple-game-options').scrollIntoView({block:'start'});`);await wait();
  await verify('scrolling to Game options leaves its heading below the fixed action row',`document.querySelector('.simple-game-options>summary').getBoundingClientRect().top>=document.querySelector('.detail-actions').getBoundingClientRect().bottom`);

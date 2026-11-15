@@ -17,6 +17,9 @@ html:root dialog.controller-keyboard[open]{--popup-base-width:560px}
 html:root dialog.game-close-dialog[open]{--popup-base-width:380px}
 html:root dialog.orbit-news-reader[open]{--popup-base-width:1280px;--popup-inset:64px;width:var(--popup-target-width);height:var(--popup-height);max-height:var(--popup-height);overflow:hidden}
 html:root dialog.popup-resizable[open]{padding-bottom:32px}
+/* Reusable installation/utility menus must honor the same saved width as their
+   corner control, rather than a more-specific legacy Desktop width. */
+html:root:not(.couch-mode) dialog.popup-resizable[open]{width:var(--popup-target-width);max-width:calc(100vw - 32px)}
 .popup-resize-handle{position:fixed;inset:auto;margin:0;width:24px;height:24px;min-width:24px;min-height:24px;display:none;place-items:center;padding:0;border:0;border-radius:6px;color:var(--muted);background:none;cursor:nwse-resize;touch-action:none;overflow:visible}
 .popup-resize-handle:popover-open{display:grid}
 html:root dialog.popup-user-height[open]{height:var(--popup-height)}

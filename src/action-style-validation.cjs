@@ -1,0 +1,33 @@
+/* Isolated fixtures only. No capture, download, account, or game actions submitted. */
+const fs=require('node:fs/promises'),path=require('node:path');
+module.exports=async({window,target})=>{
+ const js=code=>window.webContents.executeJavaScript(code),wait=ms=>new Promise(r=>setTimeout(r,ms)),checks=[];
+ const check=async(name,code)=>checks.push({name,passed:Boolean(await js(code))});
+ const shot=async name=>{await wait(200);await window.webContents.capturePage();await wait(100);await fs.writeFile(path.join(target,name+'.png'),(await window.webContents.capturePage()).toPNG());};
+ const open=`(async()=>{document.querySelectorAll('dialog[open]').forEach(d=>d.close());const sample=state.games.find(g=>g.kind==='game'&&g.installed);sample.storePlaytimeKnown=true;await showDetails(sample.id);document.querySelector('.simple-game-options').open=true;OrbitActionDensity.apply();document.querySelectorAll('.personal-notes,.collection-choices').forEach(d=>d.open=false);document.querySelector('.simple-game-options').scrollIntoView({block:'start'});})()`;
+ window.setSize(1280,960);window.webContents.setZoomFactor(1);
+ await js(`(async()=>{await orbitBoot.done;orbitFeatures.setCouch(false);chooseTheme('ember');motionEnabled=false;document.documentElement.classList.add('motion-off');})()`);await js(open);await wait(150);
+ await check('Performance is a full-width section, not a flex-sized button',`(()=>{const a=document.querySelector('[data-action-section=Performance]'),b=document.querySelector('[data-action-section=Artwork]');return a.parentElement.id==='detail-utilities'&&Math.abs(a.getBoundingClientRect().width-b.getBoundingClientRect().width)<2;})()`);
+ await check('all added headers share the Collections surface and padding',`(()=>{const base=document.querySelector('.collection-choices'),header=base.querySelector('summary'),style=getComputedStyle(header),box=getComputedStyle(base);return [...document.querySelectorAll('.action-disclosure')].every(d=>{const s=getComputedStyle(d.querySelector('summary')),b=getComputedStyle(d);return s.backgroundColor===style.backgroundColor&&s.padding===style.padding&&b.borderRadius===box.borderRadius&&s.margin==='0px';});})()`);
+ await check('sections use distinct, matching icons',`[...document.querySelectorAll('.action-disclosure>summary')].map(e=>e.dataset.orbitIcon).join(',')==='performance,appearance,help'`);
+ const geometry=await js(`([...document.querySelectorAll('#detail-utilities .action-disclosure,#detail-utilities .collection-choices,#detail-utilities .personal-notes')].map(e=>({label:e.querySelector('summary').textContent,top:e.getBoundingClientRect().top,bottom:e.getBoundingClientRect().bottom,margin:getComputedStyle(e).margin,parent:e.parentElement.className})))`);await fs.writeFile(path.join(target,'section-geometry.json'),JSON.stringify(geometry,null,2));
+ await check('neighboring game sections use the same spacing',`(()=>{const rows=[...document.querySelectorAll('#detail-utilities .action-disclosure,#detail-utilities .collection-choices,#detail-utilities .personal-notes')].map(e=>e.getBoundingClientRect()).sort((a,b)=>a.top-b.top);return [1,2,3,5].every(i=>Math.abs(rows[i].top-rows[i-1].bottom-16)<2);})()`);
+ await shot('game-options');await js(`document.querySelector('[data-action-section=Artwork]').scrollIntoView({block:'end'})`);await shot('game-options-lower');
+ await js(`document.querySelector('[data-action-section=Artwork]>summary').click();document.querySelector('[data-action-section=Troubleshooting]>summary').click()`);
+ await check('Artwork and Troubleshooting reveal their short button rows',`[...document.querySelectorAll('[data-action-section=Artwork]>button,[data-action-section=Troubleshooting]>button')].every(b=>b.checkVisibility())`);
+ await js(`showSettings();document.querySelector('#tab-manage').click()`);await wait(200);await js(`document.querySelector('#import-json').closest('.setting-card').scrollIntoView({block:'start'})`);await shot('manage');
+ await check('Manage retains direct Library and Report tools',`['import-json','export-json','show-hidden','diagnostics-open','table-open'].every(id=>{const b=document.getElementById(id);return b?.checkVisibility()&&!b.closest('[data-action-overflow]');})`);
+ await check('Library and Report buttons each share one row at desktop width',`[['import-json','export-json','show-hidden'],['diagnostics-open','table-open']].every(ids=>{const rects=ids.map(id=>document.getElementById(id).getBoundingClientRect());return rects.every(r=>Math.abs(r.top-rects[0].top)<2);})`);
+ await check('Settings search focuses its visible result',`(()=>{const input=document.querySelector('.settings-search input');input.value='Import catalog';input.dispatchEvent(new Event('input'));document.querySelector('.settings-search-result').click();return document.activeElement===document.querySelector('#import-json')&&document.activeElement.checkVisibility();})()`);
+ await js(`showSettings();document.querySelector('#tab-appearance').click()`);await wait(150);
+ await check('Theme import and export stay together as visible buttons',`['theme-import','theme-export'].every(id=>document.getElementById(id)?.checkVisibility()&&!document.getElementById(id).closest('[data-action-overflow]'))`);
+ window.setMinimumSize(500,420);window.setSize(700,800);window.webContents.setZoomFactor(1.25);await js(`showSettings();document.querySelector('#tab-manage').click()`);await wait(200);
+ await check('Manage wraps within a narrow scaled popup',`(()=>{const b=document.querySelector('#modal-body');return b.scrollWidth<=b.clientWidth+2;})()`);await shot('manage-narrow');
+ await js(open);await wait(150);
+ await check('section widths and text fit at 125% scaling',`(()=>{const b=document.querySelector('#modal-body');return b.scrollWidth<=b.clientWidth+2&&[...document.querySelectorAll('.action-disclosure')].every(d=>d.scrollWidth<=d.clientWidth+2);})()`);await shot('game-options-narrow');
+ await js(`document.querySelector('[data-action-section=Artwork]>summary').focus();document.activeElement.click()`);
+ await check('opening a section retains its keyboard focus',`document.activeElement===document.querySelector('[data-action-section=Artwork]>summary')`);
+ await js(`orbitFeatures.setCouch(true)`);await wait(100);
+ await check('Controller mode restores its existing controls',`!document.querySelector('.action-disclosure')&&!document.querySelector('#detail-utilities .action-overflow-trigger')`);
+ const report={passed:checks.every(c=>c.passed),fixtureOnly:true,checks};await fs.writeFile(path.join(target,'action-style-report.json'),JSON.stringify(report,null,2));return report;
+};

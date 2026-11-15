@@ -56,7 +56,7 @@
  function disclosures(dialog){
   for(const details of dialog.querySelectorAll('details')){const summary=details.querySelector(':scope>summary');if(!summary)continue;details.classList.add('settings-disclosure');if(summary.querySelector(':scope>.settings-fold-chevron'))continue;const arrow=document.createElement('span');arrow.className='settings-fold-chevron';arrow.setAttribute('aria-hidden','true');arrow.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m6 9 6 6 6-6"/></svg>';summary.append(arrow);}
  }
- function mount(){const dialog=document.querySelector('#modal'),panel=dialog.querySelector('#panel-appearance');if(document.documentElement.classList.contains('couch-mode')||!panel)return;window.OrbitDesktopMenus?.mount(panel);appearance(panel,dialog);general(dialog);simplify(dialog);disclosures(dialog);dialog.querySelector('#shortcut-guide')?.remove();}
+ function mount(){const dialog=document.querySelector('#modal'),panel=dialog.querySelector('#panel-appearance');if(document.documentElement.classList.contains('couch-mode')||!panel)return;window.OrbitDesktopMenus?.mount(panel);appearance(panel,dialog);window.OrbitWorkspace?.mountChoice();general(dialog);simplify(dialog);disclosures(dialog);dialog.querySelector('#shortcut-guide')?.remove();}
  const settings=showSettings;showSettings=function(...args){const result=settings.apply(this,args);mount();return result;};
  window.OrbitSettingsLayout={mount,reveal};
 })();

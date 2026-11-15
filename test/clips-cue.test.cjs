@@ -1,0 +1,14 @@
+const test=require('node:test'),assert=require('node:assert/strict'),{EventEmitter}=require('node:events'),fs=require('node:fs/promises'),os=require('node:os'),path=require('node:path'),{execFileSync}=require('node:child_process'),Cue=require('../src/clips-cue.cjs'),{Clips}=require('../src/clips.cjs');
+test('save cue is short, bounded and fades to silence without clipping',()=>{
+ const data=Cue.wave();assert.equal(data.toString('ascii',0,4),'RIFF');assert.equal(data.readUInt32LE(24),48000);const frames=(data.length-44)/2;let peak=0,maxStep=0,prior=0;for(let i=0;i<frames;i++){const value=data.readInt16LE(44+i*2)/32767;peak=Math.max(peak,Math.abs(value));if(i)maxStep=Math.max(maxStep,Math.abs(value-prior));prior=value;}assert(frames/48000<.6);assert(peak>.04&&peak<.2);assert(maxStep<.02);assert.equal(data.readInt16LE(data.length-2),0);assert(Cue.enabled());assert.equal(Cue.enabled('{"enabled":false}'),false);
+});
+test('mute and overlap protection prevent unwanted launches, and exit releases the helper',()=>{
+ const calls=[],child=new EventEmitter();child.stdin=new EventEmitter();child.stdin.end=data=>calls.push(data);child.kill=()=>child.emit('exit',0);let muted=true;
+ const cue=new Cue.ClipCue({allowed:()=>!muted,launch:(file,args,options)=>{calls.push({file,args,options});return child;}});assert.equal(cue.play(),false);assert.equal(calls.length,0);muted=false;assert(cue.play());assert.equal(cue.play(),false);assert.equal(calls[0].options.windowsHide,true);assert.deepEqual(calls[0].args,['--saved-cue']);cue.close();assert.equal(cue.child,null);assert.equal(cue.play(),false);
+});
+test('save feedback occurs once after a completed clip and never on save failure',async()=>{
+ const folder=await fs.mkdtemp(path.join(os.tmpdir(),'orbit-save-cue-'));try{await fs.writeFile(path.join(folder,'fixture.mp4'),Buffer.alloc(80));const events=[],clips=new Clips({folder,root:folder,notify:d=>events.push(d.message),onSaved:item=>events.push('cue:'+item.name)});clips.state.phase='recording';clips.state.options={};clips.request=async()=>({name:'fixture.mp4',path:path.join(folder,'fixture.mp4'),seconds:1});await clips.save();assert.equal(events.filter(e=>e==='cue:fixture.mp4').length,1);assert(events.indexOf('cue:fixture.mp4')>events.indexOf('Clip saved'));clips.request=async()=>{throw Error('Disk unavailable');};await assert.rejects(clips.save(),/Disk unavailable/);assert.equal(events.filter(e=>e.startsWith('cue:')).length,1);}finally{await fs.rm(folder,{recursive:true,force:true});}
+});
+test('native cue parser accepts the generated signal without opening an audio device',{skip:process.platform!=='win32'},()=>{
+ const result=JSON.parse(execFileSync(path.join(__dirname,'../src/native/capture/OrbitAudio.exe'),['--validate-cue'],{input:Cue.wave(),windowsHide:true,encoding:'utf8',timeout:3000}));assert(result.passed);assert.equal(result.played,false);assert.equal(result.microphoneOpened,false);
+});

@@ -1,0 +1,9 @@
+{
+  "version": "0.3.0-dev.12",
+  "published": false,
+  "limits": [
+    "Short synthetic recordings do not establish real-game performance, multi-hour reliability, sleep/wake behavior or universal capture compatibility.",
+    "Interrupted fragments were readable in the fixture; arbitrary crash repair is not guaranteed.",
+    "No comparable CPU, RAM, GPU or frame-time benchmark was taken."
+  ]
+}

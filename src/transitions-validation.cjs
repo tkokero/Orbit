@@ -6,7 +6,9 @@ module.exports=async({window,target})=>{
  try{
   await run(`await orbitBoot.done;orbitFeatures.setCouch(false);await orbitShell.activate('library');document.querySelectorAll('dialog[open]').forEach(d=>d.close());window.motionTest={enabled:motionEnabled,hidden:Object.getOwnPropertyDescriptor(document,'hidden'),matches:Object.getOwnPropertyDescriptor(motionQuery,'matches'),off:document.documentElement.classList.contains('motion-off'),audio:OrbitStartupAudio.play};Object.defineProperty(document,'hidden',{configurable:true,get:()=>false});Object.defineProperty(motionQuery,'matches',{configurable:true,get:()=>false});motionEnabled=true;document.documentElement.classList.remove('motion-off');OrbitStartupAudio.play=()=>()=>{};`);
   await run(`modal('Transition check','<button type="button" id="transition-hit">Test action</button>');window.transitionHits=0;document.querySelector('#transition-hit').onclick=()=>window.transitionHits++;`);
-  const point=await run(`const b=document.querySelector('#transition-hit').getBoundingClientRect();return {x:Math.round(b.x+b.width/2),y:Math.round(b.y+b.height/2)};`);
+  // The fit observer sizes a fresh popup before its next paint. Sample the
+  // painted hit target, not coordinates from its pre-layout position.
+  const point=await run(`await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));const b=document.querySelector('#transition-hit').getBoundingClientRect();return {x:Math.round(b.x+b.width/2),y:Math.round(b.y+b.height/2)};`);
   for(const type of ['mouseMove','mouseDown','mouseUp'])window.webContents.sendInputEvent({type,...point,...(type!=='mouseMove'?{button:'left',clickCount:1}:{})});
   await until('window.transitionHits===1');check('A popup accepts pointer input during its entrance',true);
   check('The popup uses one short entrance without moving its saved placement transform',await run(`const a=document.querySelector('#modal').getAnimations().find(a=>a.id==='orbit-dialog-open');return !a||a.effect.getTiming().duration<=220&&a.effect.getKeyframes().every(k=>!k.transform);`));
@@ -19,9 +21,9 @@ module.exports=async({window,target})=>{
   await run(`showSettings();document.querySelector('#tab-appearance').click();for(const id of ['startup','layout','theme'])document.querySelector('[data-appearance-tab='+id+']').click();`);
   check('Rapid Settings navigation selects the last tab immediately',await run(`return document.querySelector('[data-appearance-tab=theme]').getAttribute('aria-selected')==='true'&&!document.querySelector('[data-appearance-section=theme]').hidden;`));
   await run(`document.querySelector('#modal').close();document.querySelector('#library-more').showPopover();`);
-  const menuPoint=await run(`const n=document.querySelector('[data-simple-shortcuts]'),r=n.getBoundingClientRect();return {x:Math.round(r.x+r.width/2),y:Math.round(r.y+r.height/2)};`);
+  const menuPoint=await run(`await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));const n=document.querySelector('[data-simple-shortcuts]'),r=n.getBoundingClientRect();return {x:Math.round(r.x+r.width/2),y:Math.round(r.y+r.height/2)};`);
   for(const type of ['mouseMove','mouseDown','mouseUp'])window.webContents.sendInputEvent({type,...menuPoint,...(type!=='mouseMove'?{button:'left',clickCount:1}:{})});
-  await until("document.querySelector('#modal-title').textContent==='Keyboard shortcuts'");check('More accepts a pointer action while its Glide entrance is running',true);
+  await until("document.querySelector('.desktop-shortcut-list')&&document.querySelector('#modal-title').textContent.startsWith('Keyboard shortcuts')");check('More accepts a pointer action while its Glide entrance is running',true);
   await run(`document.querySelector('#modal').close();OrbitInstall.show('First panel','<button id="install-first">First</button>');await new Promise(r=>setTimeout(r,240));OrbitInstall.show('Second panel','<button id="install-second">Second</button>');`);
   check('Switching installation or Steam content keeps the existing outer panel in place',await run(`return document.querySelector('#installation-title').textContent==='Second panel'&&document.querySelector('#installation-dialog').getAnimations().filter(a=>a.id==='orbit-dialog-open').length===0&&document.querySelector('#install-second').checkVisibility();`));
   await run(`document.querySelectorAll('dialog[open]').forEach(d=>d.close());`);

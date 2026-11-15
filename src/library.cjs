@@ -35,6 +35,8 @@ function parseVdf(text) {
   return object();
 }
 function mergeLibrary(records, preferences = {}) {
+  const removed=new Set(Object.values(preferences).filter(p=>p?.removed===true).flatMap(p=>Array.isArray(p.removedRecords)?p.removedRecords:[]));
+  if(removed.size)records=records.filter(r=>!removed.has(r.source+'|'+(r.recordId||r.id)));
   const supported=new Set(records.filter(record=>ownership.allowed(record)).map(record=>record.source+'|'+record.id));
   const steamTitles = new Map();
   for (const record of [...records].sort((a, b) => Number(a.installed) - Number(b.installed))) {
@@ -80,7 +82,7 @@ function mergeLibrary(records, preferences = {}) {
       playtimeRecent: statsVersion?.playtimeRecent ?? null, statsSource: statsVersion?.source,
       achievements: statsVersion?.achievements || null, statsUpdatedAt: statsVersion?.statsUpdatedAt,
       sizeBytes: Math.max(0, ...versions.map(v => v.sizeBytes || 0)), description: versions.find(v => v.description)?.description };
-  }).sort((a, b) => a.title.localeCompare(b.title));
+  }).filter(game=>preferences[game.id]?.removed!==true).sort((a, b) => a.title.localeCompare(b.title));
 }
 function safeUrl(value) {
   if (typeof value !== 'string' || value.length > 2048) throw new Error('Invalid link.');

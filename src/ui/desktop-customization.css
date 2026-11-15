@@ -89,3 +89,6 @@ html:root:not(.couch-mode)[data-desktop-banner=overlay]:is([data-banner-size=com
 #modal .saved-friend-link{flex-wrap:wrap}
 #modal .saved-friend-link .friend-match-people{flex:1 1 280px}
 @media(prefers-reduced-motion:reduce){#friends-panel .linked-main-card{transition:none}}
+
+/* Auto Recents follows its actual content width, including mixed Desktop layouts. */
+html:not(.couch-mode)[data-recent-count] #recent-games[data-recent-auto=true]{grid-template-columns:repeat(var(--recent-columns,1),minmax(0,1fr))}

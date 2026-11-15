@@ -24,7 +24,8 @@ function preferences(input){
  const result=Object.create(null);
  for(const [id,p] of Object.entries(input)){
   if(!safeId(id)||!plain(p))continue;
-  const v={};for(const k of ['favorite','hidden'])if(typeof p[k]==='boolean')v[k]=p[k];
+  const v={};for(const k of ['favorite','hidden','removed'])if(typeof p[k]==='boolean')v[k]=p[k];
+  if(v.removed&&Array.isArray(p.removedRecords))v.removedRecords=[...new Set(p.removedRecords.filter(safeId))].slice(0,256);
   if(['game','tool'].includes(p.kind))v.kind=p.kind;
   if(typeof p.preferred==='string'&&safeId(p.preferred))v.preferred=p.preferred;
   if(Number.isFinite(p.lastOpened)&&p.lastOpened>=0)v.lastOpened=p.lastOpened;

@@ -1,55 +1,16 @@
-# Experimental Features
+# Experiments
 
-Orbit includes opt-in experimental features that explore extended capabilities beyond standard launcher functions. Access them under **More → Experiments**.
+Open **More → Experiments** or **Settings → Experiments**. Opening the category does not enable a feature or change a game config.
 
-![Experiments settings](screenshots/experiments-settings.png)
+| Feature | What to expect |
+| --- | --- |
+| [Graphics settings](GAME-OPTIMIZATION.md) | Edit recognized local config values after Review, with a backup and Restore. Support varies by game and file. |
+| [VR overlay](VR-EXPERIMENTAL.md) | Optional SteamVR dashboard, wrist controls and panels. Hardware tuning is ongoing. |
+| [Steam connection](DOWNLOADS.md) | Optional queue controls through Steam's local debugging interface; setup requires a Steam restart. |
+| [Discord friends](FRIENDS.md) | Read-only friends access through the Discord desktop client, with your approval. |
 
----
+[Clipping](CLIPPING.md) is available in 0.3.0 development builds through the Clips sidebar entry. Recording starts disabled. Public clipping is planned for 0.3.0; it is not part of the ordinary 0.2.8 feature set.
 
-## 1. Game Graphics Settings
+![Experiments in an isolated development profile; Clips is development-only](validation/0.2.8-dev.17/experiments-settings.png)
 
-Orbit can locate and adjust recognized local game configuration files to apply performance or visual presets before you launch.
-
-### Supported Games & Configs
-* **Overwatch:** Overall quality, texture quality, and anti-aliasing methods.
-* **Apex Legends & Source Engine:** VideoConfig files (ambient occlusion, texture streaming budget, shadow detail).
-* **VRChat:** Avatar particle limiter and budget controls.
-* **Unreal Engine User Settings:** Recognized scalability presets.
-
-### Safe Config Workflow
-1. Select a game and choose **Graphics settings** (or **Find config files**).
-2. Choose **Custom** or select a **Performance / Super** preset.
-3. Review changes in the diff view before applying.
-4. Orbit automatically creates verified backups before writing. Use **Restore original settings** at any time to revert changes.
-
-Close the game before applying changes. Unsupported files stay view only. NVIDIA Apply still needs a live playtest; AMD opens its own settings app rather than editing its profiles inside Orbit.
-
----
-
-## 2. Orbit in VR (SteamVR Overlay)
-
-An optional overlay dashboard for SteamVR headsets that brings your launcher and Windows desktop into virtual reality.
-
-### Setup
-1. Launch SteamVR and ensure your headset is tracked.
-2. In Orbit, select **More → VR** (or **More → Experiments → VR overlay**), then click **Open Orbit in VR**.
-3. Pin VR to the sidebar for one-click access.
-
-### Features
-* **Wrist Dashboard:** Glance at your wrist to check the time, GPU/FPS performance counters, media playback controls, and floating desktop previews.
-* **Spatial Windows:** Spawn up to four desktop windows or physical monitors in 3D space with move, resize, and hide controls.
-* **Safe Controls:** Input forwarding is explicitly gated per window; close the companion overlay anytime without interrupting your running VR title.
-
-Physical headset input, wrist placement and compositor performance still need hardware testing. Software fixture checks do not establish headset compatibility.
-
----
-
-## 3. Hardware FPS Estimates
-
-Select **Estimate FPS** in a game's details view to see projected performance targets calculated locally from your detected CPU, GPU, and RAM.
-
-* **Publisher-Reference Models:** Supported titles (such as Cyberpunk 2077, Ghost of Tsushima, and Assassin's Creed Mirage) use published hardware baselines to estimate resolution and preset performance ranges.
-* **Generic Fallbacks:** Other games use broader workload heuristics.
-* **Privacy:** All calculations are performed entirely on your PC; Orbit does not run background benchmarks or upload system telemetry.
-
-These ranges are estimates, not measured game FPS or guaranteed performance gains.
+If a feature fails, record the Orbit version, the action and the visible error. Include the game/runtime/GPU app when relevant, but leave API keys, tokens and private paths out of screenshots and reports.

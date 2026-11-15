@@ -151,3 +151,8 @@ html:root:not(.couch-mode) #modal.settings-dialog .settings-disclosure>summary>.
 html:root:not(.couch-mode) #modal.settings-dialog .settings-disclosure[open]>summary>.settings-fold-chevron svg{transform:rotate(180deg);}
 html:root:not(.couch-mode) #modal.settings-dialog .settings-disclosure>summary:is(:hover,:focus-visible)>.settings-fold-chevron{background:var(--raised);color:var(--accent);}
 html:root:not(.couch-mode) #modal.settings-dialog .settings-disclosure>summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:12px;}
+@container orbit-popup (max-width:400px){
+ html:root:not(.couch-mode) #modal.settings-dialog .settings-tabs{grid-template-columns:repeat(2,minmax(0,1fr));}
+ html:root:not(.couch-mode) #modal.settings-dialog .settings-tabs .desktop-action-label{min-width:0;white-space:normal;overflow-wrap:anywhere;}
+ html:root:not(.couch-mode) #modal.settings-dialog .settings-search>input{flex-basis:100%;}
+}

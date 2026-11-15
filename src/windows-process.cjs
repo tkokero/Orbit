@@ -13,6 +13,11 @@ public class OrbitGameWindow {
  [DllImport("user32.dll")] static extern bool GetWindowRect(IntPtr h,out Rect r);
  [DllImport("user32.dll")] static extern IntPtr MonitorFromWindow(IntPtr h,uint flags);
  [DllImport("user32.dll")] static extern bool GetMonitorInfo(IntPtr h,ref MonitorInfo m);
+ public static string Handle(uint target) {
+  IntPtr chosen=IntPtr.Zero,foreground=GetForegroundWindow();
+  EnumWindows(delegate(IntPtr h,IntPtr p){uint pid;GetWindowThreadProcessId(h,out pid);if(pid==target&&IsWindowVisible(h)&&(chosen==IntPtr.Zero||h==foreground))chosen=h;return true;},IntPtr.Zero);
+  return chosen==IntPtr.Zero?null:chosen.ToInt64().ToString();
+ }
  public static string State(uint target) {
   IntPtr foreground=GetForegroundWindow(),chosen=IntPtr.Zero;
   EnumWindows(delegate(IntPtr h,IntPtr p){uint pid;GetWindowThreadProcessId(h,out pid);if(pid==target&&IsWindowVisible(h)){if(chosen==IntPtr.Zero||h==foreground)chosen=h;}return true;},IntPtr.Zero);
@@ -24,5 +29,5 @@ public class OrbitGameWindow {
   return "foreground";
  }
 }`;
-const processScript=`[Console]::OutputEncoding=[System.Text.UTF8Encoding]::new(); $ErrorActionPreference='SilentlyContinue'; $names=ConvertFrom-Json -InputObject ([Console]::In.ReadToEnd()); $processes=@(Get-Process -Name $names -ErrorAction SilentlyContinue); $parents=@{}; if($names -contains 'RobloxCrashHandler'){try{Get-CimInstance Win32_Process -Filter \"Name='RobloxCrashHandler.exe'\" -ErrorAction Stop | ForEach-Object {$parents[[int]$_.ProcessId]=[int]$_.ParentProcessId}}catch{}}; $windowReady=$false; if($processes.Count){try{Add-Type -TypeDefinition '${windowType}' -ErrorAction Stop; $windowReady=$true}catch{}}; $rows=@($processes | ForEach-Object { $p=$_; $exe=$null; $started=$null; $activity='running'; try{$exe=$p.Path}catch{}; try{$started=$p.StartTime.ToUniversalTime().ToString('o')}catch{}; if($windowReady){try{$activity=[OrbitGameWindow]::State([uint32]$p.Id)}catch{}}; [pscustomobject]@{pid=$p.Id;name=$p.ProcessName;path=$exe;started=$started;activity=$activity;parentPid=$parents[[int]$p.Id]} }); ConvertTo-Json -InputObject $rows -Compress`;
+const processScript=`[Console]::OutputEncoding=[System.Text.UTF8Encoding]::new(); $ErrorActionPreference='SilentlyContinue'; $names=ConvertFrom-Json -InputObject ([Console]::In.ReadToEnd()); $processes=@(Get-Process -Name $names -ErrorAction SilentlyContinue); $parents=@{}; if($names -contains 'RobloxCrashHandler'){try{Get-CimInstance Win32_Process -Filter \"Name='RobloxCrashHandler.exe'\" -ErrorAction Stop | ForEach-Object {$parents[[int]$_.ProcessId]=[int]$_.ParentProcessId}}catch{}}; $windowReady=$false; if($processes.Count){try{Add-Type -TypeDefinition '${windowType}' -ErrorAction Stop; $windowReady=$true}catch{}}; $rows=@($processes | ForEach-Object { $p=$_; $exe=$null; $started=$null; $activity='running'; try{$exe=$p.Path}catch{}; try{$started=$p.StartTime.ToUniversalTime().ToString('o')}catch{}; if($windowReady){try{$activity=[OrbitGameWindow]::State([uint32]$p.Id)}catch{}}; [pscustomobject]@{pid=$p.Id;name=$p.ProcessName;path=$exe;started=$started;activity=$activity;windowHandle=$(if($windowReady){[OrbitGameWindow]::Handle([uint32]$p.Id)}else{$null});parentPid=$parents[[int]$p.Id]} }); ConvertTo-Json -InputObject $rows -Compress`;
 module.exports={processScript};

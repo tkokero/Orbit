@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.0
+
+Local game clipping, optional Library workspace, adaptive Recents, cleaner menus and reliability fixes. See [release notes](docs/releases/0.3.0.md).
+
 All notable changes to Orbit are documented in this file. Releases are available on [GitHub Releases](https://github.com/tkokero/Orbit/releases).
 
 ## [0.2.8] - 2026-11

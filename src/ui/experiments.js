@@ -11,7 +11,7 @@
   const body=document.querySelector('#modal-body'),tabs=body?.querySelector('.settings-tabs');if(!tabs||body.querySelector('#panel-experiments'))return;
   const tab=document.createElement('button');tab.id='tab-experiments';tab.type='button';tab.role='tab';tab.dataset.settingsTab='experiments';tab.setAttribute('aria-controls','panel-experiments');tab.setAttribute('aria-selected','false');tab.tabIndex=-1;tab.textContent='Experiments';tabs.append(tab);
   const panel=document.createElement('section');panel.id='panel-experiments';panel.role='tabpanel';panel.setAttribute('aria-labelledby',tab.id);panel.hidden=true;
-  panel.innerHTML='<p class="experiments-note">Experimental features may change. Opening one does not enable it.</p>'+items().map(item=>'<section class="setting-card setting-row experiment-row"><div><h3>'+item.title+'</h3><p>'+item.note+'</p></div><button type="button" class="subtle-button experiment-open" data-experiment="'+item.id+'" aria-label="Open '+item.title+'">Open</button></section>').join('');
+  panel.innerHTML=items().map(item=>'<section class="setting-card setting-row experiment-row"><div><h3>'+item.title+'</h3></div><button type="button" class="subtle-button experiment-open" data-experiment="'+item.id+'" title="'+item.note+'" aria-label="Open '+item.title+'">Open</button></section>').join('');
   body.append(panel);for(const button of panel.querySelectorAll('[data-experiment]'))button.onclick=()=>attempt(()=>items().find(item=>item.id===button.dataset.experiment).open());
  }
  function open(){showSettings();document.querySelector('#tab-experiments')?.click();}
