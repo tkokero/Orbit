@@ -4,7 +4,7 @@ Open **Settings → Appearance → Layout**, or **More → Customize menus**. Ch
 
 ## Mix layout parts
 
-Choose **Customize layout**, then set **Library layout** and **Sidebar style** separately. For example, choose **Library & details** with **Regular · library filters** to keep Installed/Favorites beside the new library.
+Under **Desktop menus → Layout parts**, set **Library layout** and **Sidebar style** separately. For example, choose **Library & details** with **Regular · library filters** to keep Installed/Favorites beside the new library.
 
 Move the details panel left or right, or hide it. Under **Navigation pages**, choose which page shortcuts appear. Library and Settings remain reachable. Save the combination under **Saved layouts**.
 

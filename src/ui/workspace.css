@@ -280,7 +280,7 @@ html #modal .interface-choice[aria-pressed=true],:is(#orbit-workspace-ui,#orbit-
 .interface-choice-check{display:grid;place-items:center;visibility:hidden;color:var(--accent);flex:0 0 20px}
 .interface-choice-check svg{width:20px;height:20px}
 [aria-pressed=true]>.interface-choice-caption>.interface-choice-check{visibility:visible}
-.interface-customize-action{display:flex;justify-content:flex-end;margin-top:12px}
+
 @media(max-width:600px){.interface-mini{height:124px}.workspace-interface-choices{gap:12px}html #modal .interface-choice,:is(#orbit-workspace-ui,#orbit-mixed-sidebar) .interface-choice{padding:8px}.interface-choice-caption{font-size:13px}.interface-mini-shell{grid-template-columns:16px minmax(0,1fr);gap:5px;padding:5px}[data-preview-interface=workspace] .interface-mini-shell{grid-template-columns:16px minmax(0,1fr) 28%}}
 @media(max-width:420px){.workspace-interface-choices{grid-template-columns:minmax(0,1fr)}.interface-mini{height:132px}}
 

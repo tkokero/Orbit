@@ -5,7 +5,6 @@
   {id:'vr',title:'VR overlay',note:'Panels and wrist tools for SteamVR. Headset support is still being tested.',open:()=>OrbitDesktopTools.runtime()},
   {id:'steam',title:'Steam connection',note:'Optional local connection for download controls. Setup explains the Steam restart.',open:async()=>{closeModal();await OrbitSteam.panel();document.querySelector('.steam-controls-dialog[open] [data-steam-tab="connection"]')?.click();}},
   {id:'discord',title:'Discord friends',note:'Read-only friends access. Connecting requires your approval.',open:()=>{closeModal();document.querySelector('[data-section="friends"]')?.click();}},
-  ...(window.orbitClipsEnabled&&window.OrbitClips?[{id:'clips',title:'Clips prototype',note:'Preview capture tools in this development build.',open:()=>{closeModal();OrbitClips.open();}}]:[])
  ];
  function mount(){
   const body=document.querySelector('#modal-body'),tabs=body?.querySelector('.settings-tabs');if(!tabs||body.querySelector('#panel-experiments'))return;

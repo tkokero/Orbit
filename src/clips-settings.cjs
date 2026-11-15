@@ -28,5 +28,5 @@ function preferences(value={}){
  return {...options(value),mode:value.mode==='source'?'source':'games',recordingMode,startWithOrbit:value.startWithOrbit===true,maxSessionGB,libraryLimitGB,gameRules,saveHotkey,stopHotkey,...audio,audioPresets};
 }
 function forGame(settings,id){const {gameRules,startWithOrbit,audioPresets,...capture}=preferences(settings),rule=gameRules.find(r=>r.id===id);return rule?.mode==='skip'?null:{...capture,recordingMode:rule?.mode||capture.recordingMode};}
-function available(version,development=false){return development||/^0\.3\.0-dev\.\d+$/.test(version||'');}
+function available(version,development=false){const parts=/^(\d+)\.(\d+)\.(\d+)(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/.exec(version||'');return development||Boolean(parts&&(Number(parts[1])>0||Number(parts[2])>=3));}
 module.exports={hotkey,preferences,audioPreferences,forGame,available};

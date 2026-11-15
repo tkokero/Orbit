@@ -16,7 +16,7 @@ npm start
 - npm run dist builds the installer and update metadata.
 - npm run dev opens an isolated Orbit-Dev profile. Ctrl+Shift+D opens diagnostics.
 
-Diagnostics and clipping experiments are unavailable in ordinary packaged builds. See [Validation](docs/VALIDATION.md) for test guidance and the [Controller development reference](docs/reference/CONTROLLER-DEVELOPMENT.md) for implementation details.
+Diagnostics are unavailable in ordinary packaged builds. Clipping is available from 0.3.0 and starts only after the user enables capture. See [Validation](docs/VALIDATION.md) for test guidance and the [Controller development reference](docs/reference/CONTROLLER-DEVELOPMENT.md) for implementation details.
 
 ## Making changes
 

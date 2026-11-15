@@ -15,7 +15,7 @@ async function fixture(run){
 test('capture preferences normalize shortcuts, reject conflicts, and keep release capability explicit',()=>{
  assert.equal(hotkey('ctrl + shift + f8'),'Control+Shift+F8');assert.equal(preferences().saveHotkey,'F8');
  assert.throws(()=>preferences({saveHotkey:'F8',stopHotkey:'f8'}),/different/);assert.throws(()=>hotkey('A'),/function key/);assert.throws(()=>hotkey('Ctrl+Ctrl+F8'),/function key/);
- assert.equal(available('0.2.8'),false);assert.equal(available('0.3.0-dev.1'),true);assert.equal(available('0.3.0'),false);
+ assert.equal(available('0.2.8'),false);assert.equal(available('0.3.0-dev.1'),true);assert.equal(available('0.3.0'),true);assert.equal(available('0.3.1'),true);assert.equal(available('0.4.0'),true);assert.equal(available('1.0.0'),true);assert.equal(available('0.2.99'),false);assert.equal(available('invalid'),false);assert.equal(available('',true),true);
 });
 test('invalid capture preferences cannot prevent Orbit from opening or overwrite saved choices',()=>{
  let persisted=false;const clips=new Clips({folder:os.tmpdir(),settings:{saveHotkey:'bad shortcut'},persist:async()=>persisted=true});
