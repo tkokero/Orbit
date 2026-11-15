@@ -194,9 +194,10 @@ function renderHero(items) {
     else {setHeroImage(null);if(!featured.heroRequested){featured.heroRequested=true;window.orbit.hero(featured.id).then(src=>{featured.hero=src;if(src&&state.featured===featured.id&&!$('#hero').hidden&&!$('#library-panel').hidden&&!document.hidden)setHeroImage(src);}).catch(()=>{});}}
     img.onerror=()=>{img.hidden=true;};
   } else {$('#hero-title').textContent='Your library';$('#hero-description').textContent='';setHeroImage(null);$('#hero-play').disabled=true;$('#hero-details').disabled=true;}
-  const root=$('#recent-games');
+  const root=$('#recent-games'),recentFocus=root.contains(document.activeElement)?document.activeElement.closest('[data-recent]')?.dataset.recent:null;
   if(!showRecents){unobserve(root);root.replaceChildren();return;}
   stableChildren(root,recent.map(g=>`<button data-recent="${g.id}" class="recent-game ${g.id===state.featured?'active':''}">${g.robloxPlaceId?OrbitIcons.robloxMarkup(g.robloxPlaceId):''}${g.cover?`<img data-src="${esc(g.cover)}" data-cover="${g.id}" alt="" decoding="async">`:''}<span class="recent-info"><strong>${esc(g.title)}</strong><small>${g.playtimeKnown?hours(g.playtime):''}${g.lastPlayed?' · '+new Date(g.lastPlayed).toLocaleDateString(undefined,{month:'short',day:'numeric'}):''}</small></span></button>`).join(''));observeImages(root);
+  if(recentFocus&&!root.contains(document.activeElement)){const buttons=[...root.querySelectorAll('[data-recent]')];(buttons.find(b=>b.dataset.recent===recentFocus)||buttons.at(-1))?.focus({preventScroll:true});}
 }
 async function refresh(repair=false) {
   if(state.busy)return;state.busy=true;$('#refresh').disabled=true;$('#sync-status').textContent=repair?'Repairing images…':'Scanning…';
