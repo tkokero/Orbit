@@ -36,6 +36,8 @@ While the video is focused, **Space** plays/pauses, **←/→** seeks five secon
 
 Right-click a recording for playback, **Show file**, **Copy clip title** and **Delete clip**. Delete is also available beside the player. Confirming moves that recording and its details to the Windows Recycle Bin; Cancel keeps them. To recover it, restore both files from Windows and refresh Clips. A recording still being written cannot be deleted.
 
+Clip details are kept in a hidden `.orbit` folder beside the videos. Older adjacent detail files move there automatically when Clips loads; recordings, titles and bookmarks are retained. Keep this folder with the videos when moving or backing up your collection. Conflicting files are kept rather than overwritten.
+
 ## Capture settings
 
 Expand **Capture settings** to choose 15, 30, 60, or 120 seconds, 720p, 1080p or 1440p, and 30 or 60 FPS. Selecting 1440p shows a resource warning before applying it. The source and encoder may deliver fewer frames; smaller sources are not enlarged to 1440p. Short clips can begin at a nearby keyframe; the buffer meter shows the available replay time.

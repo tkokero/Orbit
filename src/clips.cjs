@@ -1,5 +1,6 @@
 const {spawn}=require('node:child_process');
 const fs=require('node:fs/promises'),path=require('node:path'),{pathToFileURL}=require('node:url');
+const details=require('./clip-details.cjs');
 const {preferences,forGame}=require('./clips-settings.cjs');
 const {windowIdentity,sameOwner,gameSource}=require('./clips-window.cjs');
 
@@ -126,7 +127,7 @@ class Clips{
   if(!item||path.dirname(path.resolve(item.path||''))!==this.folder||path.basename(item.path)!==item.name)throw Error('The recorder returned an invalid clip.');
   const stat=await fs.lstat(item.path);if(!stat.isFile()||stat.isSymbolicLink())throw Error('The recording is no longer available.');
   const metadata={...game,seconds:item.seconds,createdAt:item.createdAt,capture,kind:item.kind==='session'?'session':'replay',bookmarks:Array.isArray(item.bookmarks)?item.bookmarks.slice(0,1000).filter(b=>Number.isFinite(b.seconds)&&b.seconds>=0).map(b=>({seconds:b.seconds})):[]};
-  await fs.writeFile(item.path+'.json',JSON.stringify(metadata),'utf8');this.saved.set(item.name,item.path);this.emit({lastSaved:{...item,...metadata},saving:false,message:item.stopReason||(item.kind==='session'?'Session saved':'Clip saved')});try{this.onSaved(item);}catch{}return item;
+  await details.write(item.path,metadata);this.saved.set(item.name,item.path);this.emit({lastSaved:{...item,...metadata},saving:false,message:item.stopReason||(item.kind==='session'?'Session saved':'Clip saved')});try{this.onSaved(item);}catch{}return item;
  }
  save(){
   if(this.state.phase!=='recording'||this.saveTask)return Promise.reject(Error(this.saveTask?'A clip is already being saved.':'No game is being buffered yet.'));
@@ -163,11 +164,11 @@ class Clips{
  async list(){
   await fs.mkdir(this.folder,{recursive:true});const saved=new Map();
   const names=(await fs.readdir(this.folder)).filter(n=>/^Orbit .+\.mp4(?:\.partial)?$/.test(n)&&(!this.child||n!==this.state.sessionPartial)),files=[],items=[];let next=0;
-  await Promise.all(Array.from({length:Math.min(8,names.length)},async()=>{while(next<names.length){const name=names[next++],file=path.join(this.folder,name);try{const stat=await fs.lstat(file);if(stat.isFile()&&!stat.isSymbolicLink())files.push({name,file,stat});}catch{}}}));
+  await Promise.all(Array.from({length:Math.min(8,names.length)},async()=>{while(next<names.length){const name=names[next++],file=path.join(this.folder,name);try{const stat=await fs.lstat(file);if(stat.isFile()&&!stat.isSymbolicLink()){if(name!==this.state.sessionPartial)await details.migrate(file).catch(()=>{});files.push({name,file,stat});}}catch{}}}));
   files.sort((a,b)=>b.stat.mtimeMs-a.stat.mtimeMs);
   for(const {name,file,stat}of files.slice(0,100)){
    let meta={};
-   try{const info=await fs.lstat(file+'.json');if(info.isFile()&&!info.isSymbolicLink()&&info.size<=128*1024)meta=JSON.parse(await fs.readFile(file+'.json','utf8'));}catch{}
+   try{meta=await details.read(file);}catch{}
    const interrupted=name.endsWith('.partial');if(interrupted){if(meta.kind!=='session'||stat.size<64)continue;if(meta.recording&&Number.isSafeInteger(meta.writerPid)&&meta.writerPid>0){try{process.kill(meta.writerPid,0);continue;}catch(error){if(error.code!=='ESRCH')continue;}}}
    saved.set(name,file);items.push({name,bytes:stat.size,createdAt:Number.isFinite(meta.createdAt)&&meta.createdAt>0?meta.createdAt:stat.mtimeMs,gameId:typeof meta.gameId==='string'?meta.gameId.slice(0,2048):null,gameTitle:typeof meta.gameTitle==='string'?meta.gameTitle.slice(0,200):null,source:typeof meta.source==='string'?meta.source.slice(0,200):null,seconds:Number.isFinite(meta.seconds)?meta.seconds:null,kind:meta.kind==='session'?'session':'replay',interrupted,bookmarks:(Array.isArray(meta.bookmarks)?meta.bookmarks:[]).slice(0,1000).filter(b=>Number.isFinite(b?.seconds)&&b.seconds>=0).map(b=>({seconds:b.seconds}))});
   }
@@ -187,9 +188,9 @@ class Clips{
   this.removing.add(name);
   try{
    let file;try{file=await this.file(name);}catch(error){if(error.code==='ENOENT')throw Error('The saved clip is no longer available.');throw error;}
-   let metadata=null;try{const stat=await fs.lstat(file+'.json');if(!stat.isFile()||stat.isSymbolicLink())throw Error('The clip details changed. Refresh Clips before deleting.');metadata=file+'.json';if(name.endsWith('.partial')&&stat.size<=128*1024){const info=JSON.parse(await fs.readFile(metadata,'utf8'));if(info.recording&&Number.isSafeInteger(info.writerPid)&&info.writerPid>0){try{process.kill(info.writerPid,0);throw Error('Stop this recording before deleting it.');}catch(error){if(error.code!=='ESRCH')throw error;}}}}catch(error){if(error.code!=='ENOENT')throw error;}
+   const metadata=await details.files(file);if(name.endsWith('.partial')&&details.writing(await details.read(file)))throw Error('Stop this recording before deleting it.');
    await trash(file);this.saved.delete(name);let warning=null;
-   if(metadata)try{await trash(metadata);}catch{warning='The recording was moved to the Recycle Bin, but its details could not be moved.';}
+   for(const entry of metadata)try{await trash(entry);}catch{warning='The recording was moved to the Recycle Bin, but its details could not be moved.';}
    if(this.state.lastSaved?.name===name)this.emit({lastSaved:null});
    return {deleted:true,name,recycled:true,warning};
   }finally{this.removing.delete(name);}
